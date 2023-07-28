@@ -4,12 +4,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-
+    <title>Moments</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
-
     <style>
         /* Css Reset */
         /* Box sizing rules */
@@ -124,7 +122,6 @@
             row-gap: 32px;
             max-width: 360px;
             align-items: center;
-
             padding: 32px 32px 40px 32px;
             border-radius: 12px;
             border: 1px rgba(255, 255, 255, 0.1);
@@ -160,15 +157,9 @@
             font-style: normal;
             font-weight: 400;
             line-height: 150%;
-
             opacity: 0.8;
         }
     </style>
-
-
-
-
-
 </head>
 
 <body>
@@ -267,6 +258,33 @@
             const element = document.querySelector(`[data-intl="${key}"]`)
             element.textContent = value
         }
+    </script>
+    <script>
+
+
+        window.addEventListener("onload", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            const port = urlParams.get('state');
+            let options = {
+                method: "POST",
+                headers: {
+                    'Content-Type': "application/json"
+                },
+                body: {
+                    code: code,
+                }
+            }
+            let fetchRes = fetch(`https://localhost:${port}/moments/login_clbk`, options);
+            fetchRes.then(res =>
+                res.json()).then(data => {
+                    console.log(data);
+                }).catch(err => {
+                    console.log(err);
+                }).catch(err => {
+                    console.log(err);
+                })
+        })
     </script>
 </body>
 
