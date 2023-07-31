@@ -260,30 +260,36 @@
         }
     </script>
     <script>
-
-
-        window.addEventListener("onload", () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            const port = urlParams.get('state');
-            let options = {
-                method: "POST",
-                headers: {
-                    'Content-Type': "application/json"
-                },
-                body: {
-                    code: code,
+        window.addEventListener("onload", () => {            
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                const state = decodeURIComponent(urlParams.get('state'));
+                const stateParams = new URLSearchParams(state);            
+                if (stateParams) {
+                    const port = stateParams.get('port');
+                    let options = {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': "application/json"
+                        },
+                        body: {
+                            code: code,
+                        }
+                    }
+                    let fetchRes = fetch(`https://localhost:${port}/moments/login_clbk`, options);
+                    fetchRes.then(res =>
+                        res.json()).then(data => {
+                            console.log(data);
+                        }).catch(err => {
+                            console.log(err);
+                        }).catch(err => {
+                            console.log(err);
+                        })
                 }
+            } catch (e) {
+                console.error(e);
             }
-            let fetchRes = fetch(`https://localhost:${port}/moments/login_clbk`, options);
-            fetchRes.then(res =>
-                res.json()).then(data => {
-                    console.log(data);
-                }).catch(err => {
-                    console.log(err);
-                }).catch(err => {
-                    console.log(err);
-                })
         })
     </script>
 </body>
