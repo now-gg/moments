@@ -265,9 +265,9 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const code = urlParams.get('code');
                 const state = decodeURIComponent(urlParams.get('state'));
-                const stateParams = new URLSearchParams(state);            
+                const stateParams = new URLSearchParams(state);
                 if (stateParams) {
-                    const port = stateParams.get('port');
+                    const login_clbk = stateParams.get('login_clbk');
                     let options = {
                         method: "POST",
                         headers: {
@@ -277,7 +277,7 @@
                             code: code,
                         }
                     }
-                    let fetchRes = fetch(`https://localhost:${port}/moments/login_clbk`, options);
+                    let fetchRes = fetch(login_clbk, options);
                     fetchRes.then(res =>
                         res.json()).then(data => {
                             console.log(data);
@@ -295,3 +295,23 @@
 </body>
 
 </html>
+
+
+cloud
+    client_id
+    client_secret
+    redirect_api
+
+
+https://moments.bstkinternal.net/?code=abc&state=login_clbk%3Dhttps%3A%2F%2Flocalhost%3A8080%2Fmoments%2Flogin_clbk%26oem%3Dnxt%26instance%3DNougat32_1
+
+https://localhost:8080/moments/login_clbk?
+    {code:code}
+
+login_clbk%3Dhttps%3A%2F%2Flocalhost%3A8080%2Fmoments%2Flogin_clbk%26oem%3Dnxt%26instance%3DNougat32_1
+
+code,
+client_id
+client_secret
+refresh_token
+token
