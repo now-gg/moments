@@ -166,13 +166,10 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const code = urlParams.get('code');
                 const state = decodeURIComponent(urlParams.get('state'));
-                console.log(state)
                 const states = state.split('||');
-                console.log("states: ", states);
                 let login_clbk;
                 let instance;
                 states.forEach(item => {
-                    console.log(item)
                     if (item.includes('login_clbk')) {
                         login_clbk = item.split('|')[1];
                     }
@@ -180,8 +177,6 @@
                         instance = item.split('|')[1];
                     }
                 })
-                console.log("login_clbk: ", login_clbk);
-                console.log("instance: ", instance);
                 if (login_clbk) {
                     let options = {
                         method: "POST",
