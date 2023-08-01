@@ -160,9 +160,54 @@
             opacity: 0.8;
         }
     </style>
+    <script>
+        function onBodyLoad() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                const state = decodeURIComponent(urlParams.get('state'));
+                const states = state.split('|');
+                console.log("states: ", states);
+                let login_clbk;
+                let instance;
+                for (const item in states) {
+                    if (item.includes('login_clbk')) {
+                        login_clbk = item.split('~')[1];
+                    }
+                    if (item.includes('instance')) {
+                        instance = item.split('~')[1];
+                    }
+                }
+                console.log("login_clbk: ", login_clbk);
+                console.log("instance: ", instance);
+                if (login_clbk) {
+                    let options = {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': "application/json"
+                        },
+                        body: {
+                            code: code,
+                        }
+                    }
+                    let fetchRes = fetch(login_clbk, options);
+                    fetchRes.then(res =>
+                        console.log(res)
+                    ).catch(err => {
+                        console.log(err);
+                    }).finally(() => {
+                        if (instance)
+                            window.location.href = `bluestacksgp: -json {"instance":"${instance}"}`
+                    })
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    </script>
 </head>
 
-<body>
+<body onload="onBodyLoad()">
     <main>
         <div id="main">
             <section id="login">
@@ -259,59 +304,6 @@
             element.textContent = value
         }
     </script>
-    <script>
-        window.addEventListener("onload", () => {            
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const code = urlParams.get('code');
-                const state = decodeURIComponent(urlParams.get('state'));
-                const stateParams = new URLSearchParams(state);
-                if (stateParams) {
-                    const login_clbk = stateParams.get('login_clbk');
-                    let options = {
-                        method: "POST",
-                        headers: {
-                            'Content-Type': "application/json"
-                        },
-                        body: {
-                            code: code,
-                        }
-                    }
-                    let fetchRes = fetch(login_clbk, options);
-                    fetchRes.then(res =>
-                        res.json()).then(data => {
-                            console.log(data);
-                        }).catch(err => {
-                            console.log(err);
-                        }).catch(err => {
-                            console.log(err);
-                        })
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        })
-    </script>
 </body>
 
 </html>
-
-
-cloud
-    client_id
-    client_secret
-    redirect_api
-
-
-https://moments.bstkinternal.net/?code=abc&state=login_clbk%3Dhttps%3A%2F%2Flocalhost%3A8080%2Fmoments%2Flogin_clbk%26oem%3Dnxt%26instance%3DNougat32_1
-
-https://localhost:8080/moments/login_clbk?
-    {code:code}
-
-login_clbk%3Dhttps%3A%2F%2Flocalhost%3A8080%2Fmoments%2Flogin_clbk%26oem%3Dnxt%26instance%3DNougat32_1
-
-code,
-client_id
-client_secret
-refresh_token
-token
