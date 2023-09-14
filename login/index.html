@@ -162,22 +162,44 @@
         }
     </style>
     <script>
+        function sendStats(cloudHost, formData){
+            const requestOptions = { method: 'POST', body: formData};
+            fetch(`${cloudHost}/app_player/miscellaneousstats`, requestOptions)
+                .then(response => response.text())
+                .then(result => log(result))
+                .catch(error => console.error('error', error));
+        }
         function onBodyLoad() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
                 const code = urlParams.get('code');
                 const state = decodeURIComponent(urlParams.get('state'));
                 const states = state.split('||');
-                let login_clbk;
-                let instance;
+                const paramsObj = {};
                 states.forEach(item => {
-                    if (item.includes('login_clbk')) {
-                        login_clbk = item.split('|')[1];
-                    }
-                    if (item.includes('instance')) {
-                        instance = item.split('|')[1];
-                    }
-                })
+                    const [key, value] = item.split('|');
+                    paramsObj[key] = value;
+                });
+                let login_clbk;
+                if (paramsObj.hasOwnProperty("login_clbk")) {
+                    login_clbk = paramsObj["login_clbk"];
+                    delete paramsObj["login_clbk"];
+                }
+                let cloud_host;
+                if (paramsObj.hasOwnProperty("cloud_host")) {
+                    cloud_host = paramsObj["cloud_host"];
+                    delete paramsObj["cloud_host"];
+                }
+                if(cloud_host) {
+                    const formdata = new FormData();
+                    Object.keys(paramsObj).forEach(key => {
+                        formdata.set(key, paramsObj[key]);
+                    });
+                    formdata.set("event_type", "moments_signin_page_completed");
+                    formdata.set("tag", "moments");
+                    sendStats(cloud_host, formdata);
+                }
+
                 if (login_clbk) {
                     let options = {
                         method: "POST",
@@ -194,8 +216,8 @@
                     ).catch(err => {
                         console.log(err);
                     }).finally(() => {
-                        if (instance)
-                            window.location.href = `bluestacksgp: -json {"instance":"${instance}"}`
+                        if (paramsObj.hasOwnProperty("instance"))
+                            window.open(`bluestacksgp: -json {"instance":"${paramsObj["instance"]}"}`, "_self")
                     })
                 }
             } catch (e) {
