@@ -216,7 +216,7 @@
                     ).catch(err => {
                         console.log(err);
                     }).finally(() => {
-                        if (instance)
+                        if (paramsObj.hasOwnProperty("instance"))
                             window.open(`bluestacksgp: -json {"instance":"${paramsObj["instance"]}"}`, "_self")
                     })
                 }
