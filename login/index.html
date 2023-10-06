@@ -215,7 +215,7 @@
                     fetchRes.then(res => {
                         if (cloud_host) {
                             formData.set("arg1", login_clbk);
-                            formData.set("event_type", "moments_signin_callback_completed")
+                            formData.set("event_type", "moments_signin_callback_success")
                             sendStats(cloud_host, formData);
                         }
                     }
