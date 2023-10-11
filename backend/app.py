@@ -65,4 +65,4 @@ def process():
         if isinstance(e, KeyError):
             return jsonify({"status": "error", "message": f'Key {e} missing from request body'}), 400
         print(e)
-        return jsonify({"status": "error", "message": "Something went wrong"}), 500
+        return jsonify({"status": "error", "message": f'Something went wrong {e}'}), 500
