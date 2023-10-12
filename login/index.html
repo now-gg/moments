@@ -162,8 +162,8 @@
         }
     </style>
     <script>
-        function sendStats(cloudHost, formData){
-            const requestOptions = { method: 'POST', body: formData};
+        function sendStats(cloudHost, formData) {
+            const requestOptions = { method: 'POST', body: formData };
             fetch(`${cloudHost}/app_player/miscellaneousstats`, requestOptions)
                 .then(response => response.text())
                 .then(result => log(result))
@@ -190,14 +190,15 @@
                     cloud_host = paramsObj["cloud_host"];
                     delete paramsObj["cloud_host"];
                 }
-                if(cloud_host) {
-                    const formdata = new FormData();
+                var formData;
+                if (cloud_host) {
+                    formData = new FormData();
                     Object.keys(paramsObj).forEach(key => {
-                        formdata.set(key, paramsObj[key]);
+                        formData.set(key, paramsObj[key]);
                     });
-                    formdata.set("event_type", "moments_signin_page_completed");
-                    formdata.set("tag", "moments");
-                    sendStats(cloud_host, formdata);
+                    formData.set("event_type", "moments_signin_page_completed");
+                    formData.set("tag", "moments");
+                    sendStats(cloud_host, formData);
                 }
 
                 if (login_clbk) {
@@ -211,10 +212,19 @@
                         })
                     }
                     let fetchRes = fetch(login_clbk, options);
-                    fetchRes.then(res =>
-                        console.log(res)
+                    fetchRes.then(res => {
+                        if (cloud_host) {
+                            formData.set("arg1", login_clbk);
+                            formData.set("event_type", "moments_signin_callback_success")
+                            sendStats(cloud_host, formData);
+                        }
+                    }
                     ).catch(err => {
-                        console.log(err);
+                        if (cloud_host) {
+                            formData.set("arg1", login_clbk);
+                            formData.set("event_type", "moments_signin_callback_failed")
+                            sendStats(cloud_host, formData);
+                        }
                     }).finally(() => {
                         if (paramsObj.hasOwnProperty("instance"))
                             window.open(`bluestacksgp: -json {"instance":"${paramsObj["instance"]}"}`, "_self")
