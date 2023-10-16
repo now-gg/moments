@@ -2,7 +2,9 @@ from flask import Flask, render_template, request, jsonify
 import os
 import time
 from moviepy.editor import *
-from utils import get_upload_file_path, save_input_video
+from utils import get_upload_file_path
+from credentials import CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN
+import requests
 
 
 app = Flask(__name__)
@@ -11,6 +13,41 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     return "Moments backend"
+
+
+@app.route("/video/upload", methods=["POST"])
+def upload():
+    try:
+        cloudflare_upload_url = "https://api.cloudflare.com/client/v4/accounts/" + CLOUDFLARE_ACCOUNT_ID + "/stream/copy"
+        body = request.get_json()
+        title = body["title"]
+        video_url = body["video_url"]
+        
+        res = requests.post(cloudflare_upload_url, headers = {
+            'Content-Type': 'application/json',
+            'Upload-Creator': '',
+            'Upload-Metadata': '',
+            'X-Auth-Email': ''
+        },
+        data = {
+            "url": video_url,
+            "meta": {
+                "title": title
+            }
+        })
+
+        res = res.json()
+        result = res["result"]
+
+        if res["status_code"] == 200:
+            return jsonify({ "status": "success", "result": result, "account_id": CLOUDFLARE_ACCOUNT_ID }), 200
+        
+        errors = res["errors"]
+        
+        return jsonify({ "status": "error", "message": "Something went wrong", "errors": errors, "account_id": CLOUDFLARE_ACCOUNT_ID }), res["status_code"]
+            
+    except Exception as e:
+        return jsonify({"status": "error", "message": "Something went wrong", "error": e, "account_id": CLOUDFLARE_ACCOUNT_ID }), 500
     
 
 @app.route("/video/process", methods=["POST"])
