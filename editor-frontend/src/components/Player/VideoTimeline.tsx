@@ -1,6 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import styled from "styled-components";
 import InputSlider from './InputSlider';
+
+type VideoProps = {
+  url: string;
+};
 
 const VideoTimelineWrapper = styled.div`
   position: relative;
@@ -30,11 +34,10 @@ const VideoTimelineWrapper = styled.div`
     }
   }
 `
-const VideoTimeline: React.FC = ({ url }) => {
-  const [video, setVideo] = useState<File | null>(null);
+const VideoTimeline = ({ url }: VideoProps) => {
+  const [video, setVideo] = useState('');
   const [timelineFrames, setTimelineFrames] = useState<string[]>([]);
   const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
-  const sliderRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setVideo(url);
@@ -42,7 +45,7 @@ const VideoTimeline: React.FC = ({ url }) => {
   }, [])
 
 
-  function log(msg) {
+  function log(msg: any) {
     console.log(`${new Date().toLocaleString("en-us")}: ${msg}`);
   }
   const generateTimeline = () => {
@@ -82,12 +85,6 @@ const VideoTimeline: React.FC = ({ url }) => {
     // }
   };
 
-  const handleSliderChange = () => {
-    if (sliderRef.current) {
-      const value = parseInt(sliderRef.current.value);
-      setSelectedFrame(timelineFrames[value]);
-    }
-  };
   const style = {
     width: `calc(100%/${timelineFrames.length})`,
   }
@@ -100,7 +97,6 @@ const VideoTimeline: React.FC = ({ url }) => {
             src={frame}
             alt={`Frame ${index}`}
             style={style}
-            // height={50}
             className={`frame-image ${selectedFrame === frame ? 'selected' : ''
               }`}
           />
@@ -108,15 +104,6 @@ const VideoTimeline: React.FC = ({ url }) => {
       </div>
       <div className="slider-container">
         <InputSlider min={0} max={timelineFrames.length - 1} />
-        {/* <input
-          className='slider'
-          type="range"
-          min={0}
-          max={timelineFrames.length - 1}
-          defaultValue={0}
-          ref={sliderRef}
-          onChange={handleSliderChange}
-        /> */}
       </div>
     </VideoTimelineWrapper>
   );

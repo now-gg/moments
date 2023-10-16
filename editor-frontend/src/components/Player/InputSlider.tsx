@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import MultiRangeSlider, { ChangeResult } from "multi-range-slider-react";
 import styled from "styled-components";
 const InputSliderWrapper = styled.div`
@@ -73,7 +73,13 @@ const InputSliderWrapper = styled.div`
   }
 
 `
-const InputSlider = ({ min, max }) => {
+
+type SliderProps = {
+  min: number;
+  max: number
+};
+
+const InputSlider = ({ min, max }: SliderProps) => {
 
   const [minValue, setMinValue] = useState(min);
   const [maxValue, setMaxValue] = useState(max);

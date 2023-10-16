@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-// import ReactPlayer from "react-player/file";
+import { useEffect } from "react";
 import VideoControlButtons from "./VideoControlButtons";
 import VideoTimeline from "./VideoTimeline";
 import styled from "styled-components";
@@ -75,29 +74,24 @@ const VideoFrameWrapper = styled.div`
 `
 
 const Player = ({ url }: PlayerProps) => {
-  let videoRef = React.createRef();
-  const dragElement = (element) => {
+  const dragElement = (element: any) => {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    const dragMouseDown = (e) => {
+    const dragMouseDown = (e: any) => {
       e = e || window.event;
       e.preventDefault();
-      // get the mouse cursor position at startup:
       pos3 = e.clientX;
       pos4 = e.clientY;
       document.onmouseup = closeDragElement;
-      // call a function whenever the cursor moves:
       document.onmousemove = elementDrag;
     }
 
-    const elementDrag = (e) => {
+    const elementDrag = (e: any) => {
       e = e || window.event;
       e.preventDefault();
-      // calculate the new cursor position:
       pos1 = pos3 - e.clientX;
       pos2 = pos4 - e.clientY;
       pos3 = e.clientX;
       pos4 = e.clientY;
-      // set the element's new position:
       element.style.top = (element.offsetTop - pos2) + "px";
       element.style.left = (element.offsetLeft - pos1) + "px";
     }
@@ -108,11 +102,7 @@ const Player = ({ url }: PlayerProps) => {
       document.onmousemove = null;
     }
     if (element) {
-      /* if present, the header is where you move the DIV from:*/
       element.onmousedown = dragMouseDown;
-    } else {
-      /* otherwise, move the DIV from anywhere inside the DIV:*/
-      // element.onmousedown = dragMouseDown;
     }
   }
 
@@ -123,7 +113,7 @@ const Player = ({ url }: PlayerProps) => {
     // outer most wrapper
     <VideoFrameWrapper className="relative">
       <div className="video-wrapper">
-        <video ref={videoRef} controls id="video-frame" height="100%" width="100%" autoPlay muted loop playsInline preload="none" >
+        <video controls id="video-frame" height="100%" width="100%" autoPlay muted loop playsInline preload="none" >
           <source src={url} type="video/mp4" />
         </video>
         <div className="crop-wrapper-video hide">

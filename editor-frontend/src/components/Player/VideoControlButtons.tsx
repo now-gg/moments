@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import styled from "styled-components";
 
 type ControlProps = {
@@ -138,7 +137,7 @@ const VideoControlsWrapper = styled.section`
 
 const VideoControlButtons = ({ }: ControlProps) => {
 
-  const showAspectWrapper = (e) => {
+  const showAspectWrapper = (e: any) => {
     const cropOptionElement = e.target;
     document.querySelector('.input-crop.selected')?.classList.remove('selected');
     cropOptionElement.classList.add('selected');
@@ -151,7 +150,7 @@ const VideoControlButtons = ({ }: ControlProps) => {
       document.querySelector('.crop-wrapper-video')?.classList.add('hide');
     }
   }
-  const toggleOptions = (e) => {
+  const toggleOptions = (e: any) => {
     const toggleButton = e.target;
     toggleButton.closest('.action-buttons').querySelector('.options-wrapper').classList.toggle('hide');
     // toggleButton.closest('.action-buttons').querySelector('.options-wrapper').classList.toggle('slide-in-out');
