@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import styled from "styled-components";
 
 type ControlProps = {
@@ -79,11 +80,13 @@ const VideoControlsWrapper = styled.section`
         box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.04);
         width: 72px;
         height: 30px;
-        padding: 0px 10px;
-        font-size: 14px;
+        padding: 5px 10px;
+        font-size: 12px;
         font-weight: 400;
         line-height: 150%;
         text-align: center;
+        color: #B5ACCD;
+        cursor:pointer;
       }
       input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
         -webkit-appearance: none;
@@ -93,6 +96,9 @@ const VideoControlsWrapper = styled.section`
     .crop-options{
       gap:4px;
       .input-crop{
+        &.selected{
+          color:#332A4B;
+        }
         &:not(:first-child){
           width: 42px;
         }
@@ -131,6 +137,20 @@ const VideoControlsWrapper = styled.section`
 `
 
 const VideoControlButtons = ({ }: ControlProps) => {
+
+  const showAspectWrapper = (e) => {
+    const cropOptionElement = e.target;
+    document.querySelector('.input-crop.selected')?.classList.remove('selected');
+    cropOptionElement.classList.add('selected');
+    const cropOption = cropOptionElement.getAttribute('data-option');
+    document.querySelector('.crop-wrapper-video')?.classList.remove('hide');
+    if (cropOption != '') {
+      document.querySelector('.crop-wrapper-video')?.setAttribute('style', `aspect-ratio:${cropOption};`);
+    } else {
+      document.querySelector('.crop-wrapper-video')?.setAttribute('style', ``);
+      document.querySelector('.crop-wrapper-video')?.classList.add('hide');
+    }
+  }
   const toggleOptions = (e) => {
     const toggleButton = e.target;
     toggleButton.closest('.action-buttons').querySelector('.options-wrapper').classList.toggle('hide');
@@ -178,14 +198,14 @@ const VideoControlButtons = ({ }: ControlProps) => {
             Crop
           </button>
           <div className="crop-options flex options-wrapper hide">
-            <input className="input-crop" placeholder="Original" />
-            <input className="input-crop" placeholder="1:1" />
-            <input className="input-crop" placeholder="9:16" />
-            <input className="input-crop" placeholder="3:4" />
-            <input className="input-crop" placeholder="4:3" />
-          </div>
-        </div>
-      </div>
+            <span className="input-crop" data-option="" onClick={(e) => { showAspectWrapper(e) }}>Original</span>
+            <span className="input-crop" data-option="1/1" onClick={(e) => { showAspectWrapper(e) }}>1:1</span>
+            <span className="input-crop" data-option="9/16" onClick={(e) => { showAspectWrapper(e) }}>9:16</span>
+            <span className="input-crop" data-option="3/4" onClick={(e) => { showAspectWrapper(e) }}>3:4</span>
+            <span className="input-crop" data-option="4/3" onClick={(e) => { showAspectWrapper(e) }}>4:3</span>
+          </div >
+        </div >
+      </div >
       <div className="reset-save-options flex">
         <button className="reset-btn flex">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
@@ -200,7 +220,7 @@ const VideoControlButtons = ({ }: ControlProps) => {
           </svg>
         </button>
       </div>
-    </VideoControlsWrapper>
+    </VideoControlsWrapper >
   );
 };
 

@@ -9,34 +9,153 @@ type PlayerProps = {
 };
 
 const VideoFrameWrapper = styled.div`
-    .canvas-wrapper{
-        position: absolute;
-        bottom: 0;
-        z-index: 9;
-        canvas{
-            height: 20px;
-            color: #fff;
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0.00) 33.52%, rgba(0, 0, 0, 0.80) 81.29%), lightgray -223.782px -1.135px / 145.81% 102.381% no-repeat;
+  .video-wrapper{
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    .crop-wrapper-video{
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      height: 100%;
+      background: rgba(255,255,255,.2);
+      &.hide{
+        display:none;
+      }
+      .svg-arrow-wrapper{
+        height: 100%;
+        width: 100%;
+        position: relative;
+        svg{
+          position: absolute;
+          &.left{
+            left:0;
+          }
+          &.top{
+            top:0;
+          }
+          &.bottom{
+            bottom:0;
+          }
+          &.right{
+            right:0;
+          }
+          &.svg-2, &.svg-3{
+            left: 50%;
+            transform: translate(-50%,0);
+          }
+          &.svg-6, &.svg-7{
+            top: 50%;
+            transform: translate(0, -50%);
+          }
         }
+      }
     }
-    section.relative{
-        border-radius: 8px;
-        overflow: hidden;
-        margin-top: 8px;
-        // height: 50px;
-        background: linear-gradient(180deg, rgba(0, 0, 0, 0.00) 33.52%, rgba(0, 0, 0, 0.80) 81.29%), lightgray -223.782px -1.135px / 145.81% 102.381% no-repeat;
+  }
+  .canvas-wrapper{
+    position: absolute;
+    bottom: 0;
+    z-index: 9;
+    canvas{
+      height: 20px;
+      color: #fff;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.00) 33.52%, rgba(0, 0, 0, 0.80) 81.29%), lightgray -223.782px -1.135px / 145.81% 102.381% no-repeat;
     }
+  }
+  section.relative{
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 8px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.00) 33.52%, rgba(0, 0, 0, 0.80) 81.29%), lightgray -223.782px -1.135px / 145.81% 102.381% no-repeat;
+    &.bg-color{
+      background: rgba(0,0,0, .7);
+    }
+  }
 `
 
 const Player = ({ url }: PlayerProps) => {
   let videoRef = React.createRef();
+  const dragElement = (element) => {
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    const dragMouseDown = (e) => {
+      e = e || window.event;
+      e.preventDefault();
+      // get the mouse cursor position at startup:
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      // call a function whenever the cursor moves:
+      document.onmousemove = elementDrag;
+    }
 
+    const elementDrag = (e) => {
+      e = e || window.event;
+      e.preventDefault();
+      // calculate the new cursor position:
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      // set the element's new position:
+      element.style.top = (element.offsetTop - pos2) + "px";
+      element.style.left = (element.offsetLeft - pos1) + "px";
+    }
+
+    const closeDragElement = () => {
+      /* stop moving when mouse button is released:*/
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
+    if (element) {
+      /* if present, the header is where you move the DIV from:*/
+      element.onmousedown = dragMouseDown;
+    } else {
+      /* otherwise, move the DIV from anywhere inside the DIV:*/
+      // element.onmousedown = dragMouseDown;
+    }
+  }
+
+  useEffect(() => {
+    dragElement(document.querySelector('.crop-wrapper-video'));
+  }, [])
   return (
     // outer most wrapper
     <VideoFrameWrapper className="relative">
-      {/* <ReactPlayer playing={playerData.playing} url={url} wrapper={Wrapper} /> */}
-      <video ref={videoRef} src={url} controls id="video-frame" height="100%" width="100%" />
-      <section className="relative">
+      <div className="video-wrapper">
+        <video ref={videoRef} controls id="video-frame" height="100%" width="100%" autoPlay muted loop playsInline preload="none" >
+          <source src={url} type="video/mp4" />
+        </video>
+        <div className="crop-wrapper-video hide">
+          <div className="svg-arrow-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42" fill="none" className="svg-1 top left">
+              <path d="M40 2H4C2.89543 2 2 2.90281 2 4.00738C2 19.497 2 23.5073 2 40" stroke="#FF42A5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="42" height="4" viewBox="0 0 42 4" fill="none" className="svg-2 top">
+              <path d="M40 2H2" stroke="#FF42A5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="42" height="4" viewBox="0 0 42 4" fill="none" className="svg-3 bottom">
+              <path d="M40 2H2" stroke="#FF42A5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42" fill="none" className="svg-4 right top">
+              <path d="M40 40L40 4C40 2.89543 39.0972 2 37.9926 2C22.503 2 18.4927 2 2 2" stroke="#FF42A5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42" fill="none" className="svg-5 left bottom">
+              <path d="M2 2L2 38C2 39.1046 2.90281 40 4.00738 40C19.497 40 23.5073 40 40 40" stroke="#FF42A5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="4" height="42" viewBox="0 0 4 42" fill="none" className="svg-6 left">
+              <path d="M2 2L2 40" stroke="#FF42A5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="4" height="42" viewBox="0 0 4 42" fill="none" className="svg-7 right">
+              <path d="M2 2L2 40" stroke="#FF42A5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42" fill="none" className="svg-8 bottom right">
+              <path d="M2 40L38 40C39.1046 40 40 39.0972 40 37.9926C40 22.503 40 18.4927 40 2" stroke="#FF42A5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <section className="relative bg-color timeline-wrapper">
         <VideoTimeline url={url} />
       </section>
       <VideoControlButtons />

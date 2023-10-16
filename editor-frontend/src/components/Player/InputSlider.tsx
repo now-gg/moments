@@ -6,16 +6,19 @@ const InputSliderWrapper = styled.div`
     padding: 0;
     background: transparent;
     border: none;
+    .bar{
+      margin-bottom: -5px;
+    }
     .bar-left{
       padding: 1px 0;
     }
     .thumb{
       &::before{
         width: 7px;
-        height: 44px;
+        height: 50px;
         border: none;
         margin: 0;
-        bottom: -2px;
+        bottom: 0;
         border-radius: 0;
         box-shadow: none;
       }

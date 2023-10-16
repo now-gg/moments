@@ -26,7 +26,7 @@ const VideoTimelineWrapper = styled.div`
       height: 100%;
       object-fit: cover;
       display: inline-block;
-      width: calc(100%/50);
+      // width: calc(100%/50);
     }
   }
 `
@@ -52,14 +52,13 @@ const VideoTimeline: React.FC = ({ url }) => {
     videoElement.crossOrigin = 'anonymous';
     videoElement.addEventListener('loadeddata', () => {
       const duration = videoElement.duration;
-      console.log('ducration', duration);
-      const frameInterval = duration / 50;
-      const numFrames = 50;
+      console.log('duration', duration);
+      const frameInterval = duration / 10;
+      const numFrames = 10;
       const frames: string[] = [];
 
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
-
       videoElement.addEventListener('seeked', () => {
         log('video seeked');
         context?.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
@@ -71,6 +70,7 @@ const VideoTimeline: React.FC = ({ url }) => {
           setTimelineFrames(frames);
           setSelectedFrame(frames[0]);
           URL.revokeObjectURL(videoElement.src);
+          document.querySelector('.timeline-wrapper')?.classList.remove('bg-color');
         } else {
           videoElement.currentTime += frameInterval;
         }
@@ -89,12 +89,11 @@ const VideoTimeline: React.FC = ({ url }) => {
     }
   };
   const style = {
-    width: `calc(100%/${timelineFrames.length}px)`,
-    padding: 0
+    width: `calc(100%/${timelineFrames.length})`,
   }
   return (
     <VideoTimelineWrapper className="VideoTimeline" data-video={video}>
-      <div className="frames-container flex">
+      <div className="frames-container flex bg-color">
         {timelineFrames.map((frame, index) => (
           <img
             key={index}

@@ -6,7 +6,7 @@ type EditorProps = {
 
 const Editor = ({ url }: EditorProps) => {
     return (
-        <section>
+        <section style={{ flex: 1 }}>
             <Player url={url} />
         </section>
     );
