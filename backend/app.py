@@ -24,10 +24,7 @@ def upload():
         video_url = body["video_url"]
         
         res = requests.post(cloudflare_upload_url, headers = {
-            'Content-Type': 'application/json',
-            'Upload-Creator': '',
-            'Upload-Metadata': '',
-            'X-Auth-Email': ''
+            'Authorization': 'Bearer ' + CLOUDFLARE_API_TOKEN,
         },
         data = {
             "url": video_url,
