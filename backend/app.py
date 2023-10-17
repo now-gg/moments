@@ -33,18 +33,18 @@ def upload():
             }
         })
 
-        res = res.json()
-        result = res["result"]
+        res_json = res.json()
+        result = res_json["result"]
 
-        if res["status_code"] == 200:
+        if res.status_code == 200:
             return jsonify({ "status": "success", "result": result, "account_id": CLOUDFLARE_ACCOUNT_ID }), 200
         
-        errors = res["errors"]
+        errors = res_json["errors"]
         
-        return jsonify({ "status": "error", "message": "Something went wrong", "errors": errors, "account_id": CLOUDFLARE_ACCOUNT_ID }), res["status_code"]
+        return jsonify({ "status": "error", "message": "Something went wrong", "errors": errors, "account_id": CLOUDFLARE_ACCOUNT_ID }), res.status_code
             
     except Exception as e:
-        return jsonify({"status": "error", "message": "Something went wrong", "error": e, "account_id": CLOUDFLARE_ACCOUNT_ID }), 500
+        return jsonify({"status": "error", "message": "Something went wrong", "error": str(e), "account_id": CLOUDFLARE_ACCOUNT_ID }), 500
     
 
 @app.route("/video/process", methods=["POST"])
