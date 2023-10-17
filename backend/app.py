@@ -29,7 +29,7 @@ def upload():
         data = {
             "url": video_url,
             "meta": {
-                "title": title
+                "name": title
             }
         })
 
