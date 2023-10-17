@@ -3,7 +3,11 @@ import styled from "styled-components";
 import InputSlider from './InputSlider';
 
 type VideoProps = {
-  url: string;
+  url: string,
+  startTime: number,
+  endTime: number | undefined,
+  setEndTime: Function,
+  duration: number | undefined
 };
 
 const VideoTimelineWrapper = styled.div`
@@ -34,7 +38,7 @@ const VideoTimelineWrapper = styled.div`
     }
   }
 `
-const VideoTimeline = ({ url }: VideoProps) => {
+const VideoTimeline = ({ url, startTime, endTime, setEndTime, duration }: VideoProps) => {
   const [video, setVideo] = useState('');
   const [timelineFrames, setTimelineFrames] = useState<string[]>([]);
   const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
@@ -56,6 +60,7 @@ const VideoTimeline = ({ url }: VideoProps) => {
     videoElement.addEventListener('loadeddata', () => {
       const duration = videoElement.duration;
       console.log('duration', duration);
+      setEndTime(duration);
       const frameInterval = duration / 10;
       const numFrames = 10;
       const frames: string[] = [];
@@ -103,7 +108,7 @@ const VideoTimeline = ({ url }: VideoProps) => {
         ))}
       </div>
       <div className="slider-container">
-        <InputSlider min={0} max={timelineFrames.length - 1} />
+        <InputSlider min={startTime} max={endTime} duration={duration} />
       </div>
     </VideoTimelineWrapper>
   );

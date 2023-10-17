@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@cloudflare/stream-react": "^1.8.0",
     "classnames": "^2.3.2",
     "multi-range-slider-react": "^2.0.5",
     "react": "^18.2.0",

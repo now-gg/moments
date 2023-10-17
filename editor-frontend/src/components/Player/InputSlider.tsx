@@ -34,6 +34,7 @@ const InputSliderWrapper = styled.div`
           background: url(https://cms-cdn.now.gg/cms-media/2023/10/slider-right-label.png) no-repeat;
           background-size: cover;
           background-position: center;
+          right:1px;
         }
       }
     }
@@ -46,12 +47,12 @@ const InputSliderWrapper = styled.div`
       box-shadow: none;
     }
     .ruler{
-      margin: 0;
+      margin: -5px;
       .ruler-rule{
-        padding: 2px 0;
+        padding: 3px 0;
         .ruler-sub-rule{
-          padding: 1px 0;
-          margin-bottom: -14px;
+          padding: 3px 0px;
+          margin-bottom: 1px;
           border-left: none
           border-bottom: none;
           .ruler-sub-rule{
@@ -76,17 +77,20 @@ const InputSliderWrapper = styled.div`
 
 type SliderProps = {
   min: number;
-  max: number
+  max: number | undefined,
+  duration: number | undefined
 };
 
-const InputSlider = ({ min, max }: SliderProps) => {
+const InputSlider = ({ min, max, duration }: SliderProps) => {
 
   const [minValue, setMinValue] = useState(min);
   const [maxValue, setMaxValue] = useState(max);
   const getTimeLabels = (): string[] => {
     let arr: string[] = [];
-    for (let i = 0; i <= max; i++) {
-      arr.push(i.toString().padStart(2, "0") + ":00");
+    if (duration) {
+      for (let i = 0; i <= duration; i++) {
+        arr.push(i.toString().padStart(2, "0") + ":00");
+      }
     }
     return arr;
   };
@@ -94,8 +98,8 @@ const InputSlider = ({ min, max }: SliderProps) => {
     <InputSliderWrapper className="stuff">
       <MultiRangeSlider
         baseClassName="multi-range-slider-black"
-        min={0}
-        max={4}
+        min={min}
+        max={max}
         step={1}
         minValue={minValue}
         maxValue={maxValue}

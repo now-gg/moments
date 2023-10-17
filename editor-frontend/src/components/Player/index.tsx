@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import VideoControlButtons from "./VideoControlButtons";
 import VideoTimeline from "./VideoTimeline";
 import styled from "styled-components";
@@ -74,6 +74,8 @@ const VideoFrameWrapper = styled.div`
 `
 
 const Player = ({ url }: PlayerProps) => {
+  const [endTime, setEndTime] = useState(document.querySelector('video')?.duration);
+  const [startTime, setStartTime] = useState(0);
   const dragElement = (element: any) => {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     const dragMouseDown = (e: any) => {
@@ -92,6 +94,20 @@ const Player = ({ url }: PlayerProps) => {
       pos2 = pos4 - e.clientY;
       pos3 = e.clientX;
       pos4 = e.clientY;
+      // var parent = document.querySelector('.video-wrapper');
+      // var parentRect = parent?.getBoundingClientRect();
+
+      // var draggable = document.querySelector('.crop-wrapper-video');
+      // var draggableRect = draggable?.getBoundingClientRect();
+      // if ((e.clientX >= parentRect.left && (e.clientX + draggableRect.width <= parentRect.right)) &&
+      //   (e.clientY >= parentRect.top && (e.clientY + draggableRect.height >= parentRect.bottom))
+      // ) {
+      //   element.style.left = `${e.clientX}px`;
+      //   element.style.top = `${e.clientY}px`;
+      // } else {
+      //   element.style.top = (element.offsetTop - pos2) + "px";
+      //   element.style.left = (element.offsetLeft - pos1) + "px";
+      // }
       element.style.top = (element.offsetTop - pos2) + "px";
       element.style.left = (element.offsetLeft - pos1) + "px";
     }
@@ -146,9 +162,9 @@ const Player = ({ url }: PlayerProps) => {
         </div>
       </div>
       <section className="relative bg-color timeline-wrapper">
-        <VideoTimeline url={url} />
+        <VideoTimeline url={url} startTime={startTime} endTime={endTime} setEndTime={setEndTime} duration={document.querySelector('video')?.duration} />
       </section>
-      <VideoControlButtons />
+      <VideoControlButtons setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} />
     </VideoFrameWrapper >
   );
 };

@@ -1,7 +1,11 @@
+import { useState } from "react";
 import styled from "styled-components";
 
 type ControlProps = {
-
+  startTime: number,
+  endTime: number | undefined,
+  setStartTime: Function,
+  setEndTime: Function
 };
 
 const VideoControlsWrapper = styled.section`
@@ -38,9 +42,12 @@ const VideoControlsWrapper = styled.section`
       bottom: 0;
     }
   }
+  .reset-save-options{
+    gap: 12px;
+  }
   .trim-action, .crop-action, .reset-save-options{
     overflow: hidden;
-    gap: 12px;
+    // gap: 12px;
     .trim-btn, .crop-btn, .reset-btn, .save-btn{
       border-radius: 8px;
       background: #E3DFEC;
@@ -56,13 +63,18 @@ const VideoControlsWrapper = styled.section`
     .trim-options, .crop-options{
       border-radius: 8px;
       background: var(--additional-link, #0397EB);
-      padding: 0px 4px 0px 8px;
       align-items: center;
-      gap: 16px;
-      animation: 1s slide-right;
+      animation: 500ms slide-right;
+      overflow: hidden;
+      margin-left: 12px;
       &.hide{
-        animation: 1s slide-left;
-        display:none;
+        animation: 500ms slide-left;
+        width: 0;
+        margin-left: 0;
+      }
+      .padding-wrapper{
+        padding: 0px 4px 0px 8px;
+        gap: 4px;
       }
       .span-time{
         align-items: center;
@@ -118,24 +130,26 @@ const VideoControlsWrapper = styled.section`
   
   @keyframes slide-right {
     from {
-      margin-left: -88px;
+      width: 0;
     }
     to {
-      margin-left: 0%;
+      width: 100%;
     }
   }
 
   @keyframes slide-left {
     from {
-      margin-left: 88px;
+      width:100%;
     }
     to {
-      margin-left: 0%;
+      width: 0%;
     }
   }
 `
 
-const VideoControlButtons = ({ }: ControlProps) => {
+const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime }: ControlProps) => {
+
+  const [cropSelectedValue, setCropSelectedValue] = useState('');
 
   const showAspectWrapper = (e: any) => {
     const cropOptionElement = e.target;
@@ -144,16 +158,58 @@ const VideoControlButtons = ({ }: ControlProps) => {
     const cropOption = cropOptionElement.getAttribute('data-option');
     document.querySelector('.crop-wrapper-video')?.classList.remove('hide');
     if (cropOption != '') {
-      document.querySelector('.crop-wrapper-video')?.setAttribute('style', `aspect-ratio:${cropOption};`);
+      document.querySelector('.crop-wrapper-video')?.setAttribute('style', `aspect-ratio:${cropOption};background:url(https://cms-cdn.now.gg/cms-media/2023/10/${cropOption.replace('/', '')}-grid-lines.png) no-repeat center  / cover`);
+      setCropSelectedValue(cropOption);
     } else {
       document.querySelector('.crop-wrapper-video')?.setAttribute('style', ``);
       document.querySelector('.crop-wrapper-video')?.classList.add('hide');
+      setCropSelectedValue('');
     }
   }
+
+  const handleChange = (e: any) => {
+    const inputClass = e.target.classList.contains('start-time') ? 'start' : 'end';
+    if (inputClass == 'start') {
+      setStartTime(e.target.value);
+    } else {
+      setEndTime(e.target.value);
+    }
+  }
+
   const toggleOptions = (e: any) => {
     const toggleButton = e.target;
     toggleButton.closest('.action-buttons').querySelector('.options-wrapper').classList.toggle('hide');
-    // toggleButton.closest('.action-buttons').querySelector('.options-wrapper').classList.toggle('slide-in-out');
+    console.log('toggleButton', toggleButton.classList);
+    if (toggleButton.classList.contains('crop-btn') && cropSelectedValue != '') {
+      let payload = {
+        "video": {
+          "title": "My Video",
+          "url": "https://customer-0ae3bmzhlvu9twn2.cloudflarestream.com/3e5df5460ef9445f9dfd92357adaa399/downloads/default.mp4",
+          "id": "x",
+        },
+        "crop": {
+          "x1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().left,
+          "y1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().top,
+          "x2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().right,
+          "y2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().bottom
+        }
+      }
+      console.log('payload', payload);
+    } else {
+      if (toggleButton.classList.contains('trim-btn') && endTime != 0) {
+        let payload = {
+          "video": {
+            "title": "My Video",
+            "url": "https://customer-0ae3bmzhlvu9twn2.cloudflarestream.com/3e5df5460ef9445f9dfd92357adaa399/downloads/default.mp4",
+            "id": "x",
+          },
+          "trim": { "start": startTime, "end": endTime },
+        }
+        // setStartTime('');
+        // setEndTime('');
+        console.log('payload', payload);
+      }
+    }
   }
   return (
     <VideoControlsWrapper className="flex">
@@ -172,14 +228,16 @@ const VideoControlButtons = ({ }: ControlProps) => {
             Trim
           </button>
           <div className="trim-options flex options-wrapper hide">
-            <span className="span-time flex">
-              Start Time
-              <input className="start-time input-time" placeholder="0 sec" type="number" />
-            </span>
-            <span className="span-time flex">
-              End Time
-              <input className="end-time input-time" placeholder="15 sec" type="number" />
-            </span>
+            <div className="padding-wrapper flex">
+              <span className="span-time flex">
+                Start Time
+                <input className="start-time input-time" placeholder="0 sec" type="number" onChange={(e) => { handleChange(e) }} />
+              </span>
+              <span className="span-time flex">
+                End Time
+                <input className="end-time input-time" placeholder="15 sec" type="number" onChange={(e) => { handleChange(e) }} />
+              </span>
+            </div>
           </div>
         </div>
         <div className="crop-action flex action-buttons">
@@ -197,14 +255,16 @@ const VideoControlButtons = ({ }: ControlProps) => {
             Crop
           </button>
           <div className="crop-options flex options-wrapper hide">
-            <span className="input-crop" data-option="" onClick={(e) => { showAspectWrapper(e) }}>Original</span>
-            <span className="input-crop" data-option="1/1" onClick={(e) => { showAspectWrapper(e) }}>1:1</span>
-            <span className="input-crop" data-option="9/16" onClick={(e) => { showAspectWrapper(e) }}>9:16</span>
-            <span className="input-crop" data-option="3/4" onClick={(e) => { showAspectWrapper(e) }}>3:4</span>
-            <span className="input-crop" data-option="4/3" onClick={(e) => { showAspectWrapper(e) }}>4:3</span>
-          </div >
-        </div >
-      </div >
+            <div className="padding-wrapper flex">
+              <span className="input-crop" data-option="" onClick={(e) => { showAspectWrapper(e) }}>Original</span>
+              <span className="input-crop" data-option="1/1" onClick={(e) => { showAspectWrapper(e) }}>1:1</span>
+              <span className="input-crop" data-option="9/16" onClick={(e) => { showAspectWrapper(e) }}>9:16</span>
+              <span className="input-crop" data-option="3/4" onClick={(e) => { showAspectWrapper(e) }}>3:4</span>
+              <span className="input-crop" data-option="4/3" onClick={(e) => { showAspectWrapper(e) }}>4:3</span>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="reset-save-options flex">
         <button className="reset-btn flex">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
