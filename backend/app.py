@@ -18,33 +18,33 @@ def home():
 @app.route("/video/upload", methods=["POST"])
 def upload():
     try:
-        cloudflare_upload_url = "https://api.cloudflare.com/client/v4/accounts/" + CLOUDFLARE_ACCOUNT_ID + "/stream/copy"
+        cloudflare_upload_url = f'https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/stream/copy'
         body = request.get_json()
-        title = body["title"]
-        video_url = body["video_url"]
-        
-        res = requests.post(cloudflare_upload_url, headers = {
-            'Authorization': 'Bearer ' + CLOUDFLARE_API_TOKEN,
-        },
-        data = {
-            "url": video_url,
-            "meta": {
-                "name": title
-            }
-        })
+        title = body['title']
+        video_url = body['video_url']
 
+        headers = {
+            'Authorization': f'Bearer {CLOUDFLARE_API_TOKEN}'
+        }
+        data = {
+            'url': video_url,
+            'meta': {
+                'name': title
+            }
+        }
+        res = requests.post(cloudflare_upload_url, headers=headers, json=data)
         res_json = res.json()
-        result = res_json["result"]
+        result = res_json['result']
 
         if res.status_code == 200:
             return jsonify({ "status": "success", "result": result, "account_id": CLOUDFLARE_ACCOUNT_ID }), 200
         
         errors = res_json["errors"]
         
-        return jsonify({ "status": "error", "message": "Something went wrong", "errors": errors, "account_id": CLOUDFLARE_ACCOUNT_ID, "t": CLOUDFLARE_API_TOKEN }), res.status_code
+        return jsonify({ "status": "error", "message": "Something went wrong", "errors": errors }), res.status_code
             
     except Exception as e:
-        return jsonify({"status": "error", "message": "Something went wrong", "error": str(e), "account_id": CLOUDFLARE_ACCOUNT_ID, "t": CLOUDFLARE_API_TOKEN }), 500
+        return jsonify({"status": "error", "message": "Something went wrong", "error": str(e) }), 500
     
 
 @app.route("/video/process", methods=["POST"])
