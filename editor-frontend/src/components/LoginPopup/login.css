@@ -122,4 +122,12 @@
   text-align: center;
   margin-top: 32px;
   font-family: Fredoka;
+  column-gap: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.policy-note a {
+  text-decoration: underline;
 }

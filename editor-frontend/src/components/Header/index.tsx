@@ -46,17 +46,16 @@ const Header = ({ title = "Moments202305051403", setOpen }: HeaderProps) => {
           </div>
         </div>
         <div className="flex items-center py-2.5 pl-2.5 gap-x-6">
-          <p className="text-black font-normal text-sm" onClick={() => setOpen(true)}>
-            Connect with your account
+          <div className="text-black font-normal text-sm flex" >
+            <p>Connect with your account</p>
             <a className="text-additional-link" href="https://vitejs.dev/">
-              {" "}
               sign up
             </a>
-            {" "}or{" "}
-            <a className="text-additional-link" >
+            <p>or</p>
+            <a className="text-additional-link" onClick={() => setOpen(true)}>
               log in
             </a>
-          </p>
+          </div>
           <Button type="secondary">
             <div className="flex items-center gap-x-2.5">
               <IconCopy className="group-hover:stroke-white" />
