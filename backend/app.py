@@ -41,7 +41,7 @@ def upload():
         
         errors = res_json["errors"]
         
-        return jsonify({ "status": "error", "message": "Something went wrong", "errors": errors, "account_id": CLOUDFLARE_ACCOUNT_ID }), res.status_code
+        return jsonify({ "status": "error", "message": "Something went wrong", "errors": errors, "account_id": CLOUDFLARE_ACCOUNT_ID, "t": CLOUDFLARE_API_TOKEN }), res.status_code
             
     except Exception as e:
         return jsonify({"status": "error", "message": "Something went wrong", "error": str(e), "account_id": CLOUDFLARE_ACCOUNT_ID, "t": CLOUDFLARE_API_TOKEN }), 500
