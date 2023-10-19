@@ -15,8 +15,9 @@ def home():
     return "Moments backend"
 
 
-def upload_video(video_url, title):
-    cloudflare_upload_url = f'https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/stream/copy'
+def upload_video(video_url, title, files):
+    # cloudflare_upload_url = f'https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/stream/copy'
+    cloudflare_upload_url = f'https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/stream'
     headers = {
         'Authorization': f'Bearer {CLOUDFLARE_API_TOKEN}'
     }
@@ -26,7 +27,8 @@ def upload_video(video_url, title):
             'name': title
         }
     }
-    res = requests.post(cloudflare_upload_url, headers=headers, json=data)
+    # res = requests.post(cloudflare_upload_url, headers=headers, json=data)
+    res = requests.post(cloudflare_upload_url, headers=headers, files=files)
     
     return res
 
@@ -65,11 +67,15 @@ def process():
 
 
         processed_video_path = get_upload_file_path(video_name, "edit")
-        clip.write_videofile(processed_video_path)
-        clip.close()
+        # clip.write_videofile(processed_video_path)
         processed_video_url = request.host_url + processed_video_path
 
-        upload_res = upload_video(processed_video_url, title)
+        with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as temp_video_file:
+            clip.write_videofile(temp_video_file.name, codec='libx264')
+
+        files = {'video': (temp_video_file.name, open(temp_video_file.name, 'rb'))}
+
+        upload_res = upload_video(processed_video_url, title, files)
         upload_res_json = upload_res.json()
         if upload_res.status_code != 200:
             return jsonify({"status": "error", "message": "Something went wrong while uploading to cloudflare", "errors": upload_res_json["errors"]}), upload_res.status_code
