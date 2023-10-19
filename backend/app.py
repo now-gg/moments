@@ -72,7 +72,7 @@ def process():
         upload_res = upload_video(processed_video_url, title)
         upload_res_json = upload_res.json()
         if upload_res.status_code != 200:
-            return jsonify({"status": "error", "message": "Something went wrong while uploading to cloudflare", "errors": upload_res_json["error"]}), upload_res.status_code
+            return jsonify({"status": "error", "message": "Something went wrong while uploading to cloudflare", "errors": upload_res_json["errors"]}), upload_res.status_code
 
         return jsonify({
             "status": "success",
