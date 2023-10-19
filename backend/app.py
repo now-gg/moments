@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, render_template, request, jsonify
 import os
 import time
@@ -93,6 +94,7 @@ def process():
         }), 200
 
     except Exception as e:
+        logging.error(e)
         if isinstance(e, KeyError):
             return jsonify({"status": "error", "message": f'Key {e} missing from request body'}), 400
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
