@@ -18,16 +18,28 @@ def home():
 
 @app.route("/videos/<path:filename>", methods=["HEAD"])
 def serve_video_head(filename):
-    filesize = os.path.getsize(os.path.join("static","videos", filename))
+    try:
+        try:
+            video_path = os.path.join("static", "videos", filename)
+            filesize = os.path.getsize(video_path)
+        except Exception as e:
+            logging.error(e)
+        try:
+            video_path = os.path.join("videos", filename)
+            filesize = os.path.getsize(video_path)
+        except Exception as e:
+            logging.error(e)
+            filesize = 0
 
-    headers = {
-        'Accept-Ranges': 'bytes',
-        'Content-Length': filesize,
-        'Content-Type': 'video/mp4',
-    }
+        headers = {
+            'Accept-Ranges': 'bytes',
+            'Content-Length': filesize,
+            'Content-Type': 'video/mp4',
+        }
 
-    return '', 200, headers
-
+        return '', 200, headers
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 def extract_range(range_header, file_size):
     if range_header:
