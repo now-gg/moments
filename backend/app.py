@@ -118,9 +118,9 @@ def process():
 
         processed_video_path = get_upload_file_path(video_name, "edit")
         clip.write_videofile(processed_video_path)
-        video_download_route = request.host_url + "videos/" + video_name       
+        video_download_route = request.host_url + processed_video_path.replace("static/", "")     
 
-        logging.debug("url_given_to_cloudflare: %s", video_download_route)
+        logging.info("url_given_to_cloudflare: %s", video_download_route)
 
         upload_res = upload_video(video_download_route, title)
         upload_res_json = upload_res.json()
