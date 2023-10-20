@@ -62,9 +62,6 @@ def serve_video(filename):
     return requested_video_data, 206, headers
 
 
-@app.route("/static/videos/<path:filename>")
-def server_video_file(filename):
-    return send_from_directory("videos", filename)
 
 
 def upload_video(video_url, title):
