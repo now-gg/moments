@@ -1,5 +1,5 @@
 import logging
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import os
 import time
 from moviepy.editor import *
@@ -16,9 +16,59 @@ def home():
     return "Moments backend"
 
 
-def upload_video(video_url, title, files):
-    # cloudflare_upload_url = f'https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/stream/copy'
-    cloudflare_upload_url = f'https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/stream'
+@app.route("/videos/<path:filename>", methods=["HEAD"])
+def serve_video_head(filename):
+    filesize = os.path.getsize(os.path.join("static","videos", filename))
+
+    headers = {
+        'Accept-Ranges': 'bytes',
+        'Content-Length': filesize,
+        'Content-Type': 'video/mp4',
+    }
+
+    return '', 200, headers
+
+
+def extract_range(range_header, file_size):
+    if range_header:
+        start, end = range_header.replace('bytes=', '').split('-')
+        start = int(start) if start else 0
+        end = int(end) if end else file_size - 1
+        end = min(end, file_size - 1)
+        return start, end
+    return 0, file_size - 1
+
+
+@app.route("/videos/<path:filename>", methods=["GET"])
+def serve_video(filename):
+    video_path = os.path.join("static", "videos", filename)
+    file_size = os.path.getsize(video_path)
+    
+    range_header = request.headers.get('Range', None)
+    start, end = extract_range(range_header, file_size)
+
+    requested_video_data = None
+    with open(video_path, 'rb') as video_file:
+        video_file.seek(start)
+        requested_video_data = video_file.read(end - start + 1)
+    
+    headers = {
+        'Content-Type': 'video/mp4',  # Adjust content type as needed
+        'Accept-Ranges': 'bytes',
+        'Content-Length': len(requested_video_data),
+        'Content-Range': f'bytes {start}-{end}/{file_size}',
+    }
+
+    return requested_video_data, 206, headers
+
+
+@app.route("/static/videos/<path:filename>")
+def server_video_file(filename):
+    return send_from_directory("videos", filename)
+
+
+def upload_video(video_url, title):
+    cloudflare_upload_url = f'https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/stream/copy'
     headers = {
         'Authorization': f'Bearer {CLOUDFLARE_API_TOKEN}'
     }
@@ -28,8 +78,7 @@ def upload_video(video_url, title, files):
             'name': title
         }
     }
-    # res = requests.post(cloudflare_upload_url, headers=headers, json=data)
-    res = requests.post(cloudflare_upload_url, headers=headers, files=files)
+    res = requests.post(cloudflare_upload_url, headers=headers, json=data)
     
     return res
 
@@ -68,24 +117,21 @@ def process():
 
 
         processed_video_path = get_upload_file_path(video_name, "edit")
-        # clip.write_videofile(processed_video_path)
-        processed_video_url = request.host_url + processed_video_path
+        clip.write_videofile(processed_video_path)
+        video_download_route = request.host_url + "videos/" + video_name       
 
-        with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as temp_video_file:
-            clip.write_videofile(temp_video_file.name, codec='libx264')
+        logging.debug("url_given_to_cloudflare: %s", video_download_route)
 
-        files = {'video': (temp_video_file.name, open(temp_video_file.name, 'rb'))}
-
-        upload_res = upload_video(processed_video_url, title, files)
+        upload_res = upload_video(video_download_route, title)
         upload_res_json = upload_res.json()
         if upload_res.status_code != 200:
-            return jsonify({"status": "error", "message": "Something went wrong while uploading to cloudflare", "errors": upload_res_json["errors"]}), upload_res.status_code
+            return jsonify({"status": "error", "message": "Something went wrong while uploading to cloudflare", "errors": upload_res_json["errors"], "messages": upload_res_json["messages"]}), upload_res.status_code
 
         return jsonify({
             "status": "success",
             "message": "Video processed successfully",
             "result": upload_res_json["result"],
-            "server_save_url": processed_video_url,
+            "url_given_to_cloudflare": video_download_route,
             "original_video_size": original_video_size,
             "original_video_duration": original_video_duration,
             "time_taken_to_init": time_before_trim - time_before_init,
