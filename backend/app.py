@@ -76,18 +76,14 @@ def serve_video(filename):
 
 
 
-def upload_video(video_url, title):
-    cloudflare_upload_url = f'https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/stream/copy'
+def upload_video(video_path, title):
+    cloudflare_upload_url = f'https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/stream'
     headers = {
         'Authorization': f'Bearer {CLOUDFLARE_API_TOKEN}'
     }
-    data = {
-        'url': video_url,
-        'meta': {
-            'name': title
-        }
-    }
-    res = requests.post(cloudflare_upload_url, headers=headers, json=data)
+    with open(video_path, 'rb') as video_file:
+        res = requests.post(cloudflare_upload_url, headers=headers, files={"file": (title, video_file)})
+
     
     return res
 
@@ -127,11 +123,8 @@ def process():
 
         processed_video_path = get_upload_file_path(video_name, "edit")
         clip.write_videofile(processed_video_path)
-        video_download_route = request.host_url + processed_video_path.replace("static/", "")     
 
-        logging.info("url_given_to_cloudflare: %s", video_download_route)
-
-        upload_res = upload_video(video_download_route, title)
+        upload_res = upload_video(processed_video_path, title)
         upload_res_json = upload_res.json()
         if upload_res.status_code != 200:
             return jsonify({"status": "error", "message": "Something went wrong while uploading to cloudflare", "errors": upload_res_json["errors"], "messages": upload_res_json["messages"]}), upload_res.status_code
@@ -140,7 +133,6 @@ def process():
             "status": "success",
             "message": "Video processed successfully",
             "result": upload_res_json["result"],
-            "url_given_to_cloudflare": video_download_route,
             "original_video_size": original_video_size,
             "original_video_duration": original_video_duration,
             "time_taken_to_init": time_before_trim - time_before_init,
