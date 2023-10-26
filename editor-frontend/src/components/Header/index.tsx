@@ -22,7 +22,7 @@ const Header = ({ title = "Moments202305051403", setOpen }: HeaderProps) => {
 
   const fetchUserDetails = async () => {
     await axios
-      .get(`${location.origin}/accounts/users/v1/userinfo`, {
+      .get(`https://dev.testngg.net/accounts/users/v1/userinfo`, {
         headers: {
           authorization: ` Bearer ${localStorage['ng_token']}`,
         },
@@ -49,7 +49,7 @@ const Header = ({ title = "Moments202305051403", setOpen }: HeaderProps) => {
 
   const generateFEToken = async () => {
     axios
-      .get(`${location.origin}/accounts/auth/v1/access-token`, {
+      .get(`https://dev.testngg.net/accounts/auth/v1/access-token`, {
         withCredentials: true,
       })
       .then((res: { status: number; data: { token: string; }; }) => {
