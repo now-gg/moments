@@ -126,7 +126,9 @@ const VideoControlsWrapper = styled.section`
       background: var(--Accent, #FF42A5);
       box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.04);
       color: #FFF;
-      opacity: .4;
+      &.disabled{
+        opacity: .4;
+      }
     }
   }
   
@@ -152,6 +154,7 @@ const VideoControlsWrapper = styled.section`
 const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, duration }: ControlProps) => {
 
   const [cropSelectedValue, setCropSelectedValue] = useState('');
+  const [saveBtnActive, setSaveBtnActive] = useState('disabled');
 
   const showAspectWrapper = (e: any) => {
     const cropOptionElement = e.target;
@@ -160,7 +163,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
     const cropOption = cropOptionElement.getAttribute('data-option');
     document.querySelector('.crop-wrapper-video')?.classList.remove('hide');
     if (cropOption != '') {
-      document.querySelector('.crop-wrapper-video')?.setAttribute('style', `aspect-ratio:${cropOption};background:url(https://cms-cdn.now.gg/cms-media/2023/10/${cropOption.replace('/', '')}-grid-lines.png) no-repeat center  / cover`);
+      document.querySelector('.crop-wrapper-video')?.setAttribute('style', `aspect-ratio:${cropOption};background:url(https://cms-cdn.now.gg/cms-media/2023/10/${cropOption.replace('/', '')}-grid-lines.png), rgba(255,255,255,.2) no-repeat center  / cover; background-repeat:no-repeat;background-size:cover;`);
       setCropSelectedValue(cropOption);
     } else {
       document.querySelector('.crop-wrapper-video')?.setAttribute('style', ``);
@@ -182,24 +185,50 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
   const toggleOptions = async (e: any) => {
     const toggleButton = e.target;
     toggleButton.closest('.action-buttons').querySelector('.options-wrapper').classList.toggle('hide');
+    setSaveBtnActive('');
     console.log('toggleButton', toggleButton.classList);
-    if (toggleButton.classList.contains('crop-btn') && cropSelectedValue != '') {
-      let payload = {
-        "video": {
-          "title": "My Video",
-          "url": "https://customer-0ae3bmzhlvu9twn2.cloudflarestream.com/3e5df5460ef9445f9dfd92357adaa399/downloads/default.mp4",
-          "id": "x",
-        },
-        "crop": {
-          "x1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().left,
-          "y1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().top,
-          "x2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().right,
-          "y2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().bottom
+    // if (toggleButton.classList.contains('crop-btn') && cropSelectedValue != '') {
+    //   setSelectedOption('cropAPI');
+    // } else {
+    //   if (toggleButton.classList.contains('trim-btn') && endTime && endTime != 0) {
+    //     setSelectedOption('trimAPI');
+    //     setSaveBtnActive('');
+    //   }
+    // }
+  }
+
+  const sendAPIRequest = async () => {
+    if (saveBtnActive == '' && (cropSelectedValue != '' || endTime && endTime != 0)) {
+      if (cropSelectedValue != '') {
+        let searchParams = new URLSearchParams(location.search);
+        let payload = {
+          "title": document.querySelector('.video-title')?.innerHTML.trim(),
+          "videoId": searchParams.get('videoId') || 'rhjij8mlboksww',
+          "crop": {
+            "x1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().left,
+            "y1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().top,
+            "x2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().right,
+            "y2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().bottom
+          }
         }
-      }
-      console.log('payload', payload);
-    } else {
-      if (toggleButton.classList.contains('trim-btn') && endTime && endTime != 0) {
+        console.log('payload', payload);
+        await axios
+          .post(`https://api-moments.testngg.net`, payload, {
+            headers: {
+              'Content-Type': 'application/json',
+              token: `${localStorage['ng_token']}`,
+            },
+          })
+          .then(function (res: any) {
+            if (res && res.status === 200) {
+              console.log('res', res);
+            }
+          })
+          .catch((err: any) => {
+            console.log('err', err);
+            // console.log('signup not possible -- error 401');
+          });
+      } else {
         let searchParams = new URLSearchParams(location.search);
         let payload = {
           "title": document.querySelector('.video-title')?.innerHTML.trim(),
@@ -212,7 +241,8 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
         await axios
           .post(`https://api-moments.testngg.net`, payload, {
             headers: {
-              authorization: ` Bearer ${localStorage['ng_token']}`,
+              'Content-Type': 'application/json',
+              token: `${localStorage['ng_token']}`,
             },
           })
           .then(function (res: any) {
@@ -283,13 +313,13 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
         </div>
       </div>
       <div className="reset-save-options flex">
-        <button className="reset-btn flex">
+        <button className={`reset-btn flex`}>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M6.00173 6V2C6.00173 1.72386 5.77788 1.5 5.50173 1.5H1.50173C1.22559 1.5 1.00173 1.72386 1.00173 2C1.00173 2.27614 1.22559 2.5 1.50173 2.5H4.39622C2.89613 3.40123 1.7291 4.86389 1.24026 6.68829C0.239664 10.4226 2.45574 14.2609 6.19 15.2615C9.92427 16.2621 13.7626 14.046 14.7632 10.3118C15.7638 6.5775 13.5477 2.73914 9.81347 1.73855C9.54674 1.66707 9.27257 1.82537 9.2011 2.0921C9.12963 2.35883 9.28792 2.633 9.55465 2.70447C12.7554 3.56212 14.6549 6.85214 13.7973 10.0529C12.9396 13.2537 9.64962 15.1532 6.44882 14.2956C3.24803 13.4379 1.34853 10.1479 2.20618 6.94711C2.62935 5.36782 3.64383 4.10597 4.94884 3.33477C4.96746 3.32377 4.9851 3.31175 5.00173 3.29883V6C5.00173 6.27614 5.22559 6.5 5.50173 6.5C5.77788 6.5 6.00173 6.27614 6.00173 6ZM5.00173 2.5097V2.5H4.98884C4.99318 2.50316 4.99748 2.5064 5.00173 2.5097Z" fill="#FF42A5" />
           </svg>
           Reset
         </button>
-        <button className="save-btn flex">
+        <button className={`save-btn flex ${saveBtnActive}`} onClick={sendAPIRequest}>
           Save
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M3.64645 5.64645C3.84171 5.45118 4.15829 5.45118 4.35355 5.64645L8 9.29289L11.6464 5.64645C11.8417 5.45118 12.1583 5.45118 12.3536 5.64645C12.5488 5.84171 12.5488 6.15829 12.3536 6.35355L8.35355 10.3536C8.15829 10.5488 7.84171 10.5488 7.64645 10.3536L3.64645 6.35355C3.45118 6.15829 3.45118 5.84171 3.64645 5.64645Z" fill="white" fill-opacity="0.5" />
