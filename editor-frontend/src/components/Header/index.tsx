@@ -108,7 +108,7 @@ const Header = ({ title = "Moments202305051403", setOpen }: HeaderProps) => {
           </div>
         </div>
         <div className="flex items-center py-2.5 pl-2.5 gap-x-6">
-          {loggedIn &&
+          {!loggedIn &&
             <div className="text-black font-normal text-sm flex" >
               <p>Connect with your account</p>
               <a className="text-additional-link" href="https://vitejs.dev/">
@@ -121,7 +121,7 @@ const Header = ({ title = "Moments202305051403", setOpen }: HeaderProps) => {
             </div>
           }
           {
-            !loggedIn &&
+            loggedIn &&
             <div className="profile-details flex">
               <figure className="profile-img">
                 <img src={profileIcon} height="36" width="36" />
