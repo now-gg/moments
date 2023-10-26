@@ -20,7 +20,7 @@ const LoginPopup = ({ closePopup }: LoginProps) => {
               </figure>
             </a>
             <h2 className="title">Sign in to Save Moment in your library</h2>
-            <a className="sign-up-btn flex perfectCenter" href={`https://now.gg/accounts/auth/v1/identifier?provider=google&continue=${location.origin}`}>
+            <a className="sign-up-btn flex perfectCenter" href={`${location.origin}/accounts/auth/v1/identifier?provider=google&continue=${location.origin}`}>
               <svg width="33" height="32" viewBox="0 0 33 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g filter="url(#filter0_i_1877_36272)">
                   <rect x="0.5" width="32" height="32" rx="16" fill="white"></rect>
@@ -43,7 +43,7 @@ const LoginPopup = ({ closePopup }: LoginProps) => {
               </svg>
               Sign in with Google</a>
             <div className="social-icons flex">
-              <a className="discord flex perfectCenter" href={`https://now.gg/accounts/oauth2/v1/auth?provider=discord&continue=${location.origin}`}>
+              <a className="discord flex perfectCenter" href={`${location.origin}/accounts/oauth2/v1/auth?provider=discord&continue=${location.origin}`}>
                 <svg width="33" height="32" viewBox="0 0 33 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <g filter="url(#filter0_i_1877_36287)">
                     <rect x="0.5" width="32" height="32" rx="16" fill="white"></rect>
@@ -63,7 +63,7 @@ const LoginPopup = ({ closePopup }: LoginProps) => {
                 </svg>
                 Discord
               </a>
-              <a className="facebook flex perfectCenter" href={`https://stagingngg.net/accounts/oauth2/v1/auth?provider=facebook&continue=${location.origin}`}>
+              <a className="facebook flex perfectCenter" href={`${location.origin}/accounts/oauth2/v1/auth?provider=facebook&continue=${location.origin}`}>
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <g filter="url(#filter0_i_1877_36296)">
                     <rect width="32" height="32" rx="16" fill="white"></rect>
