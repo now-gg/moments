@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 import VideoControlButtons from "./VideoControlButtons";
 import VideoTimeline from "./VideoTimeline";
 import styled from "styled-components";
-
-type PlayerProps = {
-  url: string;
-};
+import { Stream, StreamPlayerApi } from "@cloudflare/stream-react";
+import * as React from "react";
 
 const VideoFrameWrapper = styled.div`
   .video-wrapper{
@@ -73,9 +71,14 @@ const VideoFrameWrapper = styled.div`
   }
 `
 
-const Player = ({ url }: PlayerProps) => {
+const Player = () => {
   const [endTime, setEndTime] = useState(document.querySelector('video')?.duration);
   const [startTime, setStartTime] = useState(0);
+  // const ref = React.useRef<StreamPlayerApi | undefined>(null);
+  const ref = React.useRef() as React.MutableRefObject<StreamPlayerApi | undefined>;
+  // const ref = MutableRefObject<StreamPlayerApi | undefined>
+  const [videoID, setVideoID] = useState('b3952a3e477c4165931a8253663edcbc');
+  const [videoURL, setVideoURL] = useState('');
   const dragElement = (element: any) => {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     const dragMouseDown = (e: any) => {
@@ -94,20 +97,6 @@ const Player = ({ url }: PlayerProps) => {
       pos2 = pos4 - e.clientY;
       pos3 = e.clientX;
       pos4 = e.clientY;
-      // var parent = document.querySelector('.video-wrapper');
-      // var parentRect = parent?.getBoundingClientRect();
-
-      // var draggable = document.querySelector('.crop-wrapper-video');
-      // var draggableRect = draggable?.getBoundingClientRect();
-      // if ((e.clientX >= parentRect.left && (e.clientX + draggableRect.width <= parentRect.right)) &&
-      //   (e.clientY >= parentRect.top && (e.clientY + draggableRect.height >= parentRect.bottom))
-      // ) {
-      //   element.style.left = `${e.clientX}px`;
-      //   element.style.top = `${e.clientY}px`;
-      // } else {
-      //   element.style.top = (element.offsetTop - pos2) + "px";
-      //   element.style.left = (element.offsetLeft - pos1) + "px";
-      // }
       element.style.top = (element.offsetTop - pos2) + "px";
       element.style.left = (element.offsetLeft - pos1) + "px";
     }
@@ -122,16 +111,63 @@ const Player = ({ url }: PlayerProps) => {
     }
   }
 
+  const fetchVideo = () => {
+    var headers = new Headers();
+    headers.append("Content-Type", "application/json");
+
+    fetch(`https://now.gg/7/api/vid/v1/getVideoInfo?videoId=rhjij8mlboksww`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('data', data);
+        setVideoID(data?.video?.cflVideoId);
+        setVideoURL(data?.video?.thumbnailUrl);
+      });
+  }
   useEffect(() => {
     dragElement(document.querySelector('.crop-wrapper-video'));
+    document.querySelector('iframe')?.addEventListener('onloadeddata', (e) => {
+      console.log('e', e);
+    })
+    fetchVideo();
   }, [])
+
+  function toDataURL(src: any, callback: any) {
+    var image = new Image();
+    image.crossOrigin = 'Anonymous';
+    image.onload = function (e: any) {
+      var canvas = document.createElement('canvas');
+      var context = canvas.getContext('2d');
+      canvas.height = e.target.naturalHeight;
+      canvas.width = e.target.naturalWidth;
+      context?.drawImage(e.target, 0, 0);
+      var dataURL = canvas.toDataURL('image/jpeg');
+      callback(dataURL);
+    };
+    image.src = src;
+  }
+
+  const showThumbnails = () => {
+    let frameCount = ref?.current?.duration || 2;
+    for (let i = 0; i < frameCount; i++) {
+      let newNode = document.createElement('img');
+      newNode.setAttribute('style', `width:calc(100%/${frameCount})`)
+      toDataURL(`${videoURL}?time=${i}s`, function (dataURL: any) {
+        // alert(dataURL);
+        newNode.src = dataURL;
+      })
+      document.querySelector('.frames-container')?.appendChild(newNode);
+    }
+  }
+
+  // const videoID = 'b3952a3e477c4165931a8253663edcbc';
   return (
     // outer most wrapper
     <VideoFrameWrapper className="relative">
       <div className="video-wrapper">
-        <video controls id="video-frame" height="100%" width="100%" autoPlay muted loop playsInline preload="none" >
+        {/* <video controls id="video-frame" height="100%" width="100%" autoPlay muted loop playsInline preload="none" >
           <source src={url} type="video/mp4" />
-        </video>
+        </video> */}
+        <Stream controls src={videoID} height="100%" width="100%" autoplay muted onLoadedData={showThumbnails} streamRef={ref} />
         <div className="crop-wrapper-video hide">
           <div className="svg-arrow-wrapper">
             <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42" fill="none" className="svg-1 top left">
@@ -162,7 +198,7 @@ const Player = ({ url }: PlayerProps) => {
         </div>
       </div>
       <section className="relative bg-color timeline-wrapper">
-        <VideoTimeline url={url} startTime={startTime} endTime={endTime} setEndTime={setEndTime} duration={document.querySelector('video')?.duration} />
+        <VideoTimeline url={videoURL} startTime={startTime} endTime={endTime} setEndTime={setEndTime} duration={document.querySelector('video')?.duration} />
       </section>
       <VideoControlButtons setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} />
     </VideoFrameWrapper >

@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {
   IconDirectionalArrow,
   IconProductLogo,
@@ -10,6 +11,7 @@ import Button from "../Button";
 import IconButton from "../IconButton";
 import Divider from "../Divider";
 import "./header.css";
+import { useEffect } from "react";
 
 type HeaderProps = {
   title?: string;
@@ -17,6 +19,60 @@ type HeaderProps = {
 };
 
 const Header = ({ title = "Moments202305051403", setOpen }: HeaderProps) => {
+
+  const fetchUserDetails = async () => {
+    await axios
+      .get(`https://now.gg/accounts/users/v1/userinfo`, {
+        headers: {
+          authorization: ` Bearer ${localStorage['ng_token']}`,
+        },
+      })
+      .then(function (res: any) {
+        if (res && res.status == 401 && res.success == false) {
+          // signup not possible
+        }
+
+        if (res && res.status === 200) {
+          // localStorage.setItem('ng_token', res.token);
+          console.log('res', res);
+          sessionStorage.setItem('userType', 'Authorised');
+        }
+      })
+      .catch((err: any) => {
+        if (!localStorage['ng_token']) {
+          generateFEToken();
+        }
+        console.log('err', err);
+        // console.log('signup not possible -- error 401');
+      });
+  };
+
+  const generateFEToken = async () => {
+    axios
+      .get(`https://now.gg/accounts/auth/v1/access-token`, {
+        withCredentials: true,
+      })
+      .then((res: { status: number; data: { token: string; }; }) => {
+        if (res && res.status == 200) {
+          localStorage.setItem('ng_token', res.data.token);
+          // console.log('200 code');
+          fetchUserDetails();
+        }
+      })
+      .catch((err: any) => {
+        console.log('err', err);
+      });
+  };
+
+  useEffect(() => {
+    let signup_token = localStorage['ng_token'];
+    if (!signup_token) {
+      generateFEToken();
+      // console.log('Token not Found');
+    } else {
+      fetchUserDetails();
+    }
+  }, [])
 
   const editTitle = () => {
     if (document.querySelector('.video-title')?.getAttribute('contenteditable')) {

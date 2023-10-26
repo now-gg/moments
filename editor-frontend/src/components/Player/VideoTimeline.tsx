@@ -38,74 +38,18 @@ const VideoTimelineWrapper = styled.div`
     }
   }
 `
-const VideoTimeline = ({ url, startTime, endTime, setEndTime, duration }: VideoProps) => {
+const VideoTimeline = ({ url, startTime, endTime, duration }: VideoProps) => {
   const [video, setVideo] = useState('');
-  const [timelineFrames, setTimelineFrames] = useState<string[]>([]);
-  const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
 
   useEffect(() => {
     setVideo(url);
-    generateTimeline();
+    // generateTimeline();
   }, [])
 
-
-  function log(msg: any) {
-    console.log(`${new Date().toLocaleString("en-us")}: ${msg}`);
-  }
-  const generateTimeline = () => {
-    // if (video) {
-    const videoElement = document.createElement('video');
-    videoElement.src = url;
-    videoElement.crossOrigin = 'anonymous';
-    videoElement.addEventListener('loadeddata', () => {
-      const duration = videoElement.duration;
-      console.log('duration', duration);
-      setEndTime(duration);
-      const frameInterval = duration / 10;
-      const numFrames = 10;
-      const frames: string[] = [];
-
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-      videoElement.addEventListener('seeked', () => {
-        log('video seeked');
-        context?.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-        const frameImage = canvas.toDataURL('image/jpeg');
-
-        frames.push(frameImage);
-
-        if (frames.length === numFrames) {
-          setTimelineFrames(frames);
-          setSelectedFrame(frames[0]);
-          URL.revokeObjectURL(videoElement.src);
-          document.querySelector('.timeline-wrapper')?.classList.remove('bg-color');
-        } else {
-          videoElement.currentTime += frameInterval;
-        }
-        console.log('frames loaded', videoElement.currentTime);
-      });
-
-      videoElement.currentTime = 0;
-    });
-    // }
-  };
-
-  const style = {
-    width: `calc(100%/${timelineFrames.length})`,
-  }
   return (
     <VideoTimelineWrapper className="VideoTimeline" data-video={video}>
       <div className="frames-container flex bg-color">
-        {timelineFrames.map((frame, index) => (
-          <img
-            key={index}
-            src={frame}
-            alt={`Frame ${index}`}
-            style={style}
-            className={`frame-image ${selectedFrame === frame ? 'selected' : ''
-              }`}
-          />
-        ))}
+
       </div>
       <div className="slider-container">
         <InputSlider min={startTime} max={endTime} duration={duration} />

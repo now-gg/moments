@@ -21,7 +21,7 @@ export default function App() {
       />
       <Header setOpen={setOpen} />
       <div className="font-poppins p-4 flex justify-between" style={{ gap: '24px' }}>
-        <Editor url="https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4" />
+        <Editor />
         {/* <Editor url="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" /> */}
         <Sidebar sidebar="Share Your Video" />
       </div>

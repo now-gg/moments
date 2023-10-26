@@ -1,13 +1,9 @@
 import Player from "../Player";
 
-type EditorProps = {
-    url: string;
-};
-
-const Editor = ({ url }: EditorProps) => {
+const Editor = () => {
     return (
         <section style={{ flex: 1 }}>
-            <Player url={url} />
+            <Player />
         </section>
     );
 };
