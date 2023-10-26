@@ -79,6 +79,7 @@ const Player = () => {
   // const ref = MutableRefObject<StreamPlayerApi | undefined>
   const [videoID, setVideoID] = useState('b3952a3e477c4165931a8253663edcbc');
   const [videoURL, setVideoURL] = useState('');
+  const [duration, setDuration] = useState(0);
   const dragElement = (element: any) => {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     const dragMouseDown = (e: any) => {
@@ -121,6 +122,7 @@ const Player = () => {
         console.log('data', data);
         setVideoID(data?.video?.cflVideoId);
         setVideoURL(data?.video?.thumbnailUrl);
+        setDuration(data?.video?.durationSecs);
       });
   }
   useEffect(() => {
@@ -198,9 +200,9 @@ const Player = () => {
         </div>
       </div>
       <section className="relative bg-color timeline-wrapper">
-        <VideoTimeline url={videoURL} startTime={startTime} endTime={endTime} setEndTime={setEndTime} duration={document.querySelector('video')?.duration} />
+        <VideoTimeline url={videoURL} startTime={startTime} endTime={endTime} duration={duration} />
       </section>
-      <VideoControlButtons setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} />
+      <VideoControlButtons setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} />
     </VideoFrameWrapper >
   );
 };

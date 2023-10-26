@@ -6,8 +6,7 @@ type VideoProps = {
   url: string,
   startTime: number,
   endTime: number | undefined,
-  setEndTime: Function,
-  duration: number | undefined
+  duration: number | undefined,
 };
 
 const VideoTimelineWrapper = styled.div`
@@ -52,7 +51,7 @@ const VideoTimeline = ({ url, startTime, endTime, duration }: VideoProps) => {
 
       </div>
       <div className="slider-container">
-        <InputSlider min={startTime} max={endTime} duration={duration} />
+        <InputSlider minVal={startTime} maxVal={endTime} duration={duration} />
       </div>
     </VideoTimelineWrapper>
   );

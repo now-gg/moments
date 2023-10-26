@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useState } from "react";
 import styled from "styled-components";
 
@@ -5,7 +6,8 @@ type ControlProps = {
   startTime: number,
   endTime: number | undefined,
   setStartTime: Function,
-  setEndTime: Function
+  setEndTime: Function,
+  duration: number
 };
 
 const VideoControlsWrapper = styled.section`
@@ -147,7 +149,7 @@ const VideoControlsWrapper = styled.section`
   }
 `
 
-const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime }: ControlProps) => {
+const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, duration }: ControlProps) => {
 
   const [cropSelectedValue, setCropSelectedValue] = useState('');
 
@@ -169,6 +171,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime }: C
 
   const handleChange = (e: any) => {
     const inputClass = e.target.classList.contains('start-time') ? 'start' : 'end';
+    console.log('e.target', e.target);
     if (inputClass == 'start') {
       setStartTime(e.target.value);
     } else {
@@ -176,7 +179,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime }: C
     }
   }
 
-  const toggleOptions = (e: any) => {
+  const toggleOptions = async (e: any) => {
     const toggleButton = e.target;
     toggleButton.closest('.action-buttons').querySelector('.options-wrapper').classList.toggle('hide');
     console.log('toggleButton', toggleButton.classList);
@@ -196,18 +199,32 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime }: C
       }
       console.log('payload', payload);
     } else {
-      if (toggleButton.classList.contains('trim-btn') && endTime != 0) {
+      if (toggleButton.classList.contains('trim-btn') && endTime && endTime != 0) {
+        let searchParams = new URLSearchParams(location.search);
         let payload = {
-          "video": {
-            "title": "My Video",
-            "url": "https://customer-0ae3bmzhlvu9twn2.cloudflarestream.com/3e5df5460ef9445f9dfd92357adaa399/downloads/default.mp4",
-            "id": "x",
-          },
+          "title": document.querySelector('.video-title')?.innerHTML.trim(),
+          "videoId": searchParams.get('videoId') || 'rhjij8mlboksww',
           "trim": { "start": startTime, "end": endTime },
         }
         // setStartTime('');
         // setEndTime('');
         console.log('payload', payload);
+        await axios
+          .post(`https://api-moments.testngg.net`, payload, {
+            headers: {
+              authorization: ` Bearer ${localStorage['ng_token']}`,
+            },
+          })
+          .then(function (res: any) {
+            if (res && res.status === 200) {
+              // localStorage.setItem('ng_token', res.token);
+              console.log('res', res);
+            }
+          })
+          .catch((err: any) => {
+            console.log('err', err);
+            // console.log('signup not possible -- error 401');
+          });
       }
     }
   }
@@ -235,7 +252,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime }: C
               </span>
               <span className="span-time flex">
                 End Time
-                <input className="end-time input-time" placeholder="15 sec" type="number" onChange={(e) => { handleChange(e) }} />
+                <input className="end-time input-time" placeholder={`${duration} sec`} type="number" onChange={(e) => { handleChange(e) }} />
               </span>
             </div>
           </div>

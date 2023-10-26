@@ -1,5 +1,4 @@
-import { useState } from "react";
-import MultiRangeSlider, { ChangeResult } from "multi-range-slider-react";
+import MultiRangeSlider from "multi-range-slider-react";
 import styled from "styled-components";
 const InputSliderWrapper = styled.div`
   .multi-range-slider-black {
@@ -76,15 +75,15 @@ const InputSliderWrapper = styled.div`
 `
 
 type SliderProps = {
-  min: number;
-  max: number | undefined,
+  minVal: number;
+  maxVal: number | undefined,
   duration: number | undefined
 };
 
-const InputSlider = ({ min, max, duration }: SliderProps) => {
+const InputSlider = ({ minVal, maxVal, duration }: SliderProps) => {
 
-  const [minValue, setMinValue] = useState(min);
-  const [maxValue, setMaxValue] = useState(max);
+  // const [minValue, setMinValue] = useState(minVal);
+  // const [maxValue, setMaxValue] = useState(maxVal);
   const getTimeLabels = (): string[] => {
     let arr: string[] = [];
     if (duration) {
@@ -98,19 +97,15 @@ const InputSlider = ({ min, max, duration }: SliderProps) => {
     <InputSliderWrapper className="stuff">
       <MultiRangeSlider
         baseClassName="multi-range-slider-black"
-        min={min}
-        max={max}
+        min={0}
+        max={duration}
         step={1}
-        minValue={minValue}
-        maxValue={maxValue}
+        minValue={minVal}
+        maxValue={maxVal}
         ruler={true}
         // label={true}
         labels={getTimeLabels()}
         subSteps={true}
-        onInput={(e: ChangeResult) => {
-          setMinValue(e.minValue);
-          setMaxValue(e.maxValue);
-        }}
       ></MultiRangeSlider>
     </InputSliderWrapper>
   )

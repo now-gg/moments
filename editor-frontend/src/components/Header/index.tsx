@@ -12,6 +12,7 @@ import IconButton from "../IconButton";
 import Divider from "../Divider";
 import "./header.css";
 import { useEffect } from "react";
+import { useState } from 'react';
 
 type HeaderProps = {
   title?: string;
@@ -19,7 +20,9 @@ type HeaderProps = {
 };
 
 const Header = ({ title = "Moments202305051403", setOpen }: HeaderProps) => {
-
+  const [profileIcon, setProfileIcon] = useState('');
+  const [userName, setUserName] = useState('');
+  const [loggedIn, setLoggedIn] = useState(false);
   const fetchUserDetails = async () => {
     await axios
       .get(`https://dev.testngg.net/accounts/users/v1/userinfo`, {
@@ -35,6 +38,9 @@ const Header = ({ title = "Moments202305051403", setOpen }: HeaderProps) => {
         if (res && res.status === 200) {
           // localStorage.setItem('ng_token', res.token);
           console.log('res', res);
+          setUserName(res?.data?.userData?.name);
+          setProfileIcon(res?.data?.userData?.profilePicture);
+          setLoggedIn(true);
           sessionStorage.setItem('userType', 'Authorised');
         }
       })
@@ -102,16 +108,28 @@ const Header = ({ title = "Moments202305051403", setOpen }: HeaderProps) => {
           </div>
         </div>
         <div className="flex items-center py-2.5 pl-2.5 gap-x-6">
-          <div className="text-black font-normal text-sm flex" >
-            <p>Connect with your account</p>
-            <a className="text-additional-link" href="https://vitejs.dev/">
-              sign up
-            </a>
-            <p>or</p>
-            <a className="text-additional-link" onClick={() => setOpen(true)}>
-              log in
-            </a>
-          </div>
+          {loggedIn &&
+            <div className="text-black font-normal text-sm flex" >
+              <p>Connect with your account</p>
+              <a className="text-additional-link" href="https://vitejs.dev/">
+                sign up
+              </a>
+              <p>or</p>
+              <a className="text-additional-link" onClick={() => setOpen(true)}>
+                log in
+              </a>
+            </div>
+          }
+          {
+            !loggedIn &&
+            <div className="profile-details flex">
+              <figure className="profile-img">
+                <img src={profileIcon} height="36" width="36" />
+              </figure>
+              <p className="profile-name">{userName}</p>
+            </div>
+          }
+
           <Button type="secondary">
             <div className="flex items-center gap-x-2.5">
               <IconCopy className="group-hover:stroke-white" />
