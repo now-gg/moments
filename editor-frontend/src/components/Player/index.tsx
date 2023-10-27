@@ -115,8 +115,9 @@ const Player = () => {
   const fetchVideo = () => {
     var headers = new Headers();
     headers.append("Content-Type", "application/json");
-
-    fetch(`https://now.gg/7/api/vid/v1/getVideoInfo?videoId=rhjij8mlboksww`)
+    let searchParams = new URLSearchParams(location.search);
+    let videoId = searchParams.get('videoId') || 'rhjij8mlboksww';
+    fetch(`https://stagingngg.net/7/api/vid/v1/getVideoInfo?videoId=${videoId}`)
       .then((res) => res.json())
       .then((data) => {
         console.log('data', data);
