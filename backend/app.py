@@ -121,10 +121,16 @@ def process():
         time_after_crop = time.time()
 
 
-        processed_video_path = get_upload_file_path(video_name, "edit")
-        clip.write_videofile(processed_video_path)
+        # processed_video_path = get_upload_file_path(video_name, "edit")
+        # clip.write_videofile(processed_video_path)
+        # upload_res = upload_video(processed_video_path, title)
 
-        upload_res = upload_video(processed_video_path, title)
+        # write clip to a temp file
+        with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
+            clip.write_videofile(temp_file.name)
+            temp_file.seek(0)
+            upload_res = upload_video(temp_file.name, title)
+
         upload_res_json = upload_res.json()
         if upload_res.status_code != 200:
             return jsonify({"status": "error", "message": "Something went wrong while uploading to cloudflare", "errors": upload_res_json["errors"], "messages": upload_res_json["messages"]}), upload_res.status_code
