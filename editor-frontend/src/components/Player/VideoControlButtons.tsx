@@ -199,9 +199,22 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
 
   const sendAPIRequest = async () => {
     if (saveBtnActive == '' && (cropSelectedValue != '' || endTime && endTime != 0)) {
-      if (cropSelectedValue != '') {
-        let searchParams = new URLSearchParams(location.search);
-        let payload = {
+      let searchParams = new URLSearchParams(location.search);
+      let payload = {};
+      if (cropSelectedValue != '' && endTime != 0) {
+        payload = {
+          "title": document.querySelector('.video-title')?.innerHTML.trim(),
+          "videoId": searchParams.get('videoId') || 'rhjij8mlboksww',
+          "trim": { "start": startTime, "end": endTime },
+          "crop": {
+            "x1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().left,
+            "y1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().top,
+            "x2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().right,
+            "y2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().bottom
+          }
+        }
+      } else if (cropSelectedValue != '') {
+        payload = {
           "title": document.querySelector('.video-title')?.innerHTML.trim(),
           "videoId": searchParams.get('videoId') || 'rhjij8mlboksww',
           "crop": {
@@ -212,25 +225,8 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
           }
         }
         console.log('payload', payload);
-        await axios
-          .post(`https://api-moments.testngg.net`, payload, {
-            headers: {
-              'Content-Type': 'application/json',
-              token: `${localStorage['ng_token']}`,
-            },
-          })
-          .then(function (res: any) {
-            if (res && res.status === 200) {
-              console.log('res', res);
-            }
-          })
-          .catch((err: any) => {
-            console.log('err', err);
-            // console.log('signup not possible -- error 401');
-          });
       } else {
-        let searchParams = new URLSearchParams(location.search);
-        let payload = {
+        payload = {
           "title": document.querySelector('.video-title')?.innerHTML.trim(),
           "videoId": searchParams.get('videoId') || 'rhjij8mlboksww',
           "trim": { "start": startTime, "end": endTime },
@@ -238,6 +234,9 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
         // setStartTime('');
         // setEndTime('');
         console.log('payload', payload);
+      }
+
+      if (payload && Object.keys(payload).length > 0) {
         await axios
           .post(`https://api-moments.testngg.net`, payload, {
             headers: {
