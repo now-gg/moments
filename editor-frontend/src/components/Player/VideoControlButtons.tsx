@@ -238,7 +238,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
 
       if (payload && Object.keys(payload).length > 0) {
         await axios
-          .post(`https://api-moments.testngg.net`, payload, {
+          .post(`https://api-moments.testngg.net/video/process`, payload, {
             headers: {
               'Content-Type': 'application/json',
               token: `${localStorage['ng_token']}`,
