@@ -1,10 +1,9 @@
 import logging
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 import os
 import time
 from moviepy.editor import *
 from utils import get_upload_file_path
-from credentials import CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN
 import requests
 import tempfile
 
@@ -14,65 +13,6 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     return "Moments backend"
-
-
-@app.route("/videos/<path:filename>", methods=["HEAD"])
-def serve_video_head(filename):
-    try:
-        try:
-            video_path = os.path.join("static", "videos", filename)
-            filesize = os.path.getsize(video_path)
-        except Exception as e:
-            logging.error(e)
-        try:
-            video_path = os.path.join("videos", filename)
-            filesize = os.path.getsize(video_path)
-        except Exception as e:
-            logging.error(e)
-            filesize = 0
-
-        headers = {
-            'Accept-Ranges': 'bytes',
-            'Content-Length': filesize,
-            'Content-Type': 'video/mp4',
-        }
-
-        return '', 200, headers
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-def extract_range(range_header, file_size):
-    if range_header:
-        start, end = range_header.replace('bytes=', '').split('-')
-        start = int(start) if start else 0
-        end = int(end) if end else file_size - 1
-        end = min(end, file_size - 1)
-        return start, end
-    return 0, file_size - 1
-
-
-@app.route("/videos/<path:filename>", methods=["GET"])
-def serve_video(filename):
-    video_path = os.path.join("static", "videos", filename)
-    file_size = os.path.getsize(video_path)
-    
-    range_header = request.headers.get('Range', None)
-    start, end = extract_range(range_header, file_size)
-
-    requested_video_data = None
-    with open(video_path, 'rb') as video_file:
-        video_file.seek(start)
-        requested_video_data = video_file.read(end - start + 1)
-    
-    headers = {
-        'Content-Type': 'video/mp4',  # Adjust content type as needed
-        'Accept-Ranges': 'bytes',
-        'Content-Length': len(requested_video_data),
-        'Content-Range': f'bytes {start}-{end}/{file_size}',
-    }
-
-    return requested_video_data, 206, headers
-
 
 
 @app.route("/video/process", methods=["POST"])
@@ -113,11 +53,6 @@ def process():
         if crop:
             clip = clip.crop(x1=crop["x1"], y1=crop["y1"], x2=crop["x2"], y2=crop["y2"])
         time_after_crop = time.time()
-
-
-        # processed_video_path = get_upload_file_path(video_name, "edit")
-        # clip.write_videofile(processed_video_path)
-        # upload_res = upload_video(processed_video_path, title)
 
         # write clip to a temp file
         with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
