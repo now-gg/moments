@@ -105,8 +105,8 @@ def process():
         time_before_trim = time.time()
 
         if trim:
-            trim_start = trim.get("start", 0)
-            trim_end = trim.get("end", clip.duration)
+            trim_start = int(float(trim.get("start", "0")))
+            trim_end = int(float(trim.get("end", str(clip.duration))))
             clip = clip.subclip(trim_start, trim_end)
         time_after_trim = time.time()
 
@@ -151,19 +151,19 @@ def process():
 
 
 def upload_video(video_path, title, token):
-    cloudflare_upload_url, new_video_id = create_video(token)
+    cloudflare_upload_url, new_video_id = create_video(title ,token)
     with open(video_path, 'rb') as video_file:
         res = requests.post(cloudflare_upload_url, files={"file": (title, video_file)})
     return res, new_video_id
 
 
-def create_video(token):
+def create_video(title, token):
     try:
         headers = {
             'Authorization': f'Bearer {token}'
         }
         create_video_body = {
-            "title": "Test Video",
+            "title": title,
             "description": "",
             "tags": ["moments", "edit"],
             "mimeType": "video/mp4",
