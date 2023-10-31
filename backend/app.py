@@ -75,33 +75,24 @@ def serve_video(filename):
 
 
 
-
-def upload_video(video_path, title):
-    cloudflare_upload_url = f'https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/stream'
-    headers = {
-        'Authorization': f'Bearer {CLOUDFLARE_API_TOKEN}'
-    }
-    with open(video_path, 'rb') as video_file:
-        res = requests.post(cloudflare_upload_url, headers=headers, files={"file": (title, video_file)})
-
-    
-    return res
-
-    
-
 @app.route("/video/process", methods=["POST"])
 def process():
     try:
         body = request.get_json()
         title = body["title"]
-        video_url = body["video_url"]
+        video_id = body["videoId"]
         crop = body.get("crop")
         trim = body.get("trim")
+        auth_token = request.headers.get("token")
+
         try:
+            video_info = get_video_info(video_id)
+            video_url = video_info["downloadUrl"]
             file_extension = video_url.split(".")[-1]
-        except IndexError:
-            return jsonify({"status": "error", "message": "Video url does not have file extension"}), 400
-        
+        except Exception as e:
+            return jsonify({"status": "error", "message": f'Something went wrong while fetching video info for {video_id}', "error": str(e)}), 500
+
+
         video_name = title + "." + file_extension
         video_name = video_name.replace(" ", "_")
 
@@ -114,8 +105,11 @@ def process():
         time_before_trim = time.time()
 
         if trim:
-            clip = clip.subclip(trim["start"], trim["end"])
+            trim_start = trim.get("start", 0)
+            trim_end = trim.get("end", clip.duration)
+            clip = clip.subclip(trim_start, trim_end)
         time_after_trim = time.time()
+
         if crop:
             clip = clip.crop(x1=crop["x1"], y1=crop["y1"], x2=crop["x2"], y2=crop["y2"])
         time_after_crop = time.time()
@@ -129,16 +123,19 @@ def process():
         with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
             clip.write_videofile(temp_file.name)
             temp_file.seek(0)
-            upload_res = upload_video(temp_file.name, title)
+            upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
 
-        upload_res_json = upload_res.json()
         if upload_res.status_code != 200:
-            return jsonify({"status": "error", "message": "Something went wrong while uploading to cloudflare", "errors": upload_res_json["errors"], "messages": upload_res_json["messages"]}), upload_res.status_code
+            return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
+
+        delete_res = delete_video(video_id, auth_token)
+        if delete_res.status_code != 200:
+            return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
 
         return jsonify({
             "status": "success",
             "message": "Video processed successfully",
-            "result": upload_res_json["result"],
+            "video_id": new_video_id,
             "original_video_size": original_video_size,
             "original_video_duration": original_video_duration,
             "time_taken_to_init": time_before_trim - time_before_init,
@@ -151,3 +148,71 @@ def process():
         if isinstance(e, KeyError):
             return jsonify({"status": "error", "message": f'Key {e} missing from request body'}), 400
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
+
+
+def upload_video(video_path, title, token):
+    cloudflare_upload_url, new_video_id = create_video(token)
+    with open(video_path, 'rb') as video_file:
+        res = requests.post(cloudflare_upload_url, files={"file": (title, video_file)})
+    return res, new_video_id
+
+
+def create_video(token):
+    try:
+        headers = {
+            'Authorization': f'Bearer {token}'
+        }
+        create_video_body = {
+            "title": "Test Video",
+            "description": "",
+            "tags": ["moments", "edit"],
+            "mimeType": "video/mp4",
+            "creatorPlatform": "BS5",
+            "appName": "2048"
+        }
+
+        url = 'https://stagingngg.net/6/api/vid/v1/createVideo'
+
+        res = requests.post(url, headers=headers, json=create_video_body)
+
+        res_json = res.json()
+
+        return res_json["uploadUrl"], res_json["videoId"]
+    
+    except Exception as e:
+        logging.error(e)
+        print(e)
+        return None, None
+
+
+def delete_video(video_id, token):
+    try:
+        url = 'https://stagingngg.net/6/api/vid/v1/updateVideo'
+        headers = {
+            'Authorization': f'Bearer {token}'
+        }
+        data = {
+            "videoId": video_id,
+            "state": "Deleted"
+        }
+        res = requests.post(url, headers=headers, json=data)
+        return res
+    
+    except Exception as e:
+        logging.error(e)
+        print(e)
+        return e
+
+
+def get_video_info(video_id):
+    try:
+        url = f'https://stagingngg.net/6/api/vid/v1/getVideoInfo?videoId={video_id}'
+        res = requests.get(url)
+        res_json = res.json()
+        if res.status_code != 200:
+            return {}
+        return res_json["video"]
+
+    except Exception as e:
+        logging.error(e)
+        return {}
