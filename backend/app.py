@@ -48,6 +48,8 @@ def process():
         if trim:
             trim_start = int(float(trim.get("start", "0")))
             trim_end = int(float(trim.get("end", str(clip.duration))))
+            if trim_start < 0 or trim_end > clip.duration:
+                return jsonify({"status": "error", "message": "Invalid trim start or end"}), 400
             clip = clip.subclip(trim_start, trim_end)
         time_after_trim = time.time()
 
