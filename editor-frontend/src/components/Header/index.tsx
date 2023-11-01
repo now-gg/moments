@@ -16,13 +16,15 @@ import { useState } from 'react';
 
 type HeaderProps = {
   title?: string;
-  setOpen: Function
+  setOpen: Function,
+  loggedIn: boolean,
+  setLoggedIn: Function
 };
 
-const Header = ({ title = "Moments202305051403", setOpen }: HeaderProps) => {
+const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn }: HeaderProps) => {
   const [profileIcon, setProfileIcon] = useState('');
   const [userName, setUserName] = useState('');
-  const [loggedIn, setLoggedIn] = useState(false);
+  // const [loggedIn, setLoggedIn] = useState(false);
   const fetchUserDetails = async () => {
     await axios
       .get(`https://dev.testngg.net/accounts/users/v1/userinfo`, {

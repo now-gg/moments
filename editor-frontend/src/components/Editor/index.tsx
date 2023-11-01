@@ -1,9 +1,11 @@
 import Player from "../Player";
-
-const Editor = () => {
+type EditorProps = {
+    loggedIn: boolean,
+};
+const Editor = ({ loggedIn }: EditorProps) => {
     return (
         <section style={{ flex: 1 }}>
-            <Player />
+            <Player loggedIn={loggedIn} />
         </section>
     );
 };

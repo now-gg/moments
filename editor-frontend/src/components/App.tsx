@@ -6,6 +6,7 @@ import Sidebar from "./Sidebar"
 
 export default function App() {
   const [open, setOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
   console.log('open', open);
   return (
     <div className="bg-background min-h-screen">
@@ -19,9 +20,9 @@ export default function App() {
         href='https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap'
         rel='stylesheet'
       />
-      <Header setOpen={setOpen} />
+      <Header setOpen={setOpen} loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
       <div className="font-poppins p-4 flex justify-between" style={{ gap: '24px' }}>
-        <Editor />
+        <Editor loggedIn={loggedIn} />
         {/* <Editor url="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" /> */}
         <Sidebar sidebar="Share Your Video" />
       </div>
