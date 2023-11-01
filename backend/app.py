@@ -58,10 +58,13 @@ def process():
         time_after_crop = time.time()
 
         # write clip to a temp file
-        with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
             clip.write_videofile(temp_file.name)
             temp_file.seek(0)
             upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
+            temp_file.close()
+            os.remove(temp_file.name)
+            
 
         if upload_res.status_code != 200:
             return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
