@@ -2,7 +2,7 @@
 FROM python:3.11.0
 
 # install ffmpeg
-RUN apt-get update && apt-get install -y ffmpeg=4.1.4-1~deb10u1
+RUN apt-get update && apt-get install -y ffmpeg=4.1.4-1+deb10u1
 
 # Set the working directory to /app
 WORKDIR /app
