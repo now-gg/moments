@@ -18,7 +18,7 @@ WORKDIR /src
 RUN wget https://ffmpeg.org/releases/ffmpeg-2.8.22.tar.gz && \
     tar -xzf ffmpeg-2.8.22.tar.gz && \
     cd ffmpeg-2.8.22 && \
-    ./configure --enable-libx264 --enable-libmp3lame --enable-libopus --enable-nonfree && \
+    ./configure --enable-libx264 --enable-libmp3lame --enable-libopus --enable-nonfree --enable-gpl && \
     make && \
     make install
 
