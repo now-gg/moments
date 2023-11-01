@@ -1,8 +1,29 @@
 # Use an official Python runtime as a parent image
 FROM python:3.11.0
 
-# install ffmpeg
-RUN apt-get update && apt-get install -y ffmpeg=7:4.1.4-1+deb10u1
+# Install build tools and dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    yasm \
+    pkg-config \
+    libx264-dev \
+    libfreetype6-dev \
+    libmp3lame-dev \
+    libopus-dev
+
+# Set the working directory to /src
+WORKDIR /src
+
+# Compile and install ffmpeg 3.4.13
+RUN wget https://ffmpeg.org/releases/ffmpeg-3.4.13.tar.gz && \
+    tar -xzf ffmpeg-3.4.13.tar.gz && \
+    cd ffmpeg-3.4.13 && \
+    ./configure && \
+    make && \
+    make install
+
+# Clean up the source files
+RUN rm -rf /src
 
 # Set the working directory to /app
 WORKDIR /app
