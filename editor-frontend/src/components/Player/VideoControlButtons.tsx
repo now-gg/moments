@@ -195,12 +195,16 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
   const toggleOptions = async (e: any) => {
     const toggleButton = e.target;
     toggleButton.closest('.action-buttons').querySelector('.options-wrapper').classList.toggle('hide');
-    if (loggedIn && endTime && endTime > duration) {
+    if (loggedIn) {
       setSaveBtnActive('');
     }
   }
 
   const sendAPIRequest = async () => {
+    if (cropSelectedValue == '' && endTime && endTime > duration) {
+      document.querySelector('input.end-time')?.classList.add('error-input');
+      return;
+    }
     if (saveBtnActive == '' && (cropSelectedValue != '' || endTime && endTime != 0)) {
       let searchParams = new URLSearchParams(location.search);
       let payload = {};
