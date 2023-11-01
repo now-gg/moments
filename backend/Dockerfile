@@ -14,11 +14,11 @@ RUN apt-get update && apt-get install -y \
 # Set the working directory to /src
 WORKDIR /src
 
-# Compile and install ffmpeg 3.4.13
-RUN wget https://ffmpeg.org/releases/ffmpeg-3.4.13.tar.gz && \
-    tar -xzf ffmpeg-3.4.13.tar.gz && \
-    cd ffmpeg-3.4.13 && \
-    ./configure && \
+# Compile and install FFmpeg 2.8.22
+RUN wget https://ffmpeg.org/releases/ffmpeg-2.8.22.tar.gz && \
+    tar -xzf ffmpeg-2.8.22.tar.gz && \
+    cd ffmpeg-2.8.22 && \
+    ./configure --enable-libx264 --enable-libmp3lame --enable-libopus --enable-nonfree && \
     make && \
     make install
 
