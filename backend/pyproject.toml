@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "backend"
+version = "0.1.0"
+description = ""
+authors = ["syedmehdi-bst <syedmehdi.abbas@bluestacks.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "^3.0.0"
+moviepy = "^1.0.3"
+gunicorn = "^21.2.0"
+google-cloud-secret-manager = "^2.16.4"
+flask-cors = "^4.0.0"
+waitress = "^2.1.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

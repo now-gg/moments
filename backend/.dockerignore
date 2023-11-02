@@ -1,0 +1,6 @@
+# Ignore specific files or directories
+*.log
+*.tmp
+node_modules/
+build/
+secret-key.txt
