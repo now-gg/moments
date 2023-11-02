@@ -1,6 +1,5 @@
 .venv
 
-.env
 static/videos/*.mp4
 
 # Byte-compiled / optimized / DLL files
