@@ -17,4 +17,4 @@ RUN pip install -r requirements.txt
 EXPOSE 8000
 
 # Define the entry point for the application
-CMD ["waitress-serve", "--host", "0.0.0.0", "--port", "8080", "app:app"]
+CMD ["waitress-serve", "--host", "0.0.0.0", "--port", "8000", "app:app"]
