@@ -1,13 +1,11 @@
 import Player from "../Player";
-
 type EditorProps = {
-    url: string;
+    loggedIn: boolean,
 };
-
-const Editor = ({ url }: EditorProps) => {
+const Editor = ({ loggedIn }: EditorProps) => {
     return (
-        <section>
-            <Player url={url} />
+        <section style={{ flex: 1 }}>
+            <Player loggedIn={loggedIn} />
         </section>
     );
 };

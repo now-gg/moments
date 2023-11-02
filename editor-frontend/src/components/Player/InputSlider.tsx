@@ -1,21 +1,23 @@
-import React, { useState } from "react";
-import MultiRangeSlider, { ChangeResult } from "multi-range-slider-react";
+import MultiRangeSlider from "multi-range-slider-react";
 import styled from "styled-components";
 const InputSliderWrapper = styled.div`
   .multi-range-slider-black {
     padding: 0;
     background: transparent;
     border: none;
+    .bar{
+      margin-bottom: -5px;
+    }
     .bar-left{
       padding: 1px 0;
     }
     .thumb{
       &::before{
         width: 7px;
-        height: 44px;
+        height: 50px;
         border: none;
         margin: 0;
-        bottom: -2px;
+        bottom: 0;
         border-radius: 0;
         box-shadow: none;
       }
@@ -31,6 +33,7 @@ const InputSliderWrapper = styled.div`
           background: url(https://cms-cdn.now.gg/cms-media/2023/10/slider-right-label.png) no-repeat;
           background-size: cover;
           background-position: center;
+          right:1px;
         }
       }
     }
@@ -43,12 +46,12 @@ const InputSliderWrapper = styled.div`
       box-shadow: none;
     }
     .ruler{
-      margin: 0;
+      margin: -5px;
       .ruler-rule{
-        padding: 2px 0;
+        padding: 3px 0;
         .ruler-sub-rule{
-          padding: 1px 0;
-          margin-bottom: -14px;
+          padding: 3px 0px;
+          margin-bottom: 1px;
           border-left: none
           border-bottom: none;
           .ruler-sub-rule{
@@ -70,14 +73,23 @@ const InputSliderWrapper = styled.div`
   }
 
 `
-const InputSlider = ({ min, max }) => {
 
-  const [minValue, setMinValue] = useState(min);
-  const [maxValue, setMaxValue] = useState(max);
+type SliderProps = {
+  minVal: number;
+  maxVal: number | undefined,
+  duration: number | undefined
+};
+
+const InputSlider = ({ minVal, maxVal, duration }: SliderProps) => {
+
+  // const [minValue, setMinValue] = useState(minVal);
+  // const [maxValue, setMaxValue] = useState(maxVal);
   const getTimeLabels = (): string[] => {
     let arr: string[] = [];
-    for (let i = 0; i <= max; i++) {
-      arr.push(i.toString().padStart(2, "0") + ":00");
+    if (duration) {
+      for (let i = 0; i <= duration; i++) {
+        arr.push(i.toString().padStart(2, "0") + ":00");
+      }
     }
     return arr;
   };
@@ -86,18 +98,14 @@ const InputSlider = ({ min, max }) => {
       <MultiRangeSlider
         baseClassName="multi-range-slider-black"
         min={0}
-        max={4}
+        max={duration}
         step={1}
-        minValue={minValue}
-        maxValue={maxValue}
+        minValue={minVal}
+        maxValue={maxVal}
         ruler={true}
         // label={true}
         labels={getTimeLabels()}
         subSteps={true}
-        onInput={(e: ChangeResult) => {
-          setMinValue(e.minValue);
-          setMaxValue(e.maxValue);
-        }}
       ></MultiRangeSlider>
     </InputSliderWrapper>
   )

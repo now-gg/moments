@@ -1,6 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import styled from "styled-components";
 import InputSlider from './InputSlider';
+
+type VideoProps = {
+  url: string,
+  startTime: number,
+  endTime: number | undefined,
+  duration: number | undefined,
+};
 
 const VideoTimelineWrapper = styled.div`
   position: relative;
@@ -26,98 +33,25 @@ const VideoTimelineWrapper = styled.div`
       height: 100%;
       object-fit: cover;
       display: inline-block;
-      width: calc(100%/50);
+      // width: calc(100%/50);
     }
   }
 `
-const VideoTimeline: React.FC = ({ url }) => {
-  const [video, setVideo] = useState<File | null>(null);
-  const [timelineFrames, setTimelineFrames] = useState<string[]>([]);
-  const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
-  const sliderRef = useRef<HTMLInputElement>(null);
+const VideoTimeline = ({ url, startTime, endTime, duration }: VideoProps) => {
+  const [video, setVideo] = useState('');
 
   useEffect(() => {
     setVideo(url);
-    generateTimeline();
+    // generateTimeline();
   }, [])
 
-
-  function log(msg) {
-    console.log(`${new Date().toLocaleString("en-us")}: ${msg}`);
-  }
-  const generateTimeline = () => {
-    // if (video) {
-    const videoElement = document.createElement('video');
-    videoElement.src = url;
-    videoElement.crossOrigin = 'anonymous';
-    videoElement.addEventListener('loadeddata', () => {
-      const duration = videoElement.duration;
-      console.log('ducration', duration);
-      const frameInterval = duration / 50;
-      const numFrames = 50;
-      const frames: string[] = [];
-
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-
-      videoElement.addEventListener('seeked', () => {
-        log('video seeked');
-        context?.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-        const frameImage = canvas.toDataURL('image/jpeg');
-
-        frames.push(frameImage);
-
-        if (frames.length === numFrames) {
-          setTimelineFrames(frames);
-          setSelectedFrame(frames[0]);
-          URL.revokeObjectURL(videoElement.src);
-        } else {
-          videoElement.currentTime += frameInterval;
-        }
-        console.log('frames loaded', videoElement.currentTime);
-      });
-
-      videoElement.currentTime = 0;
-    });
-    // }
-  };
-
-  const handleSliderChange = () => {
-    if (sliderRef.current) {
-      const value = parseInt(sliderRef.current.value);
-      setSelectedFrame(timelineFrames[value]);
-    }
-  };
-  const style = {
-    width: `calc(100%/${timelineFrames.length}px)`,
-    padding: 0
-  }
   return (
     <VideoTimelineWrapper className="VideoTimeline" data-video={video}>
-      <div className="frames-container flex">
-        {timelineFrames.map((frame, index) => (
-          <img
-            key={index}
-            src={frame}
-            alt={`Frame ${index}`}
-            style={style}
-            // height={50}
-            className={`frame-image ${selectedFrame === frame ? 'selected' : ''
-              }`}
-          />
-        ))}
+      <div className="frames-container flex bg-color">
+
       </div>
       <div className="slider-container">
-        <InputSlider min={0} max={timelineFrames.length - 1} />
-        {/* <input
-          className='slider'
-          type="range"
-          min={0}
-          max={timelineFrames.length - 1}
-          defaultValue={0}
-          ref={sliderRef}
-          onChange={handleSliderChange}
-        /> */}
+        <InputSlider minVal={startTime} maxVal={endTime} duration={duration} />
       </div>
     </VideoTimelineWrapper>
   );

@@ -1,0 +1,133 @@
+.login-popup {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.7);
+  inset: 0px;
+  z-index: 99999;
+}
+
+.modal-body {
+  width: 440px;
+  background: linear-gradient(89.61deg, rgb(233, 86, 129) 3.44%, rgb(103, 165, 198) 49.89%, rgb(184, 205, 116) 96.35%);
+  padding: 4px;
+  box-shadow: rgba(0, 0, 0, 0.08) 0px 8px 24px;
+  border-radius: 12px;
+  max-width: 540px;
+  max-height: calc(80vh - 20px);
+  overflow-y: auto;
+  position: relative;
+  font-family: Poppins, sans-serif !important;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.modal-parent {
+  padding: 32px;
+  background: rgb(255, 255, 255);
+  border-radius: 12px;
+  flex-direction: column;
+}
+
+.column {
+  flex-direction: column;
+}
+
+.popup-close svg {
+  cursor: pointer;
+  z-index: 1;
+  position: absolute;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  top: 24px;
+}
+
+.perfectCenter {
+  justify-content: center;
+  align-items: center;
+}
+
+.title {
+  font-family: Audiowide;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 150%;
+  text-align: center;
+  color: rgb(11, 2, 35);
+  opacity: 0.9;
+  margin-top: 52px;
+  margin-bottom: 16px;
+}
+
+.sign-up-btn {
+  box-shadow: rgb(171, 5, 92) 0px 4px 0px, rgba(0, 0, 0, 0.15) 0px 10px 8px;
+  border-radius: 54px;
+  width: 100%;
+  border: 1px solid rgb(255, 170, 255);
+  font-family: Fredoka;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 150%;
+  text-transform: uppercase;
+  color: rgb(255, 255, 255);
+  text-shadow: rgba(76, 71, 137, 0.3) 1px 1px 1px;
+  height: 44px;
+  background: linear-gradient(rgb(255, 66, 165) 0%, rgb(209, 16, 117) 100%);
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
+.social-icons {
+  margin-top: 16px;
+  gap: 16px;
+}
+
+.discord {
+  background: linear-gradient(rgb(77, 33, 250) 0%, rgb(105, 68, 255) 100%);
+  box-shadow: rgb(38, 5, 171) 0px 4px 0px, rgba(0, 0, 0, 0.15) 0px 10px 8px;
+  border: 1px solid rgb(187, 170, 255);
+}
+
+.discord,
+.facebook {
+  width: 180px;
+  height: 44px;
+  border-radius: 54px;
+  color: rgb(255, 255, 255);
+  text-shadow: rgba(76, 71, 137, 0.3) 1px 1px 1px;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 150%;
+  text-transform: uppercase;
+  font-family: Fredoka;
+  gap: 5px;
+}
+
+.facebook {
+  background: linear-gradient(rgb(33, 120, 250) 0%, rgb(83, 68, 255) 100%);
+  box-shadow: rgb(5, 51, 171) 0px 4px 0px, rgba(0, 0, 0, 0.15) 0px 10px 8px;
+  margin-left: 16px;
+  border: 1px solid rgb(170, 209, 255);
+}
+
+.policy-note {
+  color: rgb(91, 82, 115);
+  opacity: 0.8;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 150%;
+  text-align: center;
+  margin-top: 32px;
+  font-family: Fredoka;
+  column-gap: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.policy-note a {
+  text-decoration: underline;
+}
