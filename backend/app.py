@@ -35,8 +35,8 @@ def process():
 
         try:
             video_info = get_video_info(video_id)
-            logging.info("video info received")
             video_url = video_info["downloadUrl"]
+            logging.info("video info received")
             file_extension = video_url.split(".")[-1]
         except Exception as e:
             return jsonify({"status": "error", "message": f'Something went wrong while fetching video info for {video_id}', "error": str(e)}), 500
@@ -48,6 +48,8 @@ def process():
         time_before_init = time.time()
 
         clip = VideoFileClip(video_url)
+
+        logging.info("clip init done")
         
         original_video_size = clip.size
         original_video_duration = clip.duration 
