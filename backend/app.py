@@ -26,8 +26,11 @@ def process():
         trim = body.get("trim")
         auth_token = request.headers.get("token")
 
+        logging.info("request to process video")
+
         try:
             video_info = get_video_info(video_id)
+            logging.info("video info received")
             video_url = video_info["downloadUrl"]
             file_extension = video_url.split(".")[-1]
         except Exception as e:
@@ -57,11 +60,15 @@ def process():
             clip = clip.crop(x1=crop["x1"], y1=crop["y1"], x2=crop["x2"], y2=crop["y2"])
         time_after_crop = time.time()
 
+        logging.info("trim crop done")
+
         # write clip to a temp file
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
             clip.write_videofile(temp_file.name)
+            logging.info("clip written to temp file")
             temp_file.seek(0)
             upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
+            logging.info("upload done")
             temp_file.close()
             os.remove(temp_file.name)
             
@@ -72,6 +79,7 @@ def process():
         delete_res = delete_video(video_id, auth_token)
         if delete_res.status_code != 200:
             return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
+        logging.info("previous video deleted")
 
         return jsonify({
             "status": "success",
@@ -92,10 +100,13 @@ def process():
 
 
 def upload_video(video_path, title, token):
-    cloudflare_upload_url, new_video_id = create_video(title ,token)
-    with open(video_path, 'rb') as video_file:
-        res = requests.post(cloudflare_upload_url, files={"file": (title, video_file)})
-    return res, new_video_id
+    try:
+        cloudflare_upload_url, new_video_id = create_video(title ,token)
+        with open(video_path, 'rb') as video_file:
+            res = requests.post(cloudflare_upload_url, files={"file": (title, video_file)})
+        return res, new_video_id
+    except Exception as e:
+        logging.error(e)
 
 
 def create_video(title, token):
@@ -121,8 +132,8 @@ def create_video(title, token):
         return res_json["uploadUrl"], res_json["videoId"]
     
     except Exception as e:
+        logging.error("error in createVideo call")
         logging.error(e)
-        print(e)
         return None, None
 
 
