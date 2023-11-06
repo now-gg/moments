@@ -262,6 +262,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
               const newVideoId = res.data?.videoId;
               console.log('newVideoId', newVideoId);
               return res.json();
+              setVideoID(newVideoId);
               // let t = 0;
               // const intervalId = setInterval(() => {
               //   fetch(`https://api-moments.testngg.net/video/info?videoId=${newVideoId}`)
