@@ -132,6 +132,31 @@ def delete():
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
 
+@app.route("/video/info", methods=["GET"])
+def info():
+    try:
+        # get video id from query param
+        video_id = request.args.get("videoId")
+
+        logging.info("request to get video info")
+
+        video_info = get_video_info(video_id)
+        logging.info("video info received")
+
+        if video_info:
+            return jsonify({
+                "status": "success",
+                "message": "Video info received successfully",
+                "video": video_info
+            }), 200
+        
+        return jsonify({"status": "error", "message": f'Video with id {video_id} not found'}), 404
+
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
+
+
 def upload_video(video_path, title, token):
     try:
         cloudflare_upload_url, new_video_id = create_video(title ,token)
