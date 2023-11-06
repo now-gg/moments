@@ -13,8 +13,8 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# client = google.cloud.logging.Client()
-# client.setup_logging()
+client = google.cloud.logging.Client()
+client.setup_logging()
 
 @app.route("/")
 def home():
