@@ -31,7 +31,7 @@ def process():
         trim = body.get("trim")
         auth_token = request.headers.get("token")
 
-        logging.info("request to process video")
+        logging.info(f'video edit request for {video_id}')
 
         try:
             video_info = get_video_info(video_id)
@@ -75,7 +75,7 @@ def process():
             logging.info("clip written to temp file")
             temp_file.seek(0)
             upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
-            logging.info("upload done")
+            logging.info(f'upload done for new video {new_video_id}')
             temp_file.close()
             os.remove(temp_file.name)
             
@@ -86,18 +86,20 @@ def process():
         delete_res = delete_video(video_id, auth_token)
         if delete_res.status_code != 200:
             return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
-        logging.info("previous video deleted")
+        logging.info(f'previous video deleted: {video_id}')
 
-        return jsonify({
+        res_dict = {
             "status": "success",
             "message": "Video processed successfully",
             "video_id": new_video_id,
-            "original_video_size": original_video_size,
-            "original_video_duration": original_video_duration,
             "time_taken_to_init": time_before_trim - time_before_init,
-            "time_taken_to_trim": time_after_trim - time_before_trim if trim else 0,
-            "time_taken_to_crop": time_after_crop - time_after_trim if crop else 0,
-        }), 200
+            "time_taken_to_trim": time_after_trim - time_before_trim,
+            "time_taken_to_crop": time_after_crop - time_after_trim
+        }
+
+        logging.info("response to be sent: ", res_dict)
+
+        return jsonify(res_dict), 200
 
     except Exception as e:
         logging.error(e)
@@ -138,10 +140,10 @@ def info():
         # get video id from query param
         video_id = request.args.get("videoId")
 
-        logging.info("request to get video info")
+        logging.info(f'video info request for {video_id}')
 
         video_info = get_video_info(video_id)
-        logging.info("video info received")
+        logging.info("video info received", video_info)
 
         if video_info:
             return jsonify({
