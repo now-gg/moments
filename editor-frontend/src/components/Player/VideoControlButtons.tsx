@@ -179,13 +179,16 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
 
   const handleChange = (e: any) => {
     const inputClass = e.target.classList.contains('start-time') ? 'start' : 'end';
-    console.log('e.target', e.target);
     if (inputClass == 'start') {
       setStartTime(e.target.value);
     } else {
+      if (e.target.value < startTime) {
+        e.target.classList.add('error-input');
+        return;
+      }
       setEndTime(e.target.value);
     }
-    if (e.target.value && inputClass == 'end' && e.target.value > duration) {
+    if (e.target.value && inputClass == 'end' && e.target.value > duration && e.target.value < startTime) {
       e.target.classList.add('error-input');
     } else {
       e.target.classList.remove('error-input');
@@ -285,7 +288,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
             <div className="padding-wrapper flex">
               <span className="span-time flex">
                 Start Time
-                <input className="start-time input-time" placeholder="0 sec" type="number" onChange={(e) => { handleChange(e) }} />
+                <input className="start-time input-time" max={duration} placeholder="0 sec" type="number" onChange={(e) => { handleChange(e) }} />
               </span>
               <span className="span-time flex">
                 End Time
