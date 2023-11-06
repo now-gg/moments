@@ -120,14 +120,17 @@ const Player = ({ loggedIn }: PlayerProps) => {
     headers.append("Content-Type", "application/json");
     let searchParams = new URLSearchParams(location.search);
     let videoId = searchParams.get('videoId') || 'doykcyaxtx5bkb';
-    fetch(`https://stagingngg.net/7/api/vid/v1/getVideoInfo?videoId=${videoId}`)
+    fetch(`https://api-moments.testngg.net/video/info?videoId=${videoId}`)
       .then((res) => res.json())
       .then((data) => {
         console.log('data', data);
         setVideoID(data?.video?.cflVideoId);
         setVideoURL(data?.video?.thumbnailUrl);
         setDuration(data?.video?.durationSecs);
-      });
+      })
+      .catch((err) => {
+        console.log('err', err);
+      })
   }
   useEffect(() => {
     dragElement(document.querySelector('.crop-wrapper-video'));
