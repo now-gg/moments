@@ -1,6 +1,8 @@
 import styled from "styled-components";
 type SidebarProps = {
-  sidebar?: string
+  sidebar?: string,
+  setOpen: Function,
+  loggedIn: boolean
 }
 
 const SideWrapper = styled.div`
@@ -24,12 +26,18 @@ const SideWrapper = styled.div`
   }
 `
 
-const Sidebar = ({ sidebar }: SidebarProps) => {
+const Sidebar = ({ sidebar, setOpen, loggedIn }: SidebarProps) => {
+
+  const uploadToYoutube = () => {
+    if (!loggedIn) {
+      setOpen(true);
+    }
+  }
   return (
     <aside className="bg-white rounded-lg">
       <SideWrapper className="bg-white p-6 rounded-lg w-[300px]">
         <p className="text-base font-semibold text-translucent-80">{sidebar}</p>
-        <button className="upload-on-youtube">
+        <button className="upload-on-youtube" onClick={uploadToYoutube}>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="17" viewBox="0 0 24 17" fill="none">
             <g clip-path="url(#clip0_3470_4285)">
               <path d="M22.7814 2.95966C22.5221 1.99099 21.7609 1.22975 20.7922 0.970448C19.0363 0.5 12 0.5 12 0.5C12 0.5 4.96366 0.5 3.20966 0.970448C2.24099 1.22975 1.47975 1.99099 1.22045 2.95966C0.75 4.71366 0.75 8.37537 0.75 8.37537C0.75 8.37537 0.75 12.0371 1.22045 13.7911C1.47975 14.7598 2.24099 15.521 3.20966 15.7803C4.96366 16.2507 12 16.2507 12 16.2507C12 16.2507 19.0363 16.2507 20.7903 15.7803C21.759 15.521 22.5203 14.7598 22.7796 13.7911C23.25 12.0371 23.25 8.37537 23.25 8.37537C23.25 8.37537 23.25 4.71366 22.7796 2.95966H22.7814Z" fill="#FF0000" />
