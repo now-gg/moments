@@ -256,9 +256,29 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
           })
           .then(function (res: any) {
             if (res && res.status === 200) {
-              // localStorage.setItem('ng_token', res.token);
               console.log('res', res);
-              setVideoID('');
+              const newVideoId = res.data?.videoId;
+              console.log('newVideoId', newVideoId);
+              let t = 0;
+              const intervalId = setInterval(() => {
+                fetch(`https://api-moments.testngg.net/video/info?videoId=${newVideoId}`)
+                .then(res => {
+                  if(res.status == 200) {
+                    console.log("data ready for video id", newVideoId);
+                    setVideoID(newVideoId);
+                    clearInterval(intervalId);
+                  }
+                  if(t > 30) {
+                    console.log("timeout reached for video id", newVideoId);
+                    setVideoID('');
+                    clearInterval(intervalId);
+                  }
+                })
+                .catch(err => {
+                  console.log("err", err);
+                })
+                t += 2;
+              }, 2000);
             }
           })
           .catch((err: any) => {
