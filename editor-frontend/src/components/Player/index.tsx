@@ -120,7 +120,7 @@ const Player = ({ loggedIn }: PlayerProps) => {
     headers.append("Content-Type", "application/json");
     let searchParams = new URLSearchParams(location.search);
     let videoId = searchParams.get('videoId') || 'doykcyaxtx5bkb';
-    fetch(`https://stagingngg.net/7/api/vid/v1/getVideoInfo?videoId=${videoId}`, { headers: headers, mode: 'no-cors' })
+    fetch(`https://stagingngg.net/7/api/vid/v1/getVideoInfo?videoId=${videoId}`, { mode: 'no-cors' })
       .then((res) => res.json())
       .then((data) => {
         console.log('data', data);
