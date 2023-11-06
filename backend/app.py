@@ -13,8 +13,8 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-client = google.cloud.logging.Client()
-client.setup_logging()
+# client = google.cloud.logging.Client()
+# client.setup_logging()
 
 @app.route("/")
 def home():
@@ -97,6 +97,32 @@ def process():
             "time_taken_to_init": time_before_trim - time_before_init,
             "time_taken_to_trim": time_after_trim - time_before_trim if trim else 0,
             "time_taken_to_crop": time_after_crop - time_after_trim if crop else 0,
+        }), 200
+
+    except Exception as e:
+        logging.error(e)
+        if isinstance(e, KeyError):
+            return jsonify({"status": "error", "message": f'Key {e} missing from request body'}), 400
+        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
+
+
+@app.route("/video/delete", methods=["POST"])
+def delete():
+    try:
+        body = request.get_json()
+        video_id = body["videoId"]
+        auth_token = request.headers.get("token")
+
+        logging.info("request to delete video")
+
+        delete_res = delete_video(video_id, auth_token)
+        if delete_res.status_code != 200:
+            return jsonify({"status": "error", "message": "Something went wrong while deleting the video"}), delete_res.status_code
+        logging.info("video deleted")
+
+        return jsonify({
+            "status": "success",
+            "message": "Video deleted successfully",
         }), 200
 
     except Exception as e:
