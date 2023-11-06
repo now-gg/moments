@@ -75,10 +75,10 @@ def process():
             logging.info("clip written to temp file")
             temp_file.seek(0)
             upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
-            logging.info(f'upload done for new video {new_video_id}')
             temp_file.close()
             os.remove(temp_file.name)
             
+        logging.info(f'upload done for new video {new_video_id}')
 
         if upload_res.status_code != 200:
             return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
@@ -91,13 +91,10 @@ def process():
         res_dict = {
             "status": "success",
             "message": "Video processed successfully",
-            "video_id": new_video_id,
-            "time_taken_to_init": time_before_trim - time_before_init,
-            "time_taken_to_trim": time_after_trim - time_before_trim,
-            "time_taken_to_crop": time_after_crop - time_after_trim
+            "video_id": new_video_id
         }
 
-        logging.info("response to be sent: ", res_dict)
+        logging.info(f'response to be sent: {res_dict}')
 
         return jsonify(res_dict), 200
 
