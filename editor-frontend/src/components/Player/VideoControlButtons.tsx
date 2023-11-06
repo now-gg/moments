@@ -257,29 +257,35 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
           .then(function (res: any) {
             if (res && res.status === 200) {
               console.log('res', res);
+              console.log('res.data', res.data);
+              console.log('res.json()', res.json());
               const newVideoId = res.data?.videoId;
               console.log('newVideoId', newVideoId);
-              let t = 0;
-              const intervalId = setInterval(() => {
-                fetch(`https://api-moments.testngg.net/video/info?videoId=${newVideoId}`)
-                .then(res => {
-                  if(res.status == 200) {
-                    console.log("data ready for video id", newVideoId);
-                    setVideoID(newVideoId);
-                    clearInterval(intervalId);
-                  }
-                  if(t > 30) {
-                    console.log("timeout reached for video id", newVideoId);
-                    setVideoID('');
-                    clearInterval(intervalId);
-                  }
-                })
-                .catch(err => {
-                  console.log("err", err);
-                })
-                t += 2;
-              }, 2000);
+              return res.json();
+              // let t = 0;
+              // const intervalId = setInterval(() => {
+              //   fetch(`https://api-moments.testngg.net/video/info?videoId=${newVideoId}`)
+              //   .then(res => {
+              //     if(res.status == 200) {
+              //       console.log("data ready for video id", newVideoId);
+              //       setVideoID(newVideoId);
+              //       clearInterval(intervalId);
+              //     }
+              //     if(t > 30) {
+              //       console.log("timeout reached for video id", newVideoId);
+              //       setVideoID('');
+              //       clearInterval(intervalId);
+              //     }
+              //   })
+              //   .catch(err => {
+              //     console.log("err", err);
+              //   })
+              //   t += 2;
+              // }, 2000);
             }
+          })
+          .then((data: any) => {
+            console.log('data', data);
           })
           .catch((err: any) => {
             console.log('err', err);
