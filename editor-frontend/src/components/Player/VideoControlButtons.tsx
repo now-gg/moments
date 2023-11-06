@@ -258,8 +258,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
             if (res && res.status === 200) {
               console.log('res', res);
               console.log('res.data', res.data);
-              console.log('res.json()', res.json());
-              const newVideoId = res.data?.videoId;
+              const newVideoId = res.data?.video_id;
               console.log('newVideoId', newVideoId);
               return res.json();
               setVideoID(newVideoId);
