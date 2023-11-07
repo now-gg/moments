@@ -94,7 +94,7 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
     const query = window.location.search;
     const urlParams = new URLSearchParams(query);
     const videoId = urlParams.get('videoId');
-    fetch("https://api-moments.testnngg.net/video/delete", {
+    fetch("https://api-moments.testngg.net/video/delete", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -104,7 +104,17 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
         videoId: videoId,
       }),
     })
+    .then((res) => {
+      if (res.status == 200) {
+        console.log("Video Deleted");
+        window.location.href = "https://moments.stagingngg.net";
+      }
+    })
+    .catch((err) => {
+      console.error("Error while deleting video", err);
+    });
   }
+    
 
   return (
     <header className="font-poppins bg-white">
