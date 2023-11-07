@@ -77,7 +77,9 @@ def process():
             upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
             temp_file.close()
             os.remove(temp_file.name)
-            
+        
+        clip.close()
+
         logging.info(f'upload done for new video {new_video_id}')
 
         if upload_res.status_code != 200:
