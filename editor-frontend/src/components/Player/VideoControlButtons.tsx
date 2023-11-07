@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useContext, useState } from "react";
 import styled from "styled-components";
 import { TitleContext } from '../App';
+import Loader from '../Loader';
 
 type ControlProps = {
   startTime: number,
@@ -163,6 +164,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
   const [cropSelectedValue, setCropSelectedValue] = useState('');
   const [saveBtnActive, setSaveBtnActive] = useState('disabled');
   const title = useContext(TitleContext);
+  const [showLoader, setShowLoader] = useState(false);
 
 
   const showAspectWrapper = (e: any) => {
@@ -251,6 +253,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
       }
 
       if (payload && Object.keys(payload).length > 0) {
+        setShowLoader(true);
         await axios
           .post(`https://api-moments.testngg.net/video/process`, payload, {
             headers: {
@@ -274,6 +277,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
                     history.replaceState(null, '', `${location.pathname}?${query.toString()}`);
                     window.location.reload();
                     clearInterval(intervalId);
+                    setShowLoader(false);
                   }
                 })
                 .catch(err => {
@@ -283,6 +287,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
                   history.replaceState(null, '', `${location.pathname}?${query.toString()}`);
                   window.location.reload(); 
                   clearInterval(intervalId);
+                  setShowLoader(false);
                 })
                 .finally(() => {
                   if(t > 30) {
@@ -292,6 +297,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
                     history.replaceState(null, '', `${location.pathname}?${query.toString()}`);
                     window.location.reload(); 
                     clearInterval(intervalId);
+                    setShowLoader(false);
                   }
                   t += 2;
                 });
@@ -331,6 +337,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
    }
   return (
     <VideoControlsWrapper className="flex">
+      {showLoader && <Loader />}
       <div className="play-trim-crop-options flex">
         <button className="play-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none">
