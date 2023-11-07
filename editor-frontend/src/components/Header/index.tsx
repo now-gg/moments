@@ -89,6 +89,23 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
       document.querySelector('.video-title')?.setAttribute('contenteditable', 'false');
     }
   }
+
+  const deleteVideo = () => {
+    const query = window.location.search;
+    const urlParams = new URLSearchParams(query);
+    const videoId = urlParams.get('videoId');
+    fetch("https://api-moments.testnngg.net/video/delete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "token": localStorage.getItem("ng_token") || "",
+      },
+      body: JSON.stringify({
+        videoId: videoId,
+      }),
+    })
+  }
+
   return (
     <header className="font-poppins bg-white">
       <div className="py-2 px-4 w-full flex justify-between header-container">
@@ -144,7 +161,7 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
 
           <Divider />
 
-          <IconButton type="secondary" color="warning">
+          <IconButton type="secondary" color="warning" onClick={deleteVideo}>
             <IconTrash />
           </IconButton>
         </div>
