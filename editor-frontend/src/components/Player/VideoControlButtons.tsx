@@ -267,19 +267,26 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
                     console.log("data ready for video id", newVideoId);
                     setVideoID(newVideoId);
                     query.set('videoId', newVideoId);
-                    history.replaceState(null, '', `${location.pathname}?${query.toString()}`);                    clearInterval(intervalId);
+                    history.replaceState(null, '', `${location.pathname}?${query.toString()}`);
+                    window.location.reload();
                     clearInterval(intervalId);
                   }
                 })
                 .catch(err => {
                   console.error("err", err);
+                  setVideoID('');
+                  query.delete('videoId');
+                  history.replaceState(null, '', `${location.pathname}?${query.toString()}`);
+                  window.location.reload(); 
+                  clearInterval(intervalId);
                 })
                 .finally(() => {
                   if(t > 30) {
                     console.log("timeout reached for video id", newVideoId);
                     setVideoID('');
                     query.delete('videoId');
-                    history.replaceState(null, '', `${location.pathname}?${query.toString()}`);   
+                    history.replaceState(null, '', `${location.pathname}?${query.toString()}`);
+                    window.location.reload(); 
                     clearInterval(intervalId);
                   }
                   t += 2;
