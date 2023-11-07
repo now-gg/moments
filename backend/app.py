@@ -9,6 +9,7 @@ from utils import get_upload_file_path
 import requests
 import tempfile
 from flask_cors import CORS
+from memory_profiler import profile
 
 app = Flask(__name__)
 CORS(app)
@@ -22,6 +23,7 @@ def home():
 
 
 @app.route("/video/process", methods=["POST"])
+@profile
 def process():
     try:
         body = request.get_json()
@@ -158,6 +160,7 @@ def delete():
 
 
 @app.route("/video/info", methods=["GET"])
+@profile
 def info():
     try:
         # get video id from query param
