@@ -256,32 +256,35 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
           })
           .then(function (res: any) {
             if (res && res.status === 200) {
-              console.log('res', res);
-              console.log('res.data', res.data);
               const newVideoId = res.data?.video_id;
+              const query = new URLSearchParams(location.search);
               console.log('newVideoId', newVideoId);
-              return res.json();
-              setVideoID(newVideoId);
-              // let t = 0;
-              // const intervalId = setInterval(() => {
-              //   fetch(`https://api-moments.testngg.net/video/info?videoId=${newVideoId}`)
-              //   .then(res => {
-              //     if(res.status == 200) {
-              //       console.log("data ready for video id", newVideoId);
-              //       setVideoID(newVideoId);
-              //       clearInterval(intervalId);
-              //     }
-              //     if(t > 30) {
-              //       console.log("timeout reached for video id", newVideoId);
-              //       setVideoID('');
-              //       clearInterval(intervalId);
-              //     }
-              //   })
-              //   .catch(err => {
-              //     console.log("err", err);
-              //   })
-              //   t += 2;
-              // }, 2000);
+              let t = 0;
+              const intervalId = setInterval(() => {
+                fetch(`https://api-moments.testngg.net/video/info?videoId=${newVideoId}`)
+                .then(res => {
+                  if(res.status == 200) {
+                    console.log("data ready for video id", newVideoId);
+                    setVideoID(newVideoId);
+                    query.set('videoId', newVideoId);
+                    history.replaceState(null, '', `${location.pathname}?${query.toString()}`);                    clearInterval(intervalId);
+                    clearInterval(intervalId);
+                  }
+                })
+                .catch(err => {
+                  console.error("err", err);
+                })
+                .finally(() => {
+                  if(t > 30) {
+                    console.log("timeout reached for video id", newVideoId);
+                    setVideoID('');
+                    query.delete('videoId');
+                    history.replaceState(null, '', `${location.pathname}?${query.toString()}`);   
+                    clearInterval(intervalId);
+                  }
+                  t += 2;
+                });
+              }, 2000);
             }
           })
           .then((data: any) => {
