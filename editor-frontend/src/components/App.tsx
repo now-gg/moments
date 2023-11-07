@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { createContext, useState } from "react";
 import Editor from "./Editor"
 import Header from "./Header"
 import LoginPopup from "./LoginPopup/index";
 import Sidebar from "./Sidebar"
 
+export const TitleContext = createContext("");
+
 export default function App() {
   const [open, setOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
-  console.log('open', open);
+  const [title, setTitle] = useState('My Title');
+
   return (
     <div className="bg-background min-h-screen">
       <link rel='preconnect' href='https://fonts.googleapis.com' />
@@ -20,9 +23,12 @@ export default function App() {
         href='https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap'
         rel='stylesheet'
       />
-      <Header setOpen={setOpen} loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
+      <Header setOpen={setOpen} loggedIn={loggedIn} setLoggedIn={setLoggedIn} title={title} setTitle={setTitle} />
       <div className="font-poppins p-4 flex justify-between" style={{ gap: '24px' }}>
-        <Editor loggedIn={loggedIn} />
+        <TitleContext.Provider value={title}>
+            <Editor loggedIn={loggedIn} setTitle={setTitle} />
+        </TitleContext.Provider>
+
         {/* <Editor url="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" /> */}
         <Sidebar sidebar="Share Your Video" setOpen={setOpen} loggedIn={loggedIn} />
       </div>

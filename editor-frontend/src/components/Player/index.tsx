@@ -6,7 +6,8 @@ import { Stream, StreamPlayerApi } from "@cloudflare/stream-react";
 import * as React from "react";
 
 type PlayerProps = {
-  loggedIn: boolean
+  loggedIn: boolean,
+  setTitle: Function
 }
 const VideoFrameWrapper = styled.div`
   .video-wrapper{
@@ -74,7 +75,7 @@ const VideoFrameWrapper = styled.div`
   }
 `
 
-const Player = ({ loggedIn }: PlayerProps) => {
+const Player = ({ loggedIn, setTitle }: PlayerProps) => {
   const [endTime, setEndTime] = useState(document.querySelector('video')?.duration);
   const [startTime, setStartTime] = useState(0);
   // const ref = React.useRef<StreamPlayerApi | undefined>(null);
@@ -82,7 +83,13 @@ const Player = ({ loggedIn }: PlayerProps) => {
   // const ref = MutableRefObject<StreamPlayerApi | undefined>
   const [videoID, setVideoID] = useState('');
   const [videoURL, setVideoURL] = useState('');
+  const [originalVideoTitle, setOriginalVideoTitle] = useState('');
   const [duration, setDuration] = useState(0);
+
+  useEffect(() => {
+    setTitle(originalVideoTitle);
+  }, [originalVideoTitle, setTitle]);
+
   const dragElement = (element: any) => {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     const dragMouseDown = (e: any) => {
@@ -127,6 +134,7 @@ const Player = ({ loggedIn }: PlayerProps) => {
         setVideoID(data?.video?.cflVideoId);
         setVideoURL(data?.video?.thumbnailUrl);
         setDuration(data?.video?.durationSecs);
+        setOriginalVideoTitle(data?.video?.title);
       })
       .catch((err) => {
         console.log('err', err);
@@ -209,7 +217,7 @@ const Player = ({ loggedIn }: PlayerProps) => {
       <section className="relative bg-color timeline-wrapper">
         <VideoTimeline url={videoURL} startTime={startTime} endTime={endTime} duration={duration} />
       </section>
-      <VideoControlButtons setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} setVideoID={setVideoID} loggedIn={loggedIn} />
+      <VideoControlButtons setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} setVideoID={setVideoID} loggedIn={loggedIn} originalVideoTitle={originalVideoTitle} />
     </VideoFrameWrapper >
   );
 };

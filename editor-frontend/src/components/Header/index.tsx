@@ -11,19 +11,20 @@ import Button from "../Button";
 import IconButton from "../IconButton";
 import Divider from "../Divider";
 import "./header.css";
-import { useEffect } from "react";
-import { useState } from 'react';
+import { useState, useEffect } from "react";
 
 type HeaderProps = {
-  title?: string;
   setOpen: Function,
   loggedIn: boolean,
-  setLoggedIn: Function
+  setLoggedIn: Function,
+  title: string
+  setTitle: Function,
 };
 
-const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn }: HeaderProps) => {
+const Header = ({ setOpen, loggedIn, setLoggedIn, title, setTitle }: HeaderProps) => {
   const [profileIcon, setProfileIcon] = useState('');
   const [userName, setUserName] = useState('');
+  const [canEditTitle, setCanEditTitle] = useState(false);
   // const [loggedIn, setLoggedIn] = useState(false);
   const fetchUserDetails = async () => {
     await axios
@@ -82,13 +83,18 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
     }
   }, [])
 
-  const editTitle = () => {
-    if (document.querySelector('.video-title')?.getAttribute('contenteditable')) {
-      document.querySelector('.video-title')?.setAttribute('contenteditable', 'true');
-    } else {
-      document.querySelector('.video-title')?.setAttribute('contenteditable', 'false');
-    }
+  const editTitle = (e: any) => {
+    setTitle(e.target.value);
   }
+
+  const toggleEditing = () => {
+    if(!canEditTitle) {
+      setCanEditTitle(true);
+      return;
+    }
+    setCanEditTitle(false);
+  }
+  
 
   const deleteVideo = () => {
     const query = window.location.search;
@@ -129,9 +135,9 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
 
           <Divider />
 
-          <p className="text-base-900 text-xl font-semibold video-title" contentEditable="false">{title}</p>
+          <input disabled={!canEditTitle} className={`text-base-900 text-xl font-semibold video-title bg-transparent px-1 border-2 ${canEditTitle ? "border-pink-200" : "border-transparent"}`} value={title} onChange={editTitle}></input>
           <div>
-            <IconButton type="primary" onClick={() => { editTitle() }}>
+            <IconButton type="primary" onClick={toggleEditing}>
               <IconEdit className="group-hover:fill-white" />
             </IconButton>
           </div>
