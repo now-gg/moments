@@ -91,7 +91,10 @@ def process():
         res_dict = {
             "status": "success",
             "message": "Video processed successfully",
-            "video_id": new_video_id
+            "video_id": new_video_id,
+            "time_taken_to_init": time_before_trim - time_before_init,
+            "time_taken_to_trim": time_after_trim - time_before_trim,
+            "time_taken_to_crop": time_after_crop - time_after_trim,
         }
 
         logging.info(f'response to be sent: {res_dict}')
@@ -161,9 +164,9 @@ def info():
         logging.info(f'video info request for {video_id}')
 
         video_info = get_video_info(video_id)
-        logging.info("video info received", video_info)
 
         if video_info:
+            logging.info("video info received", video_info)
             return jsonify({
                 "status": "success",
                 "message": "Video info received successfully",
