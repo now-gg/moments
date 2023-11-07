@@ -104,6 +104,27 @@ def process():
             return jsonify({"status": "error", "message": f'Key {e} missing from request body'}), 400
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
+@app.route("/video/title", methods=["POST"])
+def edit_title():
+    try:
+        body = request.get_json()
+        video_id = body["videoId"]
+        title = body["title"]
+        auth_token = request.headers.get("token")
+
+        url = 'https://stagingngg.net/6/api/vid/v1/updateVideo'
+        headers = {
+            'Authorization': f'Bearer {auth_token}'
+        }
+        data = {
+            "videoId": video_id,
+            "title": title
+        }
+        res = requests.post(url, headers=headers, json=data)
+        return res.json(), res.status_code
+    except Exception as e:
+        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
+
 
 @app.route("/video/delete", methods=["POST"])
 def delete():
