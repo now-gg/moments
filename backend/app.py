@@ -79,6 +79,7 @@ def process():
         auth_token = request.headers.get("token")
 
         logging.info(f'video edit request for {video_id}')
+        log_resource_usage()
 
         try:
             video_info = get_video_info(video_id)
@@ -97,6 +98,7 @@ def process():
         clip = VideoFileClip(video_url)
 
         logging.info("clip init done")
+        log_resource_usage()
         
         original_video_size = clip.size
         original_video_duration = clip.duration 
@@ -115,10 +117,13 @@ def process():
         time_after_crop = time.time()
 
         logging.info("trim crop done")
+        log_resource_usage()
 
         # write clip to a temp file
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
+            log_resource_usage()
             clip.write_videofile(temp_file.name)
+            log_resource_usage()
             logging.info("clip written to temp file")
             temp_file.seek(0)
             upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
@@ -128,6 +133,7 @@ def process():
         clip.close()
 
         logging.info(f'upload done for new video {new_video_id}')
+        log_resource_usage()
 
         if upload_res.status_code != 200:
             return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
@@ -147,7 +153,7 @@ def process():
         }
 
         logging.info(f'response to be sent: {res_dict}')
-
+        log_resource_usage()
         return jsonify(res_dict), 200
 
     except Exception as e:
@@ -309,4 +315,4 @@ def log_resource_usage():
         "memory": psutil.virtual_memory(),
     }
 
-    print(logging.info(f'resources used: {resources_used}'))
+    logging.info(f'resources used: {resources_used}')
