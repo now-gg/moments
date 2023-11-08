@@ -5,11 +5,11 @@ from flask import Flask, request, jsonify
 import os
 import time
 from moviepy.editor import *
-from utils import get_upload_file_path
 import requests
 import tempfile
 from flask_cors import CORS
 from memory_profiler import profile
+import psutil
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +20,51 @@ client.setup_logging()
 @app.route("/")
 def home():
     return "Moments backend"
+
+
+@app.route("/video/upload", methods=["POST"])
+@profile
+def upload():
+    try:
+        body = request.get_json()
+        title = body["title"]
+        video_url = body["videoUrl"]
+        auth_token = request.headers.get("token")
+
+        file_extension = video_url.split(".")[-1]
+        
+        video_name = title + "." + file_extension
+        video_name = video_name.replace(" ", "_")
+
+        clip = VideoFileClip(video_url)
+
+        # write clip to a temp file
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
+            clip.write_videofile(temp_file.name)
+            logging.info("clip written to temp file")
+            temp_file.seek(0)
+            upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
+            temp_file.close()
+            os.remove(temp_file.name)
+        
+        clip.close()
+
+        if upload_res.status_code != 200:
+            return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
+
+        res_dict = {
+            "status": "success",
+            "message": "Video uploaded successfully",
+            "video_id": new_video_id
+        }
+
+        return jsonify(res_dict), 200
+
+    except Exception as e:
+        logging.error(e)
+        if isinstance(e, KeyError):
+            return jsonify({"status": "error", "message": f'Key {e} missing from request body'}), 400
+        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
 
 @app.route("/video/process", methods=["POST"])
@@ -160,7 +205,6 @@ def delete():
 
 
 @app.route("/video/info", methods=["GET"])
-@profile
 def info():
     try:
         # get video id from query param
@@ -169,6 +213,8 @@ def info():
         logging.info(f'video info request for {video_id}')
 
         video_info = get_video_info(video_id)
+
+        log_resource_usage()
 
         if video_info:
             logging.info("video info received", video_info)
@@ -254,3 +300,13 @@ def get_video_info(video_id):
     except Exception as e:
         logging.error(e)
         return {}
+
+
+def log_resource_usage():
+    resources_used = {
+        "cpu": psutil.cpu_percent(),
+        "disk": psutil.disk_usage("/"),
+        "memory": psutil.virtual_memory(),
+    }
+
+    print(logging.info(f'resources used: {resources_used}'))
