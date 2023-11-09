@@ -124,7 +124,7 @@ def process():
             with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
                 log_resource_usage(f'temp file created {temp_file.name}')
                 try:
-                    clip.write_videofile(temp_file.name, logger=None)
+                    clip.write_videofile(temp_file.name, threads=psutil.cpu_count())
                 except Exception as e:
                     logging.error(e)
                     log_resource_usage()
