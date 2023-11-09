@@ -122,7 +122,7 @@ def process():
 
             # write clip to a temp file
             with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
-                log_resource_usage("temp file created", temp_file.name)
+                log_resource_usage(f'temp file created {temp_file.name}')
                 try:
                     clip.write_videofile(temp_file.name, logger=None)
                 except Exception as e:
@@ -133,13 +133,7 @@ def process():
                 temp_file.seek(0)
                 upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
                 temp_file.close()
-                os.remove(temp_file.name)
-
-            if temp_file:
-                logging.info("temp file clear attempt 2")
-                temp_file.close()
-                os.remove(temp_file.name)
-            
+                del temp_file
         finally:
             clip.close()
             log_resource_usage("clip closed")
