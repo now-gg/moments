@@ -121,7 +121,7 @@ def process():
             log_resource_usage()
 
             # write clip to a temp file
-            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
+            with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
                 log_resource_usage("temp file created", temp_file.name)
                 try:
                     clip.write_videofile(temp_file.name, logger=None)
