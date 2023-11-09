@@ -119,7 +119,7 @@ def process():
         with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
             log_resource_usage(f'temp file created {temp_file.name}')
             try:
-                stream = ffmpeg.output(stream, temp_file.name, video_bitrate=1000)
+                stream = ffmpeg.output(stream, temp_file.name, vcodec="libx265", acodec="aac", strict="experimental")
                 stream = ffmpeg.overwrite_output(stream)
                 logging.info("commands to be run",ffmpeg.get_args(stream))
                 ffmpeg.run(stream)
