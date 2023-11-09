@@ -17,4 +17,4 @@ RUN pip install -r requirements.txt
 EXPOSE 8000
 
 # Define the entry point for the application
-CMD ["gunicorn", "-b", "0.0.0.0:8000", "--timeout", "300", "--max-requests", "1",  "app:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:8000", "--timeout", "300",  "app:app"]
