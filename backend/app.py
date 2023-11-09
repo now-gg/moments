@@ -80,6 +80,7 @@ def process():
 
         logging.info(f'video edit request for {video_id}')
         log_resource_usage("request hit")
+        logging.info(f'{psutil.cpu_count()} cpus available')
 
         try:
             video_info = get_video_info(video_id)
@@ -95,48 +96,54 @@ def process():
 
         time_before_init = time.time()
 
-        clip = VideoFileClip(video_url)
 
-        logging.info("clip init done")
-        log_resource_usage()
+        try:
+            clip = VideoFileClip(video_url)
+
+            log_resource_usage("clip init done")
+
+            time_before_trim = time.time()
+
+            if trim:
+                trim_start = int(float(trim.get("start", "0")))
+                trim_end = int(float(trim.get("end", str(clip.duration))))
+                if trim_start < 0 or trim_end > clip.duration or trim_start > trim_end:
+                    return jsonify({"status": "error", "message": "Invalid trim start or end"}), 400
+                clip = clip.subclip(trim_start, trim_end)
+                logging.info("trim done")
+            time_after_trim = time.time()
+
+            if crop:
+                clip = clip.crop(x1=crop["x1"], y1=crop["y1"], x2=crop["x2"], y2=crop["y2"])
+                logging.info("crop done")
+            time_after_crop = time.time()
+
+            log_resource_usage()
+
+            # write clip to a temp file
+            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
+                log_resource_usage("temp file created", temp_file.name)
+                try:
+                    clip.write_videofile(temp_file.name, logger=None)
+                except Exception as e:
+                    logging.error(e)
+                    log_resource_usage()
+                    return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
+                log_resource_usage("clip written to temp file")
+                temp_file.seek(0)
+                upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
+                temp_file.close()
+                os.remove(temp_file.name)
+
+            if temp_file:
+                logging.info("temp file clear attempt 2")
+                temp_file.close()
+                os.remove(temp_file.name)
+            
+        finally:
+            clip.close()
+            log_resource_usage("clip closed")
         
-        original_video_size = clip.size
-        original_video_duration = clip.duration 
-        time_before_trim = time.time()
-
-        if trim:
-            trim_start = int(float(trim.get("start", "0")))
-            trim_end = int(float(trim.get("end", str(clip.duration))))
-            if trim_start < 0 or trim_end > clip.duration or trim_start > trim_end:
-                return jsonify({"status": "error", "message": "Invalid trim start or end"}), 400
-            clip = clip.subclip(trim_start, trim_end)
-        time_after_trim = time.time()
-
-        if crop:
-            clip = clip.crop(x1=crop["x1"], y1=crop["y1"], x2=crop["x2"], y2=crop["y2"])
-        time_after_crop = time.time()
-
-        logging.info("trim crop done")
-        log_resource_usage()
-
-        # write clip to a temp file
-        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
-            log_resource_usage("temp file created")
-            try:
-                clip.write_videofile(temp_file.name)
-            except Exception as e:
-                logging.error(e)
-                log_resource_usage()
-                return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
-            log_resource_usage("clip written to temp file")
-            logging.info("clip written to temp file")
-            temp_file.seek(0)
-            upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
-            temp_file.close()
-            os.remove(temp_file.name)
-        
-        clip.close()
-
         logging.info(f'upload done for new video {new_video_id}')
         log_resource_usage()
 
