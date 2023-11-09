@@ -91,7 +91,7 @@ def process():
         time_before_init = time.time()
 
         stream = ffmpeg.input(video_url)
-
+        stream = ffmpeg.filter(stream, "scale", 1280, -1)
 
         time_before_trim = time.time()
 
@@ -119,8 +119,9 @@ def process():
         with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
             log_resource_usage(f'temp file created {temp_file.name}')
             try:
-                stream = ffmpeg.output(stream, temp_file.name)
+                stream = ffmpeg.output(stream, temp_file.name, video_bitrate=1000)
                 stream = ffmpeg.overwrite_output(stream)
+                logging.info("commands to be run",ffmpeg.get_args(stream))
                 ffmpeg.run(stream)
             except Exception as e:
                 logging.error(e)
