@@ -79,7 +79,7 @@ def process():
         auth_token = request.headers.get("token")
 
         logging.info(f'video edit request for {video_id}')
-        log_resource_usage()
+        log_resource_usage("request hit")
 
         try:
             video_info = get_video_info(video_id)
@@ -121,9 +121,14 @@ def process():
 
         # write clip to a temp file
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
-            log_resource_usage()
-            clip.write_videofile(temp_file.name)
-            log_resource_usage()
+            log_resource_usage("temp file created")
+            try:
+                clip.write_videofile(temp_file.name)
+            except Exception as e:
+                logging.error(e)
+                log_resource_usage()
+                return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
+            log_resource_usage("clip written to temp file")
             logging.info("clip written to temp file")
             temp_file.seek(0)
             upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
@@ -158,6 +163,7 @@ def process():
 
     except Exception as e:
         logging.error(e)
+        log_resource_usage("error")
         if isinstance(e, KeyError):
             return jsonify({"status": "error", "message": f'Key {e} missing from request body'}), 400
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
@@ -308,11 +314,11 @@ def get_video_info(video_id):
         return {}
 
 
-def log_resource_usage():
+def log_resource_usage(message=""):
     resources_used = {
         "cpu": psutil.cpu_percent(),
         "disk": psutil.disk_usage("/"),
         "memory": psutil.virtual_memory(),
     }
 
-    logging.info(f'resources used: {resources_used}')
+    logging.info(f'{message} resources used: {resources_used}')
