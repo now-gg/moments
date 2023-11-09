@@ -97,10 +97,10 @@ def process():
         time_before_init = time.time()
 
 
-        try:
-            clip = VideoFileClip(video_url)
+        clip = VideoFileClip(video_url)
+        log_resource_usage("clip init done")
 
-            log_resource_usage("clip init done")
+        try:
 
             time_before_trim = time.time()
 
