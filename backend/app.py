@@ -4,12 +4,12 @@ import logging
 from flask import Flask, request, jsonify
 import os
 import time
-from moviepy.editor import *
 import requests
 import tempfile
 from flask_cors import CORS
 from memory_profiler import profile
 import psutil
+import ffmpeg
 
 app = Flask(__name__)
 CORS(app)
@@ -80,63 +80,57 @@ def process():
 
         logging.info(f'video edit request for {video_id}')
         log_resource_usage("request hit")
-        logging.info(f'{psutil.cpu_count()} cpus available')
 
         try:
             video_info = get_video_info(video_id)
             video_url = video_info["downloadUrl"]
             logging.info("video info received")
-            file_extension = video_url.split(".")[-1]
         except Exception as e:
-            return jsonify({"status": "error", "message": f'Something went wrong while fetching video info for {video_id}', "error": str(e)}), 500
-
-
-        video_name = title + "." + file_extension
-        video_name = video_name.replace(" ", "_")
+            return jsonify({"status": "error", "message": f'Something went wrong while getting downloadUrl for {video_id}', "error": str(e)}), 500
 
         time_before_init = time.time()
 
+        stream = ffmpeg.input(video_url)
 
-        clip = VideoFileClip(video_url)
-        log_resource_usage("clip init done")
 
-        try:
+        time_before_trim = time.time()
 
-            time_before_trim = time.time()
+        if trim:
+            trim_start = int(float(trim.get("start", "0")))
+            trim_end = int(float(trim.get("end", "1")))
+            # validate input
+            stream = ffmpeg.trim(stream, start=trim_start, end=trim_end)
+        time_after_trim = time.time()
 
-            if trim:
-                trim_start = int(float(trim.get("start", "0")))
-                trim_end = int(float(trim.get("end", str(clip.duration))))
-                if trim_start < 0 or trim_end > clip.duration or trim_start > trim_end:
-                    return jsonify({"status": "error", "message": "Invalid trim start or end"}), 400
-                clip = clip.subclip(trim_start, trim_end)
-                logging.info("trim done")
-            time_after_trim = time.time()
+        if crop:
+            x1 = int(float(crop["x1"]))
+            y1 = int(float(crop["y1"]))
+            x2 = int(float(crop["x2"]))
+            y2 = int(float(crop["y2"]))
+            width = x2 - x1
+            height = y2 - y1
+            # validate input
+            stream = ffmpeg.crop(stream, x1, y1, width, height)
+        time_after_crop = time.time()
 
-            if crop:
-                clip = clip.crop(x1=crop["x1"], y1=crop["y1"], x2=crop["x2"], y2=crop["y2"])
-                logging.info("crop done")
-            time_after_crop = time.time()
+        log_resource_usage()
 
-            log_resource_usage()
-
-            # write clip to a temp file
-            with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
-                log_resource_usage(f'temp file created {temp_file.name}')
-                try:
-                    clip.write_videofile(temp_file.name, threads=1)
-                except Exception as e:
-                    logging.error(e)
-                    log_resource_usage()
-                    return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
-                log_resource_usage("clip written to temp file")
-                temp_file.seek(0)
-                upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
-                temp_file.close()
-                del temp_file
-        finally:
-            clip.close()
-            log_resource_usage("clip closed")
+        # write clip to a temp file
+        with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
+            log_resource_usage(f'temp file created {temp_file.name}')
+            try:
+                stream = ffmpeg.output(stream, temp_file.name)
+                stream = ffmpeg.overwrite_output(stream)
+                ffmpeg.run(stream)
+            except Exception as e:
+                logging.error(e)
+                log_resource_usage()
+                return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
+            log_resource_usage("clip written to temp file")
+            temp_file.seek(0)
+            upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
+            temp_file.close()
+            del temp_file
         
         logging.info(f'upload done for new video {new_video_id}')
         log_resource_usage()
