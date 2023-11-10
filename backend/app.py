@@ -10,6 +10,7 @@ from flask_cors import CORS
 from memory_profiler import profile
 import psutil
 import ffmpeg
+import subprocess
 
 app = Flask(__name__)
 CORS(app)
@@ -88,7 +89,10 @@ def process():
 
         time_before_init = time.time()
 
-        stream = ffmpeg.input(video_url)
+        ffmpeg_cmd = ['ffmpeg']
+        ffmpeg_cmd.extend(['-i', video_url])
+        vf = ''
+        # stream = ffmpeg.input(video_url)
 
         time_before_trim = time.time()
 
@@ -96,7 +100,8 @@ def process():
             trim_start = int(float(trim.get("start", "0")))
             trim_end = int(float(trim.get("end", "1")))
             # validate input
-            stream = ffmpeg.trim(stream, start=trim_start, end=trim_end)
+            # stream = ffmpeg.trim(stream, start=trim_start, end=trim_end)
+            vf = f'trim=start={trim_start}:end={trim_end}'
         time_after_trim = time.time()
 
         if crop:
@@ -107,8 +112,12 @@ def process():
             width = x2 - x1
             height = y2 - y1
             # validate input
-            stream = ffmpeg.crop(stream, x1, y1, width, height)
+            # stream = ffmpeg.crop(stream, x1, y1, width, height)
+            vf = vf + f',crop={width}:{height}:{x1}:{y1}'
         time_after_crop = time.time()
+
+        ffmpeg_cmd.extend(['-vf', vf])        
+
 
         log_resource_usage()
 
@@ -116,10 +125,12 @@ def process():
         with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
             log_resource_usage(f'temp file created {temp_file.name}')
             try:
-                stream = ffmpeg.filter(stream, 'scale', 1280, -1)
-                stream = ffmpeg.output(stream, temp_file.name, vcodec="libx265", acodec="aac", strict="experimental", threads="2", loglevel="error")
-                stream = ffmpeg.overwrite_output(stream)
-                ffmpeg.run(stream)
+                # stream = ffmpeg.filter(stream, 'scale', 1280, -1)
+                # stream = ffmpeg.output(stream, temp_file.name, vcodec="libx265", acodec="aac", strict="experimental", threads="2", loglevel="error")
+                # stream = ffmpeg.overwrite_output(stream)
+                # ffmpeg.run(stream)
+                ffmpeg_cmd.extend(['-c:v', 'libx264','-c:a', 'aac', '-y', temp_file.name ])
+                subprocess.run(ffmpeg_cmd)
             except Exception as e:
                 logging.error(e)
                 log_resource_usage()
