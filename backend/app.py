@@ -36,18 +36,19 @@ def upload():
         video_name = title + "." + file_extension
         video_name = video_name.replace(" ", "_")
 
-        clip = VideoFileClip(video_url)
+        stream = ffmpeg.input(video_url)
 
         # write clip to a temp file
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
-            clip.write_videofile(temp_file.name)
+            stream = ffmpeg.filter(stream, 'scale', 1280, -1)
+            stream = ffmpeg.output(stream, temp_file.name)
+            ffmpeg.run(stream)
             logging.info("clip written to temp file")
             temp_file.seek(0)
             upload_res, new_video_id = upload_video(temp_file.name, title, auth_token)
             temp_file.close()
             os.remove(temp_file.name)
         
-        clip.close()
 
         if upload_res.status_code != 200:
             return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
@@ -89,10 +90,10 @@ def process():
 
         time_before_init = time.time()
 
-        ffmpeg_cmd = ['ffmpeg']
-        ffmpeg_cmd.extend(['-i', video_url])
-        vf = ''
-        # stream = ffmpeg.input(video_url)
+        if not video_url:
+            return jsonify({"status": "error", "message": f'Download url for video with id {video_id} not found'}), 404
+
+        stream = ffmpeg.input(video_url)
 
         time_before_trim = time.time()
 
@@ -100,8 +101,7 @@ def process():
             trim_start = int(float(trim.get("start", "0")))
             trim_end = int(float(trim.get("end", "1")))
             # validate input
-            # stream = ffmpeg.trim(stream, start=trim_start, end=trim_end)
-            vf = f'trim=start={trim_start}:end={trim_end}'
+            stream = ffmpeg.trim(stream, start=trim_start, end=trim_end)
         time_after_trim = time.time()
 
         if crop:
@@ -112,11 +112,9 @@ def process():
             width = x2 - x1
             height = y2 - y1
             # validate input
-            # stream = ffmpeg.crop(stream, x1, y1, width, height)
-            vf = vf + f',crop={width}:{height}:{x1}:{y1}'
+            stream = ffmpeg.crop(stream, x1, y1, width, height)
         time_after_crop = time.time()
 
-        ffmpeg_cmd.extend(['-vf', vf])        
 
 
         log_resource_usage()
@@ -125,12 +123,13 @@ def process():
         with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
             log_resource_usage(f'temp file created {temp_file.name}')
             try:
-                # stream = ffmpeg.filter(stream, 'scale', 1280, -1)
-                # stream = ffmpeg.output(stream, temp_file.name, vcodec="libx265", acodec="aac", strict="experimental", threads="2", loglevel="error")
-                # stream = ffmpeg.overwrite_output(stream)
-                # ffmpeg.run(stream)
-                ffmpeg_cmd.extend(['-c:v', 'libx264','-c:a', 'aac', '-y', temp_file.name ])
-                subprocess.run(ffmpeg_cmd)
+                stream = ffmpeg.filter(stream, 'scale', 1280, -1)
+                stream = ffmpeg.output(stream, temp_file.name)
+                stream = ffmpeg.overwrite_output(stream)
+                ffmpeg.run(stream)
+            except ffmpeg.Error as e:
+                logging.error(e.stderr)
+                return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
             except Exception as e:
                 logging.error(e)
                 log_resource_usage()
