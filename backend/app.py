@@ -15,8 +15,8 @@ import subprocess
 app = Flask(__name__)
 CORS(app)
 
-client = google.cloud.logging.Client()
-client.setup_logging()
+# client = google.cloud.logging.Client()
+# client.setup_logging()
 
 @app.route("/")
 def home():
@@ -124,7 +124,7 @@ def process():
             log_resource_usage(f'temp file created {temp_file.name}')
             try:
                 stream = ffmpeg.filter(stream, 'scale', 1280, -1)
-                stream = ffmpeg.output(stream, temp_file.name)
+                stream = ffmpeg.output(stream, temp_file.name, threads=4)
                 stream = ffmpeg.overwrite_output(stream)
                 ffmpeg.run(stream)
             except ffmpeg.Error as e:
