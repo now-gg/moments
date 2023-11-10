@@ -23,7 +23,6 @@ def home():
 
 
 @app.route("/video/upload", methods=["POST"])
-@profile
 def upload():
     try:
         body = request.get_json()
@@ -68,7 +67,6 @@ def upload():
 
 
 @app.route("/video/process", methods=["POST"])
-@profile
 def process():
     try:
         body = request.get_json()
@@ -91,7 +89,6 @@ def process():
         time_before_init = time.time()
 
         stream = ffmpeg.input(video_url)
-        stream = ffmpeg.filter(stream, "scale", 1280, -1)
 
         time_before_trim = time.time()
 
@@ -119,7 +116,8 @@ def process():
         with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
             log_resource_usage(f'temp file created {temp_file.name}')
             try:
-                stream = ffmpeg.output(stream, temp_file.name)
+                stream = ffmpeg.filter(stream, 'scale', 1280, -1)
+                stream = ffmpeg.output(stream, temp_file.name, vcodec="libx265", acodec="aac", strict="experimental", threads="2", loglevel="error")
                 stream = ffmpeg.overwrite_output(stream)
                 ffmpeg.run(stream)
             except Exception as e:
