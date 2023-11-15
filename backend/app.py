@@ -15,8 +15,8 @@ import subprocess
 app = Flask(__name__)
 CORS(app)
 
-# client = google.cloud.logging.Client()
-# client.setup_logging()
+client = google.cloud.logging.Client()
+client.setup_logging()
 
 @app.route("/")
 def home():
@@ -42,6 +42,7 @@ def upload():
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
             stream = ffmpeg.filter(stream, 'scale', 1280, -1)
             stream = ffmpeg.output(stream, temp_file.name)
+            stream = ffmpeg.overwrite_output(stream)
             ffmpeg.run(stream)
             logging.info("clip written to temp file")
             temp_file.seek(0)
