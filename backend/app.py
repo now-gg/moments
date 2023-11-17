@@ -80,6 +80,7 @@ def process():
         auth_token = request.headers.get("token")
 
         logging.info(f'video edit request for {video_id}')
+        request_init_time = time.time()
         log_resource_usage("request hit")
 
         try:
@@ -89,21 +90,16 @@ def process():
         except Exception as e:
             return jsonify({"status": "error", "message": f'Something went wrong while getting downloadUrl for {video_id}', "error": str(e)}), 500
 
-        time_before_init = time.time()
-
         if not video_url:
             return jsonify({"status": "error", "message": f'Download url for video with id {video_id} not found'}), 404
 
         stream = ffmpeg.input(video_url)
-
-        time_before_trim = time.time()
 
         if trim:
             trim_start = int(float(trim.get("start", "0")))
             trim_end = int(float(trim.get("end", "1")))
             # validate input
             stream = ffmpeg.trim(stream, start=trim_start, end=trim_end)
-        time_after_trim = time.time()
 
         if crop:
             x1 = int(float(crop["x1"]))
@@ -114,9 +110,6 @@ def process():
             height = y2 - y1
             # validate input
             stream = ffmpeg.crop(stream, x1, y1, width, height)
-        time_after_crop = time.time()
-
-
 
         log_resource_usage()
 
@@ -156,9 +149,7 @@ def process():
             "status": "success",
             "message": "Video processed successfully",
             "video_id": new_video_id,
-            "time_taken_to_init": time_before_trim - time_before_init,
-            "time_taken_to_trim": time_after_trim - time_before_trim,
-            "time_taken_to_crop": time_after_crop - time_after_trim,
+            "request_processing_time": time.time() - request_init_time
         }
 
         logging.info(f'response to be sent: {res_dict}')
