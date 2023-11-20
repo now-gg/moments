@@ -181,7 +181,8 @@ def edit_title():
         }
         # res = requests.post(url, headers=headers, json=data)
         # return res.json(), res.status_code
-        publish_message(title)
+        res = publish_message(title)
+        logging.info(f'response from publish_message: {res}')
         return "message published"
     except Exception as e:
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
