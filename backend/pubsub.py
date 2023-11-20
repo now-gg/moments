@@ -43,5 +43,3 @@ def receive_messages():
                 streaming_pull_future.result()
     except Exception as e:
         logging.error(e)
-
-receive_messages()

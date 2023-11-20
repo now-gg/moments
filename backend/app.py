@@ -9,7 +9,7 @@ import tempfile
 from flask_cors import CORS
 import psutil
 import ffmpeg
-from pubsub import publish_message
+from pubsub import publish_message, receive_messages
 
 app = Flask(__name__)
 CORS(app)
@@ -320,3 +320,6 @@ def log_resource_usage(message=""):
     }
 
     logging.info(f'{message} resources used: {resources_used}')
+
+
+receive_messages()
