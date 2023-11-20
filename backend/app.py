@@ -7,10 +7,9 @@ import time
 import requests
 import tempfile
 from flask_cors import CORS
-from memory_profiler import profile
 import psutil
 import ffmpeg
-import subprocess
+from pubsub import publish_message
 
 app = Flask(__name__)
 CORS(app)
@@ -163,6 +162,7 @@ def process():
             return jsonify({"status": "error", "message": f'Key {e} missing from request body'}), 400
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
+
 @app.route("/video/title", methods=["POST"])
 def edit_title():
     try:
@@ -179,8 +179,10 @@ def edit_title():
             "videoId": video_id,
             "title": title
         }
-        res = requests.post(url, headers=headers, json=data)
-        return res.json(), res.status_code
+        # res = requests.post(url, headers=headers, json=data)
+        # return res.json(), res.status_code
+        publish_message(title)
+        return "message published"
     except Exception as e:
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
