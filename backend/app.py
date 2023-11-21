@@ -10,12 +10,15 @@ from flask_cors import CORS
 import psutil
 import ffmpeg
 from pubsub import publish_message, get_subscriber
+from redis_wrapper  import RedisWrapper
 
 app = Flask(__name__)
 CORS(app)
 
 client = google.cloud.logging.Client()
 client.setup_logging()
+
+redis_client = RedisWrapper()
 
 @app.route("/")
 def home():
@@ -253,10 +256,15 @@ def pull_messages():
         while True:
             logging.info("pulling messages")
             res = subscriber.pull(subscription=subscription_path, max_messages=1)
-            logging.info(f'pull response: {res}')
             if res.received_messages:
                 for received_message in res.received_messages:
-                    pull_message_callback(received_message.message.data)
+                    message = received_message.message
+                    redis_key = f'moments-editor-{message.message_id}'
+                    if redis_client.get(redis_key):
+                        logging.info(f'message {message.data} with id {message.message_id} already processed')
+                        break
+                    redis_client.set(redis_key, 1)
+                    pull_message_callback(message.data)
                     subscriber.acknowledge(subscription=subscription_path, ack_ids=[received_message.ack_id])
                 time.sleep(10)
             else:
