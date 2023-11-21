@@ -14,9 +14,6 @@ subscription_id = "moments-editor-sub"
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(project_id, topic_name)
 
-subscriber = pubsub_v1.SubscriberClient()
-subscription_path = subscriber.subscription_path(project_id, subscription_id)
-
 def publish_message(message):
     try:
         data = message.encode('utf-8')
@@ -24,4 +21,10 @@ def publish_message(message):
         return future.result()
     except Exception as e:
         logging.error(e)
+
+
+def get_subscriber():
+    subscriber = pubsub_v1.SubscriberClient()
+    subscription_path = subscriber.subscription_path(project_id, subscription_id)
+    return subscriber, subscription_path
 

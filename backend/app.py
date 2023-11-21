@@ -9,7 +9,7 @@ import tempfile
 from flask_cors import CORS
 import psutil
 import ffmpeg
-from pubsub import publish_message, subscriber, subscription_path
+from pubsub import publish_message, get_subscriber
 
 app = Flask(__name__)
 CORS(app)
@@ -241,12 +241,17 @@ def info():
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
 
+def pull_message_callback(message):
+    logging.info('Received message on subscriber: {}'.format(message))
+    time.sleep(5)
+    logging.info('Message processed: {}'.format(message))
+    message.ack()
+
+
 @app.route("/pubsub/pull", methods=["GET"])
 def pull_messages():
     try:
-        def pull_message_callback(message):
-            logging.info('Received message on subscriber: {}'.format(message))
-            message.ack()
+        subscriber, subscription_path = get_subscriber()
         
         streaming_pull_future = subscriber.subscribe(subscription_path, callback=pull_message_callback)
         logging.info('Listening for messages on {}'.format(subscription_path))
