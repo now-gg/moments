@@ -252,7 +252,7 @@ def pull_messages():
         subscriber, subscription_path = get_subscriber()
         while True:
             logging.info("pulling messages")
-            res = subscriber.pull(subscription_path, max_messages=1)
+            res = subscriber.pull(subscription=subscription_path, max_messages=1)
             logging.info(f'pull response: {res}')
             if res.received_messages:
                 for received_message in res.received_messages:
