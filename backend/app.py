@@ -9,7 +9,7 @@ import tempfile
 from flask_cors import CORS
 import psutil
 import ffmpeg
-from pubsub import publish_message, receive_messages
+from pubsub import publish_message, subscriber, subscription_path
 
 app = Flask(__name__)
 CORS(app)
@@ -241,6 +241,28 @@ def info():
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
 
+@app.route("/pubsub/pull", methods=["GET"])
+def pull_messages():
+    try:
+        def pull_message_callback(message):
+            logging.info('Received message on subscriber: {}'.format(message))
+            message.ack()
+        
+        streaming_pull_future = subscriber.subscribe(subscription_path, callback=pull_message_callback)
+        logging.info('Listening for messages on {}'.format(subscription_path))
+
+        with subscriber:
+            try:
+                streaming_pull_future.result(timeout=5)
+            except TimeoutError:
+                streaming_pull_future.cancel()
+                streaming_pull_future.result()
+
+        return "call to pull pubsub messages"
+    except Exception as e:
+        logging.error(e)
+
+
 def upload_video(video_path, title, token):
     try:
         cloudflare_upload_url, new_video_id = create_video(title ,token)
@@ -320,6 +342,3 @@ def log_resource_usage(message=""):
     }
 
     logging.info(f'{message} resources used: {resources_used}')
-
-
-receive_messages()
