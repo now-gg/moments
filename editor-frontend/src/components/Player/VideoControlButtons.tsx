@@ -1,15 +1,19 @@
 import axios from 'axios';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 type ControlProps = {
-  startTime: number,
-  endTime: number | undefined,
+  startTime: any,
+  endTime: any,
   setStartTime: Function,
   setEndTime: Function,
   duration: number,
   setVideoID: Function,
-  loggedIn: boolean
+  loggedIn: boolean,
+  setPlaying: Function,
+  playing: boolean,
+  streamRef: any,
+  palyPointer: number
 };
 
 const VideoControlsWrapper = styled.section`
@@ -156,10 +160,31 @@ const VideoControlsWrapper = styled.section`
   }
 `
 
-const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn }: ControlProps) => {
+const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn, setPlaying, playing, streamRef, palyPointer }: ControlProps) => {
 
   const [cropSelectedValue, setCropSelectedValue] = useState('');
   const [saveBtnActive, setSaveBtnActive] = useState('disabled');
+
+  const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
+  const [trimEndTime, setTrimEndTime] = useState(endTime || 0);
+
+  // useEffect(()=>{
+  //   console.log("useEffect")
+  // }[startTime])
+
+  useEffect(() => {
+    console.log("startTime", startTime);
+    document?.getElementById("trim-start-time")?.classList?.remove('error-input');
+    setTrimStartTime(startTime);
+  }, [startTime]);
+
+  useEffect(() => {
+    console.log("endTime", endTime);
+    document?.getElementById("trim-end-time")?.classList?.remove('error-input');
+    // document?.getElementById("trim-start-time")?.classList?.remove('error-input');
+    setTrimEndTime(endTime);
+    console.log(streamRef)
+  }, [endTime]);
 
   const showAspectWrapper = (e: any) => {
     const cropOptionElement = e.target;
@@ -177,21 +202,60 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
     }
   }
 
+  const trimTimeChange = (e: any) => {
+    let value = parseInt(e.target.value) || 0;
+    if(value < 0){
+      value = 0;
+    }
+    const inputClass = e.target.classList.contains('start-time') ? 'start' : 'end';
+    if (inputClass == 'start') {
+      setTrimStartTime(value.toString());
+    } else {
+      setTrimEndTime(value.toString());
+    }
+
+    if (value < 0 || value > endTime) {
+      e?.target?.classList?.add('error-input');
+    } else {
+      e?.target?.classList?.remove('error-input');
+    }
+  }
+
+
+  const trimTimeChangeOnBlur = (e: any) => {
+    let value = parseInt(e.target.value);
+    const inputClass = e.target.classList.contains('start-time') ? 'start' : 'end';
+    if (inputClass == 'start') {
+      value = value || 0;
+      if(value >= duration){
+        value = duration - 1;
+      }
+      if(endTime <= value){
+        setStartTime(value);
+        setEndTime(value + 1);
+      }else{
+        setStartTime(value);
+      }
+    } else {
+      value = value || duration;
+      if(value >= duration){
+        value = duration;
+      }
+      if(startTime >= value){
+        setStartTime(value - 1);
+        setEndTime(value);
+      }else{
+        setEndTime(value);
+      }
+    }
+  }
+
   const handleChange = (e: any) => {
     const inputClass = e.target.classList.contains('start-time') ? 'start' : 'end';
     if (inputClass == 'start') {
       setStartTime(e.target.value);
     } else {
-      if (e.target.value < startTime) {
-        e.target.classList.add('error-input');
-        return;
-      }
       setEndTime(e.target.value);
-    }
-    if (e.target.value && inputClass == 'end' && e.target.value > duration && e.target.value < startTime) {
-      e.target.classList.add('error-input');
-    } else {
-      e.target.classList.remove('error-input');
     }
   }
 
@@ -271,10 +335,17 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
   return (
     <VideoControlsWrapper className="flex">
       <div className="play-trim-crop-options flex">
-        <button className="play-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none">
+        <button className="play-btn ">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none" className={`${playing ? 'hide' : ''}`} onClick={() => { streamRef.current.play(); }}>
             <rect width="36" height="36" rx="8" fill="#FAFAFB" />
             <path d="M28.25 17.567C28.5833 17.7594 28.5833 18.2406 28.25 18.433L13.25 27.0933C12.9167 27.2857 12.5 27.0452 12.5 26.6603L12.5 9.33975C12.5 8.95485 12.9167 8.71428 13.25 8.90673L28.25 17.567Z" fill="#FF42A5" stroke="white" />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="36" height="36" viewBox="0 0 36 36" fill="none" className={`${playing ? '' : 'hide'}`} onClick={() => { streamRef.current.pause(); }}>
+            <rect width="36" height="36" rx="8" fill="#FAFAFB" />
+            <g transform='translate(6, 6)'>
+              <path fill="#fe42a4" d="M 2.5,2.5 C 4.83333,2.5 7.16667,2.5 9.5,2.5C 9.5,8.5 9.5,14.5 9.5,20.5C 7.16667,20.5 4.83333,20.5 2.5,20.5C 2.5,14.5 2.5,8.5 2.5,2.5 Z" />
+              <path fill="#fe42a4" d="M 13.5,2.5 C 15.8333,2.5 18.1667,2.5 20.5,2.5C 20.5,8.5 20.5,14.5 20.5,20.5C 18.1667,20.5 15.8333,20.5 13.5,20.5C 13.5,14.5 13.5,8.5 13.5,2.5 Z" />
+            </g>
           </svg>
         </button>
         <div className="trim-action flex action-buttons">
@@ -288,11 +359,13 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
             <div className="padding-wrapper flex">
               <span className="span-time flex">
                 Start Time
-                <input className="start-time input-time" max={duration} placeholder="0 sec" type="number" onChange={(e) => { handleChange(e) }} />
+                <input id="trim-start-time" className="start-time input-time" value={trimStartTime} min={0} max={duration} placeholder="0 sec" type="number" onChange={(e) => { trimTimeChange(e) }} onBlur={(e) => { trimTimeChangeOnBlur(e) }} />
+                <input hidden={true} className="start-time input-time" value={startTime} min={0} max={duration} placeholder="0 sec" type="number" onChange={(e) => { handleChange(e) }} />
               </span>
               <span className="span-time flex">
                 End Time
-                <input className="end-time input-time" placeholder={`${duration} sec`} type="number" onChange={(e) => { handleChange(e) }} />
+                <input id="trim-end-time" className="end-time input-time" value={trimEndTime} min={0} max={duration} placeholder="0 sec" type="number" onChange={(e) => { trimTimeChange(e) }} onBlur={(e) => { trimTimeChangeOnBlur(e) }} />
+                <input hidden={true} className="end-time input-time" value={endTime} min={0} max={duration} placeholder={`${duration} sec`} type="number" onChange={(e) => { handleChange(e) }} />
               </span>
             </div>
           </div>

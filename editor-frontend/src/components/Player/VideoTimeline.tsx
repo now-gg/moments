@@ -7,6 +7,9 @@ type VideoProps = {
   startTime: number,
   endTime: number | undefined,
   duration: number | undefined,
+  setStartTime: any,
+  setEndTime: any,
+  palyPointer: number,
 };
 
 const VideoTimelineWrapper = styled.div`
@@ -36,8 +39,14 @@ const VideoTimelineWrapper = styled.div`
       // width: calc(100%/50);
     }
   }
+  .play-pointer{
+    display: block;
+    position: absolute;
+    height: 100%;
+    border-left: 4px solid #ff0381b5;
+  }
 `
-const VideoTimeline = ({ url, startTime, endTime, duration }: VideoProps) => {
+const VideoTimeline = ({ url, startTime, endTime, setStartTime, setEndTime, duration = 1, palyPointer}: VideoProps) => {
   const [video, setVideo] = useState('');
 
   useEffect(() => {
@@ -48,10 +57,11 @@ const VideoTimeline = ({ url, startTime, endTime, duration }: VideoProps) => {
   return (
     <VideoTimelineWrapper className="VideoTimeline" data-video={video}>
       <div className="frames-container flex bg-color">
+      <span className='play-pointer' style={{left: `${(100 * palyPointer) /duration}%`}}></span>
 
       </div>
       <div className="slider-container">
-        <InputSlider minVal={startTime} maxVal={endTime} duration={duration} />
+        <InputSlider setStartTime={setStartTime} setEndTime={setEndTime} minVal={startTime} maxVal={endTime} duration={duration} />
       </div>
     </VideoTimelineWrapper>
   );

@@ -2,7 +2,7 @@ import { useState } from "react";
 import Editor from "./Editor"
 import Header from "./Header"
 import LoginPopup from "./LoginPopup/index";
-import Sidebar from "./Sidebar"
+// import Sidebar from "./Sidebar"
 
 export default function App() {
   const [open, setOpen] = useState(false);
@@ -24,7 +24,7 @@ export default function App() {
       <div className="font-poppins p-4 flex justify-between" style={{ gap: '24px' }}>
         <Editor loggedIn={loggedIn} />
         {/* <Editor url="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" /> */}
-        <Sidebar sidebar="Share Your Video" setOpen={setOpen} loggedIn={loggedIn} />
+        {/* <Sidebar sidebar="Share Your Video" setOpen={setOpen} loggedIn={loggedIn} /> */}
       </div>
       {
         open && <LoginPopup closePopup={() => setOpen(false)} />

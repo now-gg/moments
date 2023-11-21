@@ -13,6 +13,9 @@ const VideoFrameWrapper = styled.div`
     border-radius: 8px;
     overflow: hidden;
     position: relative;
+    display: block;
+    margin: 0 auto;
+    max-width: calc((100vh * 1.7) - 332px);
     .crop-wrapper-video{
       position: absolute;
       top: 50%;
@@ -75,7 +78,7 @@ const VideoFrameWrapper = styled.div`
 `
 
 const Player = ({ loggedIn }: PlayerProps) => {
-  const [endTime, setEndTime] = useState(document.querySelector('video')?.duration);
+  const [endTime, setEndTime] = useState(document.querySelector('video')?.duration || 0);
   const [startTime, setStartTime] = useState(0);
   // const ref = React.useRef<StreamPlayerApi | undefined>(null);
   const ref = React.useRef() as React.MutableRefObject<StreamPlayerApi | undefined>;
@@ -83,6 +86,10 @@ const Player = ({ loggedIn }: PlayerProps) => {
   const [videoID, setVideoID] = useState('');
   const [videoURL, setVideoURL] = useState('');
   const [duration, setDuration] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [palyPointer, setPlayPointer] = useState(0);
+  const [cursorTimer, setCursorTimer] = useState<any>();
+
   const dragElement = (element: any) => {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     const dragMouseDown = (e: any) => {
@@ -127,8 +134,36 @@ const Player = ({ loggedIn }: PlayerProps) => {
         setVideoID(data?.video?.cflVideoId);
         setVideoURL(data?.video?.thumbnailUrl);
         setDuration(data?.video?.durationSecs);
+        setEndTime(data?.video?.durationSecs);
+        setPlaying(true);
       });
   }
+
+  function cursorSynch() {
+    if (cursorTimer) {
+      clearInterval(cursorTimer);
+    }
+    let timer = setInterval(() => {
+      let currentPlayTime = ref?.current?.currentTime || 0
+      setPlayPointer(currentPlayTime);
+      if (duration && duration > 0 && currentPlayTime >= (endTime - .15)) {
+        let startBound = 0;
+        if (startTime) {
+          startBound = parseInt(startTime?.toString());
+        }
+        setStartTime(1);
+        setTimeout(() => { setStartTime(startBound); }, 100)
+        ref?.current?.pause();
+      }
+    }, 100)
+    setCursorTimer(timer);
+  }
+
+  useEffect(() => {
+    cursorSynch();
+  }, [startTime, endTime])
+
+
   useEffect(() => {
     dragElement(document.querySelector('.crop-wrapper-video'));
     document.querySelector('iframe')?.addEventListener('onloadeddata', (e) => {
@@ -173,7 +208,7 @@ const Player = ({ loggedIn }: PlayerProps) => {
         {/* <video controls id="video-frame" height="100%" width="100%" autoPlay muted loop playsInline preload="none" >
           <source src={url} type="video/mp4" />
         </video> */}
-        {videoID && <Stream controls src={videoID} height="100%" width="100%" autoplay muted onLoadedData={showThumbnails} streamRef={ref} />}
+        {videoID && <Stream controls src={videoID} height="100%" width="100%" currentTime={startTime} autoplay muted onLoadedData={showThumbnails} streamRef={ref} onPlay={() => { setPlaying(true) }} onPause={() => { setPlaying(false) }} primaryColor={'#FF42A5'} />}
         <div className="crop-wrapper-video hide">
           <div className="svg-arrow-wrapper">
             <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42" fill="none" className="svg-1 top left">
@@ -203,10 +238,17 @@ const Player = ({ loggedIn }: PlayerProps) => {
           </div>
         </div>
       </div>
-      <section className="relative bg-color timeline-wrapper">
-        <VideoTimeline url={videoURL} startTime={startTime} endTime={endTime} duration={duration} />
-      </section>
-      <VideoControlButtons setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} setVideoID={setVideoID} loggedIn={loggedIn} />
+      {
+        endTime ?
+          <>
+            <section className="relative bg-color timeline-wrapper">
+              <VideoTimeline url={videoURL} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} palyPointer={palyPointer} />
+            </section>
+            <VideoControlButtons setPlaying={setPlaying} playing={playing} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} setVideoID={setVideoID} loggedIn={loggedIn} streamRef={ref} palyPointer={palyPointer} />
+          </>
+          :
+          <></>
+      }
     </VideoFrameWrapper >
   );
 };
