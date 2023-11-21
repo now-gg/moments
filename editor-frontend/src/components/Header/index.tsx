@@ -27,7 +27,7 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
   // const [loggedIn, setLoggedIn] = useState(false);
   const fetchUserDetails = async () => {
     await axios
-      .get(`https://dev.testngg.net/accounts/users/v1/userinfo`, {
+      .get(`${import.meta.env.VITE_ACCOUNTS_BASE}/accounts/users/v1/userinfo`, {
         headers: {
           authorization: ` Bearer ${localStorage['ng_token']}`,
         },
@@ -57,7 +57,7 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
 
   const generateFEToken = async () => {
     axios
-      .get(`https://dev.testngg.net/accounts/auth/v1/access-token`, {
+      .get(`${import.meta.env.VITE_ACCOUNTS_BASE}/accounts/auth/v1/access-token`, {
         withCredentials: true,
       })
       .then((res: { status: number; data: { token: string; }; }) => {

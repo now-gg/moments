@@ -160,7 +160,7 @@ const VideoControlsWrapper = styled.section`
   }
 `
 
-const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn, setPlaying, playing, streamRef, palyPointer }: ControlProps) => {
+const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn, playing, streamRef }: ControlProps) => {
 
   const [cropSelectedValue, setCropSelectedValue] = useState('');
   const [saveBtnActive, setSaveBtnActive] = useState('disabled');
@@ -312,7 +312,7 @@ const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, dur
 
       if (payload && Object.keys(payload).length > 0) {
         await axios
-          .post(`https://api-moments.testngg.net/video/process`, payload, {
+          .post(`${import.meta.env.VITE_VIDEO_PROCESS}/video/process`, payload, {
             headers: {
               'Content-Type': 'application/json',
               token: `${localStorage['ng_token']}`,
