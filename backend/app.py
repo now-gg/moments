@@ -20,6 +20,8 @@ client.setup_logging()
 
 redis_client = RedisWrapper()
 
+logging.info("starting flask app")
+
 @app.route("/")
 def home():
     return "Moments backend"
