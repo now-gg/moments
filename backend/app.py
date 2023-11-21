@@ -257,7 +257,7 @@ def pull_messages():
             if res.received_messages:
                 for received_message in res.received_messages:
                     pull_message_callback(received_message.message.data)
-                    subscriber.acknowledge(subscription_path, [received_message.ack_id])
+                    subscriber.acknowledge(subscription=subscription_path, ack_ids=[received_message.ack_id])
                 time.sleep(10)
             else:
                 logging.info("no messages received")
