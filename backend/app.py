@@ -188,6 +188,7 @@ def edit_title():
         logging.info(f'response from publish_message: {res}')
         return "message published"
     except Exception as e:
+        logging.error(e)
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
 
