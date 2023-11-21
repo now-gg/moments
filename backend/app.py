@@ -245,25 +245,23 @@ def pull_message_callback(message):
     logging.info('Received message on subscriber: {}'.format(message))
     time.sleep(5)
     logging.info('Message processed: {}'.format(message))
-    message.ack()
 
 
-@app.route("/pubsub/pull", methods=["GET"])
 def pull_messages():
     try:
         subscriber, subscription_path = get_subscriber()
-        
-        streaming_pull_future = subscriber.subscribe(subscription_path, callback=pull_message_callback)
-        logging.info('Listening for messages on {}'.format(subscription_path))
-
-        with subscriber:
-            try:
-                streaming_pull_future.result(timeout=5)
-            except TimeoutError:
-                streaming_pull_future.cancel()
-                streaming_pull_future.result()
-
-        return "call to pull pubsub messages"
+        while True:
+            logging.info("pulling messages")
+            res = subscriber.pull(subscription_path, max_messages=1)
+            logging.info(f'pull response: {res}')
+            if res.received_messages:
+                for received_message in res.received_messages:
+                    pull_message_callback(received_message.message.data)
+                    subscriber.acknowledge(subscription_path, [received_message.ack_id])
+                time.sleep(10)
+            else:
+                logging.info("no messages received")
+                time.sleep(30)
     except Exception as e:
         logging.error(e)
 
@@ -347,3 +345,6 @@ def log_resource_usage(message=""):
     }
 
     logging.info(f'{message} resources used: {resources_used}')
+
+
+pull_messages()
