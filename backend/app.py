@@ -314,7 +314,7 @@ def pull_message_callback(message):
         video_url = message["video_url"]
         upload_url = message["upload_url"]
         res = edit_video(video_id, title, trim, crop, auth_token, video_url, upload_url)
-        logging.info(f'response from edit_video: {res}')
+        logging.info(f'response from edit_video async: {res}')
     except Exception as e:
         logging.error(e)
     logging.info('Message processed: {}'.format(message))
