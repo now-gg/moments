@@ -177,6 +177,7 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
             stream = ffmpeg.filter(stream, 'scale', 1280, -1)
             stream = ffmpeg.output(stream, temp_file.name)
             stream = ffmpeg.overwrite_output(stream)
+            stream = ffmpeg.overwrite_output(stream, loglevel='quiet', hide_banner=None)
             ffmpeg.run(stream)
         except ffmpeg.Error as e:
             logging.debug(e.stderr.decode())
