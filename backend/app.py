@@ -29,52 +29,6 @@ def home():
     return "Moments backend"
 
 
-@app.route("/video/upload", methods=["POST"])
-def upload():
-    try:
-        body = request.get_json()
-        title = body["title"]
-        video_url = body["videoUrl"]
-        auth_token = request.headers.get("token")
-
-        file_extension = video_url.split(".")[-1]
-        
-        video_name = title + "." + file_extension
-        video_name = video_name.replace(" ", "_")
-
-        stream = ffmpeg.input(video_url)
-
-        # write clip to a temp file
-        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
-            stream = ffmpeg.filter(stream, 'scale', 1280, -1)
-            stream = ffmpeg.output(stream, temp_file.name)
-            stream = ffmpeg.overwrite_output(stream)
-            ffmpeg.run(stream)
-            logging.info("clip written to temp file")
-            temp_file.seek(0)
-            upload_url, new_video_id = create_video(title, auth_token)
-            upload_res = upload_video(temp_file.name, title, upload_url)
-            temp_file.close()
-            os.remove(temp_file.name)
-        
-
-        if upload_res.status_code != 200:
-            return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
-
-        res_dict = {
-            "status": "success",
-            "message": "Video uploaded successfully",
-            "video_id": new_video_id
-        }
-
-        return jsonify(res_dict), 200
-
-    except Exception as e:
-        logging.error(e)
-        if isinstance(e, KeyError):
-            return jsonify({"status": "error", "message": f'Key {e} missing from request body'}), 400
-        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
-
 
 def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_url):
     request_init_time = time.time()
