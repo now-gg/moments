@@ -12,6 +12,7 @@ import psutil
 import ffmpeg
 from pubsub import publish_message, get_subscriber
 from redis_wrapper  import RedisWrapper
+import threading
 
 app = Flask(__name__)
 CORS(app)
@@ -388,4 +389,5 @@ def log_resource_usage(message=""):
     logging.info(f'{message} resources used: {resources_used}')
 
 
-pull_messages()
+pull_message_threading = threading.Thread(target=pull_messages)
+pull_message_threading.start()
