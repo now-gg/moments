@@ -313,7 +313,8 @@ def pull_message_callback(message):
         auth_token = message["auth_token"]
         video_url = message["video_url"]
         upload_url = message["upload_url"]
-        res = edit_video(video_id, title, trim, crop, auth_token, video_url, upload_url)
+        with app.app_context():
+            res = edit_video(video_id, title, trim, crop, auth_token, video_url, upload_url)
         logging.info(f'response from edit_video async: {res}')
     except Exception as e:
         logging.error(e)
@@ -336,7 +337,7 @@ def pull_messages():
                     redis_client.set(redis_key, 1)
                     pull_message_callback(message.data)
                     subscriber.acknowledge(subscription=subscription_path, ack_ids=[received_message.ack_id])
-                time.sleep(10)
+                time.sleep(1)
             else:
                 logging.info("no messages received")
                 time.sleep(30)
