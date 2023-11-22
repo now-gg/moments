@@ -30,69 +30,6 @@ def home():
 
 
 
-def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_url):
-    request_init_time = time.time()
-
-    stream = ffmpeg.input(input_video_url)
-
-    if trim:
-        trim_start = int(float(trim.get("start", "0")))
-        trim_end = int(float(trim.get("end", "1")))
-        # validate input
-        stream = ffmpeg.trim(stream, start=trim_start, end=trim_end)
-
-    if crop:
-        x1 = int(float(crop["x1"]))
-        y1 = int(float(crop["y1"]))
-        x2 = int(float(crop["x2"]))
-        y2 = int(float(crop["y2"]))
-        width = x2 - x1
-        height = y2 - y1
-        # validate input
-        stream = ffmpeg.crop(stream, x1, y1, width, height)
-
-    # write clip to a temp file
-    with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
-        log_resource_usage(f'temp file created {temp_file.name}')
-        try:
-            stream = ffmpeg.filter(stream, 'scale', 1280, -1)
-            stream = ffmpeg.output(stream, temp_file.name)
-            stream = ffmpeg.overwrite_output(stream)
-            ffmpeg.run(stream)
-        except ffmpeg.Error as e:
-            logging.error(e.stderr)
-            return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
-        except Exception as e:
-            logging.error(e)
-            log_resource_usage()
-            return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
-        log_resource_usage("clip written to temp file")
-        temp_file.seek(0)
-        upload_res = upload_video(temp_file.name, title, upload_url)
-        temp_file.close()
-        del temp_file
-    
-    log_resource_usage()
-
-    if upload_res.status_code != 200:
-        return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
-
-    # delete_res = delete_video(video_id, auth_token)
-    # if delete_res.status_code != 200:
-    #     return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
-    # logging.info(f'previous video deleted: {video_id}')
-
-    res_dict = {
-        "status": "success",
-        "message": "Video processed successfully",
-        "request_processing_time": time.time() - request_init_time
-    }
-
-    logging.info(f'response to be sent: {res_dict}')
-    log_resource_usage()
-    return jsonify(res_dict), 200
-
-
 @app.route("/video/process", methods=["POST"])
 def process():
     try:
@@ -214,6 +151,69 @@ def info():
     except Exception as e:
         logging.error(e)
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
+
+
+def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_url):
+    request_init_time = time.time()
+
+    stream = ffmpeg.input(input_video_url)
+
+    if trim:
+        trim_start = int(float(trim.get("start", "0")))
+        trim_end = int(float(trim.get("end", "1")))
+        # validate input
+        stream = ffmpeg.trim(stream, start=trim_start, end=trim_end)
+
+    if crop:
+        x1 = int(float(crop["x1"]))
+        y1 = int(float(crop["y1"]))
+        x2 = int(float(crop["x2"]))
+        y2 = int(float(crop["y2"]))
+        width = x2 - x1
+        height = y2 - y1
+        # validate input
+        stream = ffmpeg.crop(stream, x1, y1, width, height)
+
+    # write clip to a temp file
+    with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
+        log_resource_usage(f'temp file created {temp_file.name}')
+        try:
+            stream = ffmpeg.filter(stream, 'scale', 1280, -1)
+            stream = ffmpeg.output(stream, temp_file.name)
+            stream = ffmpeg.overwrite_output(stream)
+            ffmpeg.run(stream)
+        except ffmpeg.Error as e:
+            logging.error(e.stderr)
+            return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
+        except Exception as e:
+            logging.error(e)
+            log_resource_usage()
+            return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
+        log_resource_usage("clip written to temp file")
+        temp_file.seek(0)
+        upload_res = upload_video(temp_file.name, title, upload_url)
+        temp_file.close()
+        del temp_file
+    
+    log_resource_usage()
+
+    if upload_res.status_code != 200:
+        return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
+
+    delete_res = delete_video(video_id, auth_token)
+    if delete_res.status_code != 200:
+        return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
+    logging.info(f'previous video deleted: {video_id}')
+
+    res_dict = {
+        "status": "success",
+        "message": "Video processed successfully",
+        "request_processing_time": time.time() - request_init_time
+    }
+
+    logging.info(f'response to be sent: {res_dict}')
+    log_resource_usage()
+    return jsonify(res_dict), 200
 
 
 def pull_message_callback(message):
