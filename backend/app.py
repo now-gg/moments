@@ -112,7 +112,6 @@ def delete():
         delete_res = delete_video(video_id, auth_token)
         if delete_res.status_code != 200:
             return jsonify({"status": "error", "message": "Something went wrong while deleting the video"}), delete_res.status_code
-        logging.info("video deleted")
 
         return jsonify({
             "status": "success",
@@ -203,7 +202,6 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
     delete_res = delete_video(video_id, auth_token)
     if delete_res.status_code != 200:
         return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
-    logging.info(f'previous video deleted: {video_id}')
 
     res_dict = {
         "status": "success",
@@ -308,11 +306,12 @@ def delete_video(video_id, token):
             "state": "Deleted"
         }
         res = requests.post(url, headers=headers, json=data)
+        if res.status_code == 200:
+            logging.info(f'video {video_id} deleted successfully')
         return res
     
     except Exception as e:
         logging.error(e)
-        print(e)
         return e
 
 
@@ -336,7 +335,6 @@ def log_resource_usage(message=""):
         "disk": psutil.disk_usage("/"),
         "memory": psutil.virtual_memory(),
     }
-
     logging.info(f'{message} resources used: {resources_used}')
 
 
