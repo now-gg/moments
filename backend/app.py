@@ -187,7 +187,7 @@ def process():
 
 
 @app.route("/video/process/sync", methods=["POST"])
-def process():
+def process_sync():
     try:
         body = request.get_json()
         title = body["title"]
