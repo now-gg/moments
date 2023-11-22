@@ -53,8 +53,11 @@ def process():
         except Exception as e:
             return jsonify({"status": "error", "message": f'Something went wrong with getting downloadUrl of {video_id}', "error": str(e)}), 500
         
-        upload_url, new_video_id = create_video(title, auth_token)
-        logging.info(f'new video id: {new_video_id}')
+        create_video_res = create_video(title, auth_token, video_info)
+        if create_video_res.status_code != 200:
+            return create_video_res.json(), create_video_res.status_code
+        create_video_res = create_video_res.json()
+        upload_url, new_video_id = create_video_res["uploadUrl"], create_video_res["videoId"]
 
         message = {
             "video_id": video_id,
@@ -63,7 +66,8 @@ def process():
             "crop": crop,
             "auth_token": auth_token,
             "video_url": video_url,
-            "upload_url": upload_url
+            "upload_url": upload_url,
+            "new_video_id": new_video_id
         }
         logging.info(f'message to be published: {message}')
         publish_message(json.dumps(message))
@@ -220,6 +224,7 @@ def pull_message_callback(message):
         auth_token = message["auth_token"]
         video_url = message["video_url"]
         upload_url = message["upload_url"]
+        new_video_id = message["new_video_id"]
         with app.app_context():
             res = edit_video(video_id, title, trim, crop, auth_token, video_url, upload_url)
         logging.info(f'response from edit_video async: {res}')
@@ -261,33 +266,24 @@ def upload_video(video_path, title, cloudflare_upload_url):
         logging.error(e)
 
 
-def create_video(title, token):
-    try:
-        headers = {
-            'Authorization': f'Bearer {token}'
-        }
-        # TODO: send data from video info
-        create_video_body = {
-            "title": title,
-            "description": "",
-            "tags": ["moments", "edit"],
-            "mimeType": "video/mp4",
-            "creatorPlatform": "BS5",
-            "appName": "2048"
-        }
+def create_video(title, token, video_info):
+    headers = {
+        'Authorization': f'Bearer {token}'
+    }
+    create_video_body = {
+        "title": title if title else video_info["title"],
+        "description": video_info["description"],
+        "tags": video_info["tags"],
+        "mimeType": "video/mp4",
+        "creatorPlatform": video_info["creatorPlatform"],
+        "appName": video_info["appName"]
+    }
 
-        url = 'https://stagingngg.net/6/api/vid/v1/createVideo'
+    url = 'https://stagingngg.net/6/api/vid/v1/createVideo'
 
-        res = requests.post(url, headers=headers, json=create_video_body)
+    res = requests.post(url, headers=headers, json=create_video_body)
 
-        res_json = res.json()
-
-        return res_json["uploadUrl"], res_json["videoId"]
-    
-    except Exception as e:
-        logging.error("error in createVideo call")
-        logging.error(e)
-        return None, None
+    return res
 
 
 def delete_video(video_id, token):
