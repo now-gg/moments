@@ -18,6 +18,7 @@ CORS(app)
 
 client = google.cloud.logging.Client()
 client.setup_logging()
+logging.basicConfig(level=logging.DEBUG)
 
 redis_client = RedisWrapper()
 
@@ -130,6 +131,7 @@ def info():
         video_id = request.args.get("videoId")
 
         logging.info(f'video info request for {video_id}')
+        logging.debug(f'debug: video info request for {video_id}')
 
         video_info = get_video_info(video_id)
 
@@ -177,7 +179,7 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
             stream = ffmpeg.overwrite_output(stream)
             ffmpeg.run(stream)
         except ffmpeg.Error as e:
-            logging.error(e.stderr)
+            logging.debug(e.stderr.decode())
             return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
         except Exception as e:
             logging.error(e)
