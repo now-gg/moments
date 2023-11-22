@@ -123,10 +123,10 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
     if upload_res.status_code != 200:
         return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
 
-    delete_res = delete_video(video_id, auth_token)
-    if delete_res.status_code != 200:
-        return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
-    logging.info(f'previous video deleted: {video_id}')
+    # delete_res = delete_video(video_id, auth_token)
+    # if delete_res.status_code != 200:
+    #     return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
+    # logging.info(f'previous video deleted: {video_id}')
 
     res_dict = {
         "status": "success",
