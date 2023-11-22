@@ -176,7 +176,6 @@ def process():
         }
         logging.info(f'message to be published: {message}')
         publish_message(json.dumps(message))
-        # res = edit_video(video_id, title, trim, crop, auth_token, video_url, upload_url)
         return jsonify({"status": "success", "message": "Video processing started", "new_video_id": new_video_id}), 200
 
     except Exception as e:
@@ -277,8 +276,8 @@ def pull_message_callback(message):
         auth_token = message["auth_token"]
         video_url = message["video_url"]
         upload_url = message["upload_url"]
-        logging.info('data received in callback')
-        logging.info(f'video_id: {video_id}, title: {title}, trim: {trim}, crop: {crop}, auth_token: {auth_token}, video_url: {video_url}, upload_url: {upload_url}')
+        res = edit_video(video_id, title, trim, crop, auth_token, video_url, upload_url)
+        logging.info(f'response from edit_video: {res}')
     except Exception as e:
         logging.error(e)
     logging.info('Message processed: {}'.format(message))
