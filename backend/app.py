@@ -186,43 +186,6 @@ def process():
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
 
-@app.route("/video/process/sync", methods=["POST"])
-def process_sync():
-    try:
-        body = request.get_json()
-        title = body["title"]
-        video_id = body["videoId"]
-        crop = body.get("crop")
-        trim = body.get("trim")
-        auth_token = request.headers.get("token")
-
-        logging.info(f'video edit request for {video_id}')
-
-        try:
-            video_info = get_video_info(video_id)
-            if not video_info:
-                return jsonify({"status": "error", "message": f'Info for video with id {video_id} not found'}), 404
-            video_url = video_info["downloadUrl"]
-            if not video_url:
-                return jsonify({"status": "error", "message": f'Download url for video with id {video_id} not found'}), 404
-            logging.info("downloadUrl received")
-        except Exception as e:
-            return jsonify({"status": "error", "message": f'Something went wrong with getting downloadUrl of {video_id}', "error": str(e)}), 500
-        
-        upload_url, new_video_id = create_video(title, auth_token)
-
-        res = edit_video(video_id, title, trim, crop, auth_token, video_url, upload_url)
-        logging.info(f'video edited, new video id: {new_video_id}')
-        return res
-
-    except Exception as e:
-        logging.error(e)
-        log_resource_usage("error")
-        if isinstance(e, KeyError):
-            return jsonify({"status": "error", "message": f'Key {e} missing from request body'}), 400
-        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
-
-
 @app.route("/video/title", methods=["POST"])
 def edit_title():
     try:
