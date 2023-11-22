@@ -8,7 +8,6 @@ import time
 import requests
 import tempfile
 from flask_cors import CORS
-import psutil
 import ffmpeg
 from pubsub import publish_message, get_subscriber
 from redis_wrapper  import RedisWrapper
@@ -71,7 +70,6 @@ def process():
 
     except Exception as e:
         logging.error(e)
-        log_resource_usage("error")
         if isinstance(e, KeyError):
             return jsonify({"status": "error", "message": f'Key {e} missing from request body'}), 400
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
@@ -135,8 +133,6 @@ def info():
 
         video_info = get_video_info(video_id)
 
-        log_resource_usage()
-
         if video_info:
             logging.info("video info received", video_info)
             return jsonify({
@@ -175,7 +171,6 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
 
     # write clip to a temp file
     with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
-        log_resource_usage(f'temp file created {temp_file.name}')
         try:
             stream = ffmpeg.filter(stream, 'scale', 1280, -1)
             stream = ffmpeg.output(stream, temp_file.name)
@@ -186,15 +181,13 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
             return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
         except Exception as e:
             logging.error(e)
-            log_resource_usage()
             return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
-        log_resource_usage("clip written to temp file")
+        logging.info("clip written to temp file")
         temp_file.seek(0)
         upload_res = upload_video(temp_file.name, title, upload_url)
         temp_file.close()
         del temp_file
     
-    log_resource_usage()
 
     if upload_res.status_code != 200:
         return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
@@ -210,7 +203,6 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
     }
 
     logging.info(f'response to be sent: {res_dict}')
-    log_resource_usage()
     return jsonify(res_dict), 200
 
 
@@ -328,14 +320,6 @@ def get_video_info(video_id):
         logging.error(e)
         return {}
 
-
-def log_resource_usage(message=""):
-    resources_used = {
-        "cpu": psutil.cpu_percent(),
-        "disk": psutil.disk_usage("/"),
-        "memory": psutil.virtual_memory(),
-    }
-    logging.info(f'{message} resources used: {resources_used}')
 
 
 pull_message_threading = threading.Thread(target=pull_messages)
