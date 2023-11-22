@@ -2,6 +2,7 @@
 import google.cloud.logging
 import logging
 from flask import Flask, request, jsonify
+import json
 import os
 import time
 import requests
@@ -163,8 +164,19 @@ def process():
         upload_url, new_video_id = create_video(title, auth_token)
         logging.info(f'new video id: {new_video_id}')
 
-        res = edit_video(video_id, title, trim, crop, auth_token, video_url, upload_url)
-        return res
+        message = {
+            "video_id": video_id,
+            "title": title,
+            "trim": trim,
+            "crop": crop,
+            "auth_token": auth_token,
+            "video_url": video_url,
+            "upload_url": upload_url
+        }
+        logging.info(f'message to be published: {message}')
+        publish_message(json.dumps(message))
+        # res = edit_video(video_id, title, trim, crop, auth_token, video_url, upload_url)
+        return jsonify({"status": "success", "message": "Video processing started", "new_video_id": new_video_id}), 200
 
     except Exception as e:
         logging.error(e)
@@ -255,7 +267,19 @@ def info():
 
 def pull_message_callback(message):
     logging.info('Received message on subscriber: {}'.format(message))
-    time.sleep(5)
+    try:
+        message = json.loads(message)
+        video_id = message["video_id"]
+        title = message["title"]
+        trim = message["trim"]
+        crop = message["crop"]
+        auth_token = message["auth_token"]
+        video_url = message["video_url"]
+        upload_url = message["upload_url"]
+        logging.info('data received in callback')
+        logging.info(f'video_id: {video_id}, title: {title}, trim: {trim}, crop: {crop}, auth_token: {auth_token}, video_url: {video_url}, upload_url: {upload_url}')
+    except Exception as e:
+        logging.error(e)
     logging.info('Message processed: {}'.format(message))
 
 
