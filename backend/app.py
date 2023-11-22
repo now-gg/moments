@@ -239,11 +239,8 @@ def edit_title():
             "videoId": video_id,
             "title": title
         }
-        # res = requests.post(url, headers=headers, json=data)
-        # return res.json(), res.status_code
-        res = publish_message(title)
-        logging.info(f'response from publish_message: {res}')
-        return "message published"
+        res = requests.post(url, headers=headers, json=data)
+        return res.json(), res.status_code
     except Exception as e:
         logging.error(e)
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
