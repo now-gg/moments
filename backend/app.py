@@ -18,7 +18,6 @@ CORS(app)
 
 client = google.cloud.logging.Client()
 client.setup_logging()
-logging.basicConfig(level=logging.DEBUG)
 
 redis_client = RedisWrapper()
 
@@ -179,9 +178,8 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
     with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
         try:
             stream = ffmpeg.filter(stream, 'scale', 1280, -1)
-            stream = ffmpeg.output(stream, temp_file.name)
+            stream = ffmpeg.output(stream, temp_file.name, loglevel="quiet")
             stream = ffmpeg.overwrite_output(stream)
-            stream = ffmpeg.overwrite_output(stream, loglevel='quiet', hide_banner=None)
             ffmpeg.run(stream)
         except ffmpeg.Error as e:
             logging.debug(e.stderr.decode())
