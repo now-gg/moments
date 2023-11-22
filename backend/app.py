@@ -423,5 +423,5 @@ def log_resource_usage(message=""):
     logging.info(f'{message} resources used: {resources_used}')
 
 
-pull_message_threading = threading.Thread(target=pull_messages)
-pull_message_threading.start()
+# pull_message_threading = threading.Thread(target=pull_messages)
+# pull_message_threading.start()
