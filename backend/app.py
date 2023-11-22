@@ -364,4 +364,4 @@ def log_resource_usage(message=""):
     logging.info(f'{message} resources used: {resources_used}')
 
 
-pull_messages()
+# pull_messages()
