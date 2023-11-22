@@ -335,8 +335,8 @@ def pull_messages():
                         logging.info(f'message {message.data} with id {message.message_id} already processed')
                         break
                     redis_client.set(redis_key, 1)
-                    pull_message_callback(message.data)
                     subscriber.acknowledge(subscription=subscription_path, ack_ids=[received_message.ack_id])
+                    pull_message_callback(message.data)
                 time.sleep(1)
             else:
                 logging.info("no messages received")
