@@ -123,11 +123,12 @@ const Player = ({ loggedIn }: PlayerProps) => {
   }
 
   const fetchVideo = () => {
+    console.log("=====import.meta.env.VITE_SOME_KEY", import.meta.env)
     var headers = new Headers();
     headers.append("Content-Type", "application/json");
     let searchParams = new URLSearchParams(location.search);
     let videoId = searchParams.get('videoId') || 'doykcyaxtx5bkb';
-    fetch(`https://stagingngg.net/7/api/vid/v1/getVideoInfo?videoId=${videoId}`)
+    fetch(`${import.meta.env.VITE_VIDEO_BASE}/7/api/vid/v1/getVideoInfo?videoId=${videoId}`)
       .then((res) => res.json())
       .then((data) => {
         console.log('data', data);
