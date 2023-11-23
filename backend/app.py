@@ -9,9 +9,11 @@ import requests
 import tempfile
 from flask_cors import CORS
 import ffmpeg
+import threading
 from pubsub import publish_message, get_subscriber
 from redis_wrapper  import RedisWrapper
-import threading
+from bigquery import send_stat_to_bq
+from utils import get_operation
 
 app = Flask(__name__)
 CORS(app)
@@ -51,12 +53,19 @@ def process():
             logging.info("downloadUrl received")
         except Exception as e:
             return jsonify({"status": "error", "message": f'Something went wrong with getting downloadUrl of {video_id}', "error": str(e)}), 500
-        
+
         create_video_res = create_video(title, auth_token, video_info)
         if create_video_res.status_code != 200:
             return create_video_res.json(), create_video_res.status_code
         create_video_res = create_video_res.json()
         upload_url, new_video_id = create_video_res["uploadUrl"], create_video_res["videoId"]
+
+        data_for_bq = {
+            "arg1": video_id,
+            "arg2": video_info.get("durationSecs", ""),
+            "arg3": get_operation(trim, crop)
+        }
+        send_stat_to_bq("video_edit_request", data_for_bq)
 
         message = {
             "video_id": video_id,
@@ -153,7 +162,7 @@ def info():
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
 
-def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_url):
+def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_url, new_video_id):
     request_init_time = time.time()
 
     stream = ffmpeg.input(input_video_url)
@@ -201,10 +210,16 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
     if delete_res.status_code != 200:
         return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
 
+    data_for_bq = {
+        "arg1": video_id,
+        "arg2": new_video_id,
+        "arg3": time.time() - request_init_time
+    }
+    send_stat_to_bq("video_edit_processed", data_for_bq)
+
     res_dict = {
         "status": "success",
-        "message": "Video processed successfully",
-        "request_processing_time": time.time() - request_init_time
+        "message": "Video processed successfully"
     }
 
     logging.info(f'response to be sent: {res_dict}')
@@ -224,7 +239,7 @@ def pull_message_callback(message):
         upload_url = message["upload_url"]
         new_video_id = message["new_video_id"]
         with app.app_context():
-            res = edit_video(video_id, title, trim, crop, auth_token, video_url, upload_url)
+            res = edit_video(video_id, title, trim, crop, auth_token, video_url, upload_url, new_video_id)
         logging.info(f'response from edit_video async: {res}')
     except Exception as e:
         logging.error(e)

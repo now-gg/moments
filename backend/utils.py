@@ -13,3 +13,14 @@ def save_input_video(video):
     video_path = os.path.join("static/videos", video.filename)
     video.save(video_path)
     return video_path
+
+
+def get_operation(trim, crop):
+    if trim and crop:
+        return "both"
+    elif trim:
+        return "trim"
+    elif crop:
+        return "crop"
+    else:
+        return ""
