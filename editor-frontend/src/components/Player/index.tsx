@@ -128,7 +128,10 @@ const Player = ({ loggedIn }: PlayerProps) => {
     headers.append("Content-Type", "application/json");
     let searchParams = new URLSearchParams(location.search);
     let videoId = searchParams.get('videoId') || 'doykcyaxtx5bkb';
-    fetch(`${import.meta.env.VITE_VIDEO_BASE}/7/api/vid/v1/getVideoInfo?videoId=${videoId}`)
+    let videoInfoUrl = `${import.meta.env.VITE_VIDEO_PROCESS}/video/info?videoId=${videoId}`;
+    if(import.meta.env.VITE_CURRENT_ENV === 'staging' || import.meta.env.VITE_CURRENT_ENV === 'production')
+      videoInfoUrl = `${import.meta.env.VITE_VIDEO_BASE}/7/api/vid/v1/getVideoInfo?videoId=${videoId}`;
+    fetch(videoInfoUrl)
       .then((res) => res.json())
       .then((data) => {
         console.log('data', data);
@@ -156,7 +159,7 @@ const Player = ({ loggedIn }: PlayerProps) => {
         setTimeout(() => { setStartTime(startBound); }, 100)
         ref?.current?.pause();
       }
-    }, 100)
+    }, 260)
     setCursorTimer(timer);
   }
 
