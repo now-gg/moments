@@ -52,7 +52,7 @@ const VideoTimeline = ({ url, startTime, endTime, setStartTime, setEndTime, dura
   useEffect(() => {
     setVideo(url);
     // generateTimeline();
-  }, [])
+  }, [url])
 
   return (
     <VideoTimelineWrapper className="VideoTimeline" data-video={video}>
