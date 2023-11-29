@@ -23,6 +23,7 @@ type ControlProps = {
   palyPointer: number,
   aspectRatio: string,
   setAspectRatio: Function,
+  thumbnails: string[],
 };
 
 const VideoControlsWrapper = styled.section`
@@ -169,9 +170,8 @@ const VideoControlsWrapper = styled.section`
   }
 `
 
-const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn, playing, streamRef, palyPointer, aspectRatio, setAspectRatio }: ControlProps) => {
+const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn, playing, streamRef, palyPointer, aspectRatio, setAspectRatio, thumbnails }: ControlProps) => {
 
-  const [cropSelectedValue, setCropSelectedValue] = useState('16/9');
   const [saveBtnActive, setSaveBtnActive] = useState('disabled');
 
   const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
@@ -180,13 +180,8 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
   const [isTrimActive, setIsTrimActive] = useState(false);
   const [isCropActive, setIsCropActive] = useState(false);
 
-  // useEffect(()=>{
-  //   console.log("useEffect")
-  // }[startTime])
-
   useEffect(() => {
     console.log("startTime", startTime);
-
     setTrimStartTime(startTime);
   }, [startTime]);
 
@@ -198,74 +193,29 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     console.log(streamRef)
   }, [endTime]);
 
-  const handleAspectRatioChange = (cropRatio: string) => {
-    setAspectRatio(cropRatio);
-  }
-
   const sendAPIRequest = async () => {
-    if (cropSelectedValue == '' && endTime && endTime > duration) {
-      document.querySelector('input.end-time')?.classList.add('error-input');
-      return;
-    }
-    if (saveBtnActive == '' && (cropSelectedValue != '' || endTime && endTime != 0)) {
-      let searchParams = new URLSearchParams(location.search);
-      let payload = {};
-      if (cropSelectedValue != '' && endTime != 0) {
-        payload = {
-          "title": document.querySelector('.video-title')?.innerHTML.trim(),
-          "videoId": searchParams.get('videoId') || 'rhjij8mlboksww',
-          "trim": { "start": startTime, "end": endTime },
-          "crop": {
-            "x1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().left,
-            "y1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().top,
-            "x2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().right,
-            "y2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().bottom
-          }
-        }
-      } else if (cropSelectedValue != '') {
-        payload = {
-          "title": document.querySelector('.video-title')?.innerHTML.trim(),
-          "videoId": searchParams.get('videoId') || 'rhjij8mlboksww',
-          "crop": {
-            "x1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().left,
-            "y1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().top,
-            "x2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().right,
-            "y2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().bottom
-          }
-        }
-        console.log('payload', payload);
-      } else {
-        payload = {
-          "title": document.querySelector('.video-title')?.innerHTML.trim(),
-          "videoId": searchParams.get('videoId') || 'rhjij8mlboksww',
-          "trim": { "start": startTime, "end": endTime },
-        }
-        // setStartTime('');
-        // setEndTime('');
-        console.log('payload', payload);
-      }
+    console.log("sendAPIRequest")
 
-      if (payload && Object.keys(payload).length > 0) {
-        await axios
-          .post(`${import.meta.env.VITE_VIDEO_PROCESS}/video/process`, payload, {
-            headers: {
-              'Content-Type': 'application/json',
-              token: `${localStorage['ng_token']}`,
-            },
-          })
-          .then(function (res: any) {
-            if (res && res.status === 200) {
-              // localStorage.setItem('ng_token', res.token);
-              console.log('res', res);
-              setVideoID('');
-            }
-          })
-          .catch((err: any) => {
-            console.log('err', err);
-            // console.log('signup not possible -- error 401');
-          });
-      }
-    }
+    // if (payload && Object.keys(payload).length > 0) {
+    //   await axios
+    //     .post(`${import.meta.env.VITE_VIDEO_PROCESS}/video/process`, payload, {
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //         token: `${localStorage['ng_token']}`,
+    //       },
+    //     })
+    //     .then(function (res: any) {
+    //       if (res && res.status === 200) {
+    //         // localStorage.setItem('ng_token', res.token);
+    //         console.log('res', res);
+    //         setVideoID('');
+    //       }
+    //     })
+    //     .catch((err: any) => {
+    //       console.log('err', err);
+    //       // console.log('signup not possible -- error 401');
+    //     });
+    // }
   }
 
   const onTrimButtonClick: ReactEventHandler = () => { 
@@ -295,14 +245,32 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
   const onCropButtonClick: ReactEventHandler = () => { 
     setIsTrimActive(false);
-    setIsCropActive(!isCropActive);
+    if(!isCropActive) {
+      setIsCropActive(true);
+      setAspectRatio(aspectRatio ?? '16/9');
+    }
+    else {
+      setIsCropActive(false);
+    }
     if (loggedIn) setSaveBtnActive('');
+  }
+
+  const handleAspectRatioChange = (cropRatio: string) => {
+    setAspectRatio(cropRatio);
+  }
+
+  const resetOptions = () => {
+    setStartTime(0);
+    setEndTime(duration);
+    setAspectRatio('');
+    setIsTrimActive(false);
+    setIsCropActive(false);
   }
 
   return (
     <>
       <section className="relative bg-color timeline-wrapper">
-        <VideoTimeline url={videoUrl} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} palyPointer={palyPointer} />
+        <VideoTimeline url={videoUrl} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} palyPointer={palyPointer} thumbnails={thumbnails} />
       </section>
       <VideoControlsWrapper className="flex">
         <div className="play-trim-crop-options flex">
@@ -344,7 +312,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
           </div>
         </div>
         <div className="reset-save-options flex">
-          <EditOptionButton onClick={() => {}}>
+          <EditOptionButton onClick={resetOptions}>
             <IconReset />
             Reset
           </EditOptionButton>

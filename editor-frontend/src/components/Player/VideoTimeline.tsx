@@ -10,6 +10,7 @@ type VideoProps = {
   setStartTime: any,
   setEndTime: any,
   palyPointer: number,
+  thumbnails: string[]
 };
 
 const VideoTimelineWrapper = styled.div`
@@ -46,7 +47,7 @@ const VideoTimelineWrapper = styled.div`
     border-left: 4px solid #ff0381b5;
   }
 `
-const VideoTimeline = ({ url, startTime, endTime, setStartTime, setEndTime, duration = 1, palyPointer}: VideoProps) => {
+const VideoTimeline = ({ url, startTime, endTime, setStartTime, setEndTime, duration = 1, palyPointer, thumbnails}: VideoProps) => {
   const [video, setVideo] = useState('');
 
   useEffect(() => {
@@ -56,10 +57,14 @@ const VideoTimeline = ({ url, startTime, endTime, setStartTime, setEndTime, dura
 
   return (
     <VideoTimelineWrapper className="VideoTimeline" data-video={video}>
-      <div className="frames-container flex bg-color">
-      <span className='play-pointer' style={{left: `${(100 * palyPointer) /duration}%`}}></span>
-
-      </div>
+      {thumbnails.length > 0 && (
+        <div className='flex w-full frames-container'>
+          {thumbnails.map((thumbnail, index) => (
+            <img style={{width: `${100 / thumbnails.length}%`}} key={index} src={thumbnail} alt="" />
+          ))}
+        <span className='play-pointer' style={{left: `${(100 * palyPointer) /duration}%`}}></span>
+        </div>
+      )}
       <div className="slider-container">
         <InputSlider setStartTime={setStartTime} setEndTime={setEndTime} minVal={startTime} maxVal={endTime} duration={duration} />
       </div>

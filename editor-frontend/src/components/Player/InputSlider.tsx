@@ -84,10 +84,13 @@ type SliderProps = {
 
 const InputSlider = ({ minVal, maxVal, setStartTime, setEndTime, duration }: SliderProps) => {
   const getTimeLabels = (): string[] => {
-    let arr: string[] = [];
+    const arr: string[] = [];
     if (duration) {
-      for (let i = 0; i <= duration; i++) {
-        arr.push(i.toString().padStart(2, "0") + ":00");
+      const step = Math.max(Math.floor(duration / 10), 1);
+      for (let i = 0; i <= duration; i+=step) {
+        const m = Math.floor(i / 60).toString().padStart(2, '0');
+        const s = (i % 60).toString().padStart(2, '0');
+        arr.push(`${m}:${s}`);
       }
     }
     return arr;

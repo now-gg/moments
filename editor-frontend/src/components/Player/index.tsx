@@ -7,7 +7,8 @@ import CropWidget from "./CropWidget";
 import {DndContext, DragEndEvent, useDroppable} from "@dnd-kit/core"
 
 type PlayerProps = {
-  loggedIn: boolean
+  loggedIn: boolean;
+  videoInfo: any;
 }
 const VideoFrameWrapper = styled.div`
   .video-wrapper{
@@ -39,12 +40,10 @@ const VideoFrameWrapper = styled.div`
   }
 `
 
-const Player = ({ loggedIn }: PlayerProps) => {
+const Player = ({ loggedIn, videoInfo }: PlayerProps) => {
   const [endTime, setEndTime] = useState(document.querySelector('video')?.duration || 0);
   const [startTime, setStartTime] = useState(0);
-  // const ref = React.useRef<StreamPlayerApi | undefined>(null);
   const ref = React.useRef() as React.MutableRefObject<StreamPlayerApi | undefined>;
-  // const ref = MutableRefObject<StreamPlayerApi | undefined>
   const [videoID, setVideoID] = useState('');
   const [videoURL, setVideoURL] = useState('');
   const [duration, setDuration] = useState(0);
@@ -53,32 +52,12 @@ const Player = ({ loggedIn }: PlayerProps) => {
   const [cursorTimer, setCursorTimer] = useState<any>();
   const [left, setLeft] = useState(0);
   const [top, setTop] = useState(0);
-  const [aspectRatio, setAspectRatio] = useState("16/9");
+  const [aspectRatio, setAspectRatio] = useState("");
+  const [thumbnails, setThumbnails] = useState<string[]>([]);
 
   const {isOver, setNodeRef} = useDroppable({
     id: 'droppable',
   });
-
-  const fetchVideo = () => {
-    console.log("=====import.meta.env.VITE_SOME_KEY", import.meta.env)
-    var headers = new Headers();
-    headers.append("Content-Type", "application/json");
-    let searchParams = new URLSearchParams(location.search);
-    let videoId = searchParams.get('videoId') || 'doykcyaxtx5bkb';
-    let videoInfoUrl = `${import.meta.env.VITE_VIDEO_PROCESS}/video/info?videoId=${videoId}`;
-    if(import.meta.env.VITE_CURRENT_ENV === 'staging' || import.meta.env.VITE_CURRENT_ENV === 'production')
-      videoInfoUrl = `${import.meta.env.VITE_VIDEO_BASE}/7/api/vid/v1/getVideoInfo?videoId=${videoId}`;
-    fetch(videoInfoUrl)
-      .then((res) => res.json())
-      .then((data) => {
-        console.log('data', data);
-        setVideoID(data?.video?.cflVideoId);
-        setVideoURL(data?.video?.thumbnailUrl);
-        setDuration(data?.video?.durationSecs);
-        setEndTime(data?.video?.durationSecs);
-        setPlaying(true);
-      });
-  }
 
   function cursorSynch() {
     if (cursorTimer) {
@@ -106,39 +85,33 @@ const Player = ({ loggedIn }: PlayerProps) => {
 
 
   useEffect(() => {
-    document.querySelector('iframe')?.addEventListener('onloadeddata', (e) => {
-      console.log('e', e);
-    })
-    fetchVideo();
-  }, [])
+    setVideoID(videoInfo?.cflVideoId);
+    setVideoURL(videoInfo?.thumbnailUrl);
+    setDuration(videoInfo?.durationSecs);
+    setEndTime(videoInfo?.durationSecs);
+    setPlaying(true);
+  }, [videoInfo])
 
-  function toDataURL(src: any, callback: any) {
-    var image = new Image();
-    image.crossOrigin = 'Anonymous';
-    image.onload = function (e: any) {
-      var canvas = document.createElement('canvas');
-      var context = canvas.getContext('2d');
-      canvas.height = e.target.naturalHeight;
-      canvas.width = e.target.naturalWidth;
-      context?.drawImage(e.target, 0, 0);
-      var dataURL = canvas.toDataURL('image/jpeg');
-      callback(dataURL);
-    };
-    image.src = src;
-  }
+  useEffect(() => {
+    // making sure that the new crop widget is in the center of the video
+    const parentDiv = document.querySelector('.droppable');
+    const w = parentDiv?.clientWidth || 0;
+    const h = parentDiv?.clientHeight || 0;
+    const [x, y] = aspectRatio.split('/');
+    const aspectRatioValue = parseInt(x) / parseInt(y);
+    const cropperW = aspectRatioValue * h;
+    setLeft((w - cropperW) / 2);
+  }, [aspectRatio]);
+
+
 
   const showThumbnails = () => {
-    console.log("SHOW THUMBNAILS")
-    let frameCount = ref?.current?.duration || 2;
-    for (let i = 0; i < Math.floor(frameCount); i++) {
-      let newNode = document.createElement('img');
-      newNode.setAttribute('style', `width:calc(100%/${frameCount})`)
-      toDataURL(`${videoURL}?time=${i}s`, function (dataURL: any) {
-        // alert(dataURL);
-        newNode.src = dataURL;
-      })
-      document.querySelector('.frames-container')?.appendChild(newNode);
+    const thumbs: string[] = [];
+    const step = Math.ceil(Number(videoInfo.durationSecs) / 20);
+    for (let i = 0; i < videoInfo.durationSecs; i += step) {
+      thumbs.push(videoInfo?.thumbnailUrl + '?time=' + i + 's')
     }
+    setThumbnails(thumbs);
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -168,7 +141,7 @@ const Player = ({ loggedIn }: PlayerProps) => {
       <DndContext onDragEnd={handleDragEnd}>
         <div className="border-4 border-green-500 relative droppable" data-id={videoID} ref={setNodeRef} >
           {videoID && <Stream controls src={videoID} height="100%" width="100%" currentTime={startTime} autoplay muted onLoadedData={showThumbnails} streamRef={ref} onPlay={() => { setPlaying(true) }} onPause={() => { setPlaying(false) }} primaryColor={'#FF42A5'} />}
-          <CropWidget left={left} top={top} aspectRatio={aspectRatio} />
+          {aspectRatio && <CropWidget left={left} top={top} aspectRatio={aspectRatio} />}
         </div>
       </DndContext>
       {endTime && (
@@ -187,6 +160,7 @@ const Player = ({ loggedIn }: PlayerProps) => {
         palyPointer={palyPointer} 
         aspectRatio={aspectRatio}
         setAspectRatio={setAspectRatio}
+        thumbnails={thumbnails}
       />)}
       </VideoFrameWrapper >
   );
