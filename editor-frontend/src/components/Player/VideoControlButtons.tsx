@@ -6,6 +6,7 @@ import EditOptionButton from './EditOptionButton';
 import { IconReset } from '../../assets/icons/IConReset';
 import CropOptions from './CropOptions';
 import Divider from '../Divider';
+import Save from "./Save";
 
 type ControlProps = {
   videoUrl: string;
@@ -173,7 +174,6 @@ const VideoControlsWrapper = styled.section`
 
 const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn, playing, streamRef, palyPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive }: ControlProps) => {
 
-  const [saveBtnActive, setSaveBtnActive] = useState('disabled');
 
   const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
   const [trimEndTime, setTrimEndTime] = useState(endTime || 0);
@@ -191,7 +191,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     console.log(streamRef)
   }, [endTime]);
 
-  const sendAPIRequest = async () => {
+  const sendProcessRequest = async () => {
     console.log("sendAPIRequest")
 
     // if (payload && Object.keys(payload).length > 0) {
@@ -218,7 +218,6 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
   const onTrimButtonClick: ReactEventHandler = () => { 
     setIsTrimActive(!isTrimActive);
-    if (loggedIn) setSaveBtnActive('');
   }
 
   const handleTrimInput: ReactEventHandler = (e) => { 
@@ -243,12 +242,10 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
   const onCropButtonClick: ReactEventHandler = () => { 
     if(!isCropActive) {
       setIsCropActive(true);
-      setAspectRatio(aspectRatio ?? '16/9');
+      setAspectRatio(aspectRatio ?? '9/16');
+      return;
     }
-    else {
-      setIsCropActive(false);
-    }
-    if (loggedIn) setSaveBtnActive('');
+    setIsCropActive(false);
   }
 
   const handleAspectRatioChange = (cropRatio: string) => {
@@ -270,6 +267,8 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     }
     streamRef.current?.play();
   }
+
+  const isSaveAllowed = isCropActive || isTrimActive;
 
   return (
     <>
@@ -309,12 +308,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
             <IconReset />
             Reset
           </EditOptionButton>
-          <button className={`save-btn flex ${saveBtnActive}`} onClick={sendAPIRequest}>
-            Save
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path fillRule="evenodd" clipRule="evenodd" d="M3.64645 5.64645C3.84171 5.45118 4.15829 5.45118 4.35355 5.64645L8 9.29289L11.6464 5.64645C11.8417 5.45118 12.1583 5.45118 12.3536 5.64645C12.5488 5.84171 12.5488 6.15829 12.3536 6.35355L8.35355 10.3536C8.15829 10.5488 7.84171 10.5488 7.64645 10.3536L3.64645 6.35355C3.45118 6.15829 3.45118 5.84171 3.64645 5.64645Z" fill="white" fillOpacity="0.5" />
-            </svg>
-          </button>
+          <Save onClick={sendProcessRequest} isActive={isSaveAllowed} />
         </div>
       </VideoControlsWrapper >
     </>
