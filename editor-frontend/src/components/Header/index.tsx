@@ -15,13 +15,13 @@ import { useEffect } from "react";
 import { useState } from 'react';
 
 type HeaderProps = {
-  title?: string;
   setOpen: Function,
   loggedIn: boolean,
-  setLoggedIn: Function
+  setLoggedIn: Function,
+  videoInfo: any,
 };
 
-const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn }: HeaderProps) => {
+const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo }: HeaderProps) => {
   const [profileIcon, setProfileIcon] = useState('');
   const [userName, setUserName] = useState('');
   // const [loggedIn, setLoggedIn] = useState(false);
@@ -89,6 +89,23 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
       document.querySelector('.video-title')?.setAttribute('contenteditable', 'false');
     }
   }
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(`https://stagingngg.net/videos/watch/${videoInfo?.videoId}`);
+  }
+
+  const download = () => {
+    window.open(videoInfo?.downloadUrl, '_blank');
+  }
+
+  const deleteVideo = () => {
+    // const confirmed = prompt('Are you sure you want to delete this video?') === 'yes';
+    // if(!confirmed) return;
+    // fetch(`${import.meta.env.VITE_VIDEO_PROCESS}/video/delete`, {
+    // }
+  }
+
+
   return (
     <header className="font-poppins bg-white">
       <div className="py-2 px-4 w-full flex justify-between header-container">
@@ -102,7 +119,7 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
 
           <Divider />
 
-          <p className="text-base-900 text-xl font-semibold video-title" contentEditable="false">{title}</p>
+          <p className="text-base-900 text-xl font-semibold video-title" contentEditable="false">{videoInfo?.title ?? "Edit Video"}</p>
           <div>
             <IconButton type="primary" onClick={() => { editTitle() }}>
               <IconEdit className="group-hover:fill-white" />
@@ -132,19 +149,15 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
             </div>
           }
 
-          <Button type="secondary">
-            <div className="flex items-center gap-x-2.5">
-              <IconCopy className="group-hover:stroke-white" />
-              Copy Link
-            </div>
+          <Button type="secondary" className="flex items-center gap-x-2.5" onClick={copyLink}>
+            <IconCopy className="group-hover:stroke-white" />
+            Copy Link
           </Button>
-          <IconButton type="secondary" color="link">
+          <IconButton type="secondary" color="link" onClick={download}>
             <IconDownload />
           </IconButton>
-
           <Divider />
-
-          <IconButton type="secondary" color="warning">
+          <IconButton type="secondary" color="warning" onClick={deleteVideo}>
             <IconTrash />
           </IconButton>
         </div>

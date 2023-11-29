@@ -40,7 +40,7 @@ export default function App() {
         href='https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap'
         rel='stylesheet'
       />
-      <Header setOpen={setOpen} loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
+      <Header setOpen={setOpen} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} />
       <div className="font-poppins p-4 flex justify-between" style={{ gap: '24px' }}>
         <section style={{ flex: 1 }}>
             <Player loggedIn={loggedIn} videoInfo={videoInfo}  />

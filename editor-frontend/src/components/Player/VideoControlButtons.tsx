@@ -1,12 +1,11 @@
-import axios from 'axios';
 import { ReactEventHandler, useEffect, useState } from "react";
 import styled from "styled-components";
 import VideoTimeline from './VideoTimeline';
-import CropOptionButton from './CropOptionButton';
-import { IconCrop, IconTrim } from '../../assets/icons';
+import { IconCrop, IconPause, IconPlay, IconTrim } from '../../assets/icons';
 import EditOptionButton from './EditOptionButton';
 import { IconReset } from '../../assets/icons/IConReset';
 import CropOptions from './CropOptions';
+import Divider from '../Divider';
 
 type ControlProps = {
   videoUrl: string;
@@ -187,8 +186,6 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
   useEffect(() => {
     console.log("endTime", endTime);
-
-    
     setTrimEndTime(endTime);
     console.log(streamRef)
   }, [endTime]);
@@ -220,7 +217,6 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
   const onTrimButtonClick: ReactEventHandler = () => { 
     setIsTrimActive(!isTrimActive);
-    setIsCropActive(false);
     if (loggedIn) setSaveBtnActive('');
   }
 
@@ -244,7 +240,6 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
   }
 
   const onCropButtonClick: ReactEventHandler = () => { 
-    setIsTrimActive(false);
     if(!isCropActive) {
       setIsCropActive(true);
       setAspectRatio(aspectRatio ?? '16/9');
@@ -267,26 +262,23 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     setIsCropActive(false);
   }
 
+  const handlePLayClick: ReactEventHandler = () => {
+    if (playing) {
+      streamRef.current?.pause();
+      return;
+    }
+    streamRef.current?.play();
+  }
+
   return (
     <>
-      <section className="relative bg-color timeline-wrapper">
-        <VideoTimeline url={videoUrl} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} palyPointer={palyPointer} thumbnails={thumbnails} />
-      </section>
+      <VideoTimeline url={videoUrl} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} palyPointer={palyPointer} thumbnails={thumbnails} />
       <VideoControlsWrapper className="flex">
-        <div className="play-trim-crop-options flex">
-          <button className="play-btn ">
-            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none" className={`${playing ? 'hide' : ''}`} onClick={() => { streamRef.current.play(); }}>
-              <rect width="36" height="36" rx="8" fill="#FAFAFB" />
-              <path d="M28.25 17.567C28.5833 17.7594 28.5833 18.2406 28.25 18.433L13.25 27.0933C12.9167 27.2857 12.5 27.0452 12.5 26.6603L12.5 9.33975C12.5 8.95485 12.9167 8.71428 13.25 8.90673L28.25 17.567Z" fill="#FF42A5" stroke="white" />
-            </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="36" height="36" viewBox="0 0 36 36" fill="none" className={`${playing ? '' : 'hide'}`} onClick={() => { streamRef.current.pause(); }}>
-              <rect width="36" height="36" rx="8" fill="#FAFAFB" />
-              <g transform='translate(6, 6)'>
-                <path fill="#fe42a4" d="M 2.5,2.5 C 4.83333,2.5 7.16667,2.5 9.5,2.5C 9.5,8.5 9.5,14.5 9.5,20.5C 7.16667,20.5 4.83333,20.5 2.5,20.5C 2.5,14.5 2.5,8.5 2.5,2.5 Z" />
-                <path fill="#fe42a4" d="M 13.5,2.5 C 15.8333,2.5 18.1667,2.5 20.5,2.5C 20.5,8.5 20.5,14.5 20.5,20.5C 18.1667,20.5 15.8333,20.5 13.5,20.5C 13.5,14.5 13.5,8.5 13.5,2.5 Z" />
-              </g>
-            </svg>
+        <div className="flex gap-4 items-center">
+          <button className="h-9 w-9" onClick={handlePLayClick}>
+            {playing ? <IconPause /> : <IconPlay />}
           </button>
+          <Divider />
           <div className="flex gap-3">
               <EditOptionButton onClick={onTrimButtonClick} isActive={isTrimActive}>
                 <IconTrim />
