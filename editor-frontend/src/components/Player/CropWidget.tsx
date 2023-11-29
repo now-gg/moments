@@ -24,7 +24,7 @@ const CropWidget = ({left, top, aspectRatio}: CropWidgetProps) => {
 
 
   return (
-      <div className={`draggable opacity-10 bg-pink-50 absolute h-full box-content border-4 border-accent border-opacity-100 shadow-md`} ref={setNodeRef} style={style} {...listeners} {...attributes}>
+      <div className={`draggable absolute h-full box-content border-4 border-accent border-opacity-30`} ref={setNodeRef} style={style} {...listeners} {...attributes}>
     
        {/* <div className="grid grid-cols-3 grid-rows-3 h-full w-full">
         <div className="col-start-1 row-start-1 border-2 border-gray-200 opacity-10"></div>

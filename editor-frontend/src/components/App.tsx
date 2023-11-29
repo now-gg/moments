@@ -41,14 +41,10 @@ export default function App() {
         rel='stylesheet'
       />
       <Header setOpen={setOpen} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} />
-      <div className="font-poppins p-4 flex justify-between" style={{ gap: '24px' }}>
-        <section style={{ flex: 1 }}>
-            <Player loggedIn={loggedIn} videoInfo={videoInfo}  />
-        </section>
+      <div className="font-poppins p-4 max-w-7xl mx-auto" >
+          <Player loggedIn={loggedIn} videoInfo={videoInfo}  />
       </div>
-      {
-        open && <LoginPopup closePopup={() => setOpen(false)} />
-      }
+      {open && <LoginPopup closePopup={() => setOpen(false)} />}
     </div>
   )
 }

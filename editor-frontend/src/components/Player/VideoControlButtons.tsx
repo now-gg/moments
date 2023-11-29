@@ -273,7 +273,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
   return (
     <>
       <VideoTimeline url={videoUrl} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} palyPointer={palyPointer} thumbnails={thumbnails} />
-      <VideoControlsWrapper className="flex">
+      <VideoControlsWrapper className="flex pt-2 pb-4">
         <div className="flex gap-4 items-center">
           <button className="h-9 w-9" onClick={handlePLayClick}>
             {playing ? <IconPause /> : <IconPlay />}

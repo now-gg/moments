@@ -56,7 +56,7 @@ const VideoTimeline = ({ url, startTime, endTime, setStartTime, setEndTime, dura
   }, [url])
 
   return (
-    <VideoTimelineWrapper className="VideoTimeline relative" data-video={video}>
+    <VideoTimelineWrapper className="VideoTimeline relative mt-2" data-video={video}>
       {thumbnails.length > 0 && (
         <div className='flex w-full frames-container'>
           {thumbnails.map((thumbnail, index) => (
