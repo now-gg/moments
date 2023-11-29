@@ -23,6 +23,8 @@ type ControlProps = {
   aspectRatio: string,
   setAspectRatio: Function,
   thumbnails: string[],
+  isCropActive: boolean,
+  setIsCropActive: Function,
 };
 
 const VideoControlsWrapper = styled.section`
@@ -169,7 +171,7 @@ const VideoControlsWrapper = styled.section`
   }
 `
 
-const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn, playing, streamRef, palyPointer, aspectRatio, setAspectRatio, thumbnails }: ControlProps) => {
+const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn, playing, streamRef, palyPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive }: ControlProps) => {
 
   const [saveBtnActive, setSaveBtnActive] = useState('disabled');
 
@@ -177,7 +179,6 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
   const [trimEndTime, setTrimEndTime] = useState(endTime || 0);
 
   const [isTrimActive, setIsTrimActive] = useState(false);
-  const [isCropActive, setIsCropActive] = useState(false);
 
   useEffect(() => {
     console.log("startTime", startTime);

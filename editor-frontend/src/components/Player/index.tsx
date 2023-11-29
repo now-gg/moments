@@ -54,6 +54,7 @@ const Player = ({ loggedIn, videoInfo }: PlayerProps) => {
   const [top, setTop] = useState(0);
   const [aspectRatio, setAspectRatio] = useState("");
   const [thumbnails, setThumbnails] = useState<string[]>([]);
+  const [isCropActive, setIsCropActive] = useState(false)
 
   const {isOver, setNodeRef} = useDroppable({
     id: 'droppable',
@@ -141,7 +142,7 @@ const Player = ({ loggedIn, videoInfo }: PlayerProps) => {
       <DndContext onDragEnd={handleDragEnd}>
         <div className= "relative droppable" data-id={videoID} ref={setNodeRef} >
           {videoID && <Stream controls src={videoID} height="100%" width="100%" currentTime={startTime} autoplay muted onLoadedData={showThumbnails} streamRef={ref} onPlay={() => { setPlaying(true) }} onPause={() => { setPlaying(false) }} primaryColor={'#FF42A5'} />}
-          {aspectRatio && <CropWidget left={left} top={top} aspectRatio={aspectRatio} />}
+          {aspectRatio && isCropActive && <CropWidget left={left} top={top} aspectRatio={aspectRatio} />}
         </div>
       </DndContext>
       {endTime && (
@@ -161,6 +162,8 @@ const Player = ({ loggedIn, videoInfo }: PlayerProps) => {
         aspectRatio={aspectRatio}
         setAspectRatio={setAspectRatio}
         thumbnails={thumbnails}
+        isCropActive={isCropActive}
+        setIsCropActive={setIsCropActive}
       />)}
       </VideoFrameWrapper >
   );
