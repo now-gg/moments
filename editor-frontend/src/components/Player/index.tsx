@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import VideoControlButtons from "./VideoControlButtons";
-import VideoTimeline from "./VideoTimeline";
 import styled from "styled-components";
 import { Stream, StreamPlayerApi } from "@cloudflare/stream-react";
 import * as React from "react";
 import CropWidget from "./CropWidget";
+import {DndContext, DragEndEvent, useDroppable} from "@dnd-kit/core"
 
 type PlayerProps = {
   loggedIn: boolean
@@ -51,38 +51,13 @@ const Player = ({ loggedIn }: PlayerProps) => {
   const [playing, setPlaying] = useState(false);
   const [palyPointer, setPlayPointer] = useState(0);
   const [cursorTimer, setCursorTimer] = useState<any>();
+  const [left, setLeft] = useState(0);
+  const [top, setTop] = useState(0);
+  const [aspectRatio, setAspectRatio] = useState("16/9");
 
-  const dragElement = (element: any) => {
-    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    const dragMouseDown = (e: any) => {
-      e = e || window.event;
-      e.preventDefault();
-      pos3 = e.clientX;
-      pos4 = e.clientY;
-      document.onmouseup = closeDragElement;
-      document.onmousemove = elementDrag;
-    }
-
-    const elementDrag = (e: any) => {
-      e = e || window.event;
-      e.preventDefault();
-      pos1 = pos3 - e.clientX;
-      pos2 = pos4 - e.clientY;
-      pos3 = e.clientX;
-      pos4 = e.clientY;
-      element.style.top = (element.offsetTop - pos2) + "px";
-      element.style.left = (element.offsetLeft - pos1) + "px";
-    }
-
-    const closeDragElement = () => {
-      /* stop moving when mouse button is released:*/
-      document.onmouseup = null;
-      document.onmousemove = null;
-    }
-    if (element) {
-      element.onmousedown = dragMouseDown;
-    }
-  }
+  const {isOver, setNodeRef} = useDroppable({
+    id: 'droppable',
+  });
 
   const fetchVideo = () => {
     console.log("=====import.meta.env.VITE_SOME_KEY", import.meta.env)
@@ -131,7 +106,6 @@ const Player = ({ loggedIn }: PlayerProps) => {
 
 
   useEffect(() => {
-    dragElement(document.querySelector('.crop-wrapper-video'));
     document.querySelector('iframe')?.addEventListener('onloadeddata', (e) => {
       console.log('e', e);
     })
@@ -167,16 +141,54 @@ const Player = ({ loggedIn }: PlayerProps) => {
     }
   }
 
-  // const videoID = 'b3952a3e477c4165931a8253663edcbc';
+  const handleDragEnd = (event: DragEndEvent) => {
+    const draggedItem = event.activatorEvent.target;
+    const parentDiv = document.querySelector('.droppable');
+    const left = draggedItem?.offsetLeft ?? 0;
+    const top = draggedItem?.offsetTop ?? 0;
+    const maxLeft = parentDiv?.clientWidth - draggedItem.clientWidth;
+    const maxTop = parentDiv?.clientHeight - draggedItem.clientHeight;
+    let x = left + event.delta.x;
+    let y = top + event.delta.y;
+    if(x < 0)
+      x = 0;
+    else if(x > maxLeft)
+      x = maxLeft;
+    if(y < 0)
+      y = 0;
+    else if(y > maxTop)
+      y = maxTop;
+    setLeft(x);
+    setTop(y);
+  }
+
   return (
     // outer most wrapper
-    <VideoFrameWrapper className="relative">
-      <div className="video-wrapper" data-id={videoID}>
-        {videoID && <Stream controls src={videoID} height="100%" width="100%" currentTime={startTime} autoplay muted onLoadedData={showThumbnails} streamRef={ref} onPlay={() => { setPlaying(true) }} onPause={() => { setPlaying(false) }} primaryColor={'#FF42A5'} />}
-        <CropWidget />
-      </div>
-      {endTime && <VideoControlButtons videoUrl={videoURL} setPlaying={setPlaying} playing={playing} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} setVideoID={setVideoID} loggedIn={loggedIn} streamRef={ref} palyPointer={palyPointer} />}
-    </VideoFrameWrapper >
+    <VideoFrameWrapper>
+      <DndContext onDragEnd={handleDragEnd}>
+        <div className="border-4 border-green-500 relative droppable" data-id={videoID} ref={setNodeRef} >
+          {videoID && <Stream controls src={videoID} height="100%" width="100%" currentTime={startTime} autoplay muted onLoadedData={showThumbnails} streamRef={ref} onPlay={() => { setPlaying(true) }} onPause={() => { setPlaying(false) }} primaryColor={'#FF42A5'} />}
+          <CropWidget left={left} top={top} aspectRatio={aspectRatio} />
+        </div>
+      </DndContext>
+      {endTime && (
+      <VideoControlButtons 
+        videoUrl={videoURL} 
+        setPlaying={setPlaying} 
+        playing={playing} 
+        setStartTime={setStartTime} 
+        setEndTime={setEndTime} 
+        startTime={startTime}
+        endTime={endTime} 
+        duration={duration} 
+        setVideoID={setVideoID} 
+        loggedIn={loggedIn} 
+        streamRef={ref}
+        palyPointer={palyPointer} 
+        aspectRatio={aspectRatio}
+        setAspectRatio={setAspectRatio}
+      />)}
+      </VideoFrameWrapper >
   );
 };
 

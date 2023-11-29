@@ -2,6 +2,11 @@ import axios from 'axios';
 import { ReactEventHandler, useEffect, useState } from "react";
 import styled from "styled-components";
 import VideoTimeline from './VideoTimeline';
+import CropOptionButton from './CropOptionButton';
+import { IconCrop, IconTrim } from '../../assets/icons';
+import EditOptionButton from './EditOptionButton';
+import { IconReset } from '../../assets/icons/IConReset';
+import CropOptions from './CropOptions';
 
 type ControlProps = {
   videoUrl: string;
@@ -15,7 +20,9 @@ type ControlProps = {
   setPlaying: Function,
   playing: boolean,
   streamRef: any,
-  palyPointer: number
+  palyPointer: number,
+  aspectRatio: string,
+  setAspectRatio: Function,
 };
 
 const VideoControlsWrapper = styled.section`
@@ -162,9 +169,9 @@ const VideoControlsWrapper = styled.section`
   }
 `
 
-const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn, playing, streamRef, palyPointer }: ControlProps) => {
+const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn, playing, streamRef, palyPointer, aspectRatio, setAspectRatio }: ControlProps) => {
 
-  const [cropSelectedValue, setCropSelectedValue] = useState('');
+  const [cropSelectedValue, setCropSelectedValue] = useState('16/9');
   const [saveBtnActive, setSaveBtnActive] = useState('disabled');
 
   const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
@@ -179,89 +186,20 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
   useEffect(() => {
     console.log("startTime", startTime);
-    document?.getElementById("trim-start-time")?.classList?.remove('error-input');
+
     setTrimStartTime(startTime);
   }, [startTime]);
 
   useEffect(() => {
     console.log("endTime", endTime);
-    document?.getElementById("trim-end-time")?.classList?.remove('error-input');
-    // document?.getElementById("trim-start-time")?.classList?.remove('error-input');
+
+    
     setTrimEndTime(endTime);
     console.log(streamRef)
   }, [endTime]);
 
-  const showAspectWrapper = (e: any) => {
-    const cropOptionElement = e.target;
-    document.querySelector('.input-crop.selected')?.classList.remove('selected');
-    cropOptionElement.classList.add('selected');
-    const cropOption = cropOptionElement.getAttribute('data-option');
-    document.querySelector('.crop-wrapper-video')?.classList.remove('hide');
-    if (cropOption != '') {
-      document.querySelector('.crop-wrapper-video')?.setAttribute('style', `aspect-ratio:${cropOption};background:url(https://cms-cdn.now.gg/cms-media/2023/10/${cropOption.replace('/', '')}-grid-lines.png), rgba(255,255,255,.2) no-repeat center  / cover; background-repeat:no-repeat;background-size:cover;`);
-      setCropSelectedValue(cropOption);
-    } else {
-      document.querySelector('.crop-wrapper-video')?.setAttribute('style', ``);
-      document.querySelector('.crop-wrapper-video')?.classList.add('hide');
-      setCropSelectedValue('');
-    }
-  }
-
-  const trimTimeChange = (e: any) => {
-    let value = parseInt(e.target.value) || 0;
-    if(value < 0){
-      value = 0;
-    }
-    const inputClass = e.target.classList.contains('start-time') ? 'start' : 'end';
-    if (inputClass == 'start') {
-      setTrimStartTime(value.toString());
-    } else {
-      setTrimEndTime(value.toString());
-    }
-
-    if (value < 0 || value > endTime) {
-      e?.target?.classList?.add('error-input');
-    } else {
-      e?.target?.classList?.remove('error-input');
-    }
-  }
-
-
-  const trimTimeChangeOnBlur = (e: any) => {
-    let value = parseInt(e.target.value);
-    const inputClass = e.target.classList.contains('start-time') ? 'start' : 'end';
-    if (inputClass == 'start') {
-      value = value || 0;
-      if(value >= duration){
-        value = duration - 1;
-      }
-      if(endTime <= value){
-        setStartTime(value);
-        setEndTime(value + 1);
-      }else{
-        setStartTime(value);
-      }
-    } else {
-      value = value || duration;
-      if(value >= duration){
-        value = duration;
-      }
-      if(startTime >= value){
-        setStartTime(value - 1);
-        setEndTime(value);
-      }else{
-        setEndTime(value);
-      }
-    }
-  }
-
-  const handleChange = (e: any) => {
-    const inputClass = e.target.classList.contains('start-time') ? 'start' : 'end';
-    if (inputClass == 'start') {
-      setStartTime(e.target.value);
-    } else {
-      setEndTime(e.target.value);
-    }
+  const handleAspectRatioChange = (cropRatio: string) => {
+    setAspectRatio(cropRatio);
   }
 
   const sendAPIRequest = async () => {
@@ -336,6 +274,25 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     if (loggedIn) setSaveBtnActive('');
   }
 
+  const handleTrimInput: ReactEventHandler = (e) => { 
+    let x = parseInt(e.target.value);
+    console.log("x", x, typeof x)
+    if(isNaN(x))
+      x = 0;
+    if(x > duration || x < 0)
+      return;
+    if(e.target.id === "start") {
+      if(x > endTime)
+        return;
+      setStartTime(x);
+    }
+    if(e.target.id === "end") {
+      if(x < startTime)
+        return;
+      setEndTime(x);
+    }
+  }
+
   const onCropButtonClick: ReactEventHandler = () => { 
     setIsTrimActive(false);
     setIsCropActive(!isCropActive);
@@ -344,9 +301,9 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
   return (
     <>
-      {isTrimActive &&  <section className="relative bg-color timeline-wrapper">
+      <section className="relative bg-color timeline-wrapper">
         <VideoTimeline url={videoUrl} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} palyPointer={palyPointer} />
-      </section>}
+      </section>
       <VideoControlsWrapper className="flex">
         <div className="play-trim-crop-options flex">
           <button className="play-btn ">
@@ -362,60 +319,35 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
               </g>
             </svg>
           </button>
-          <div className="trim-action flex action-buttons">
-            <button className="trim-btn flex" onClick={onTrimButtonClick}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-                <path fillRule="evenodd" clipRule="evenodd" d="M14.6219 11.1515C14.4962 11.4617 14.1428 11.6112 13.8326 11.4855L8.09396 9.1483L5.5738 10.17C6.30567 10.6591 6.78767 11.4928 6.78767 12.4391C6.78767 13.9453 5.56659 15.1663 4.06042 15.1663C2.55419 15.1663 1.33317 13.9453 1.33317 12.4391C1.33317 11.4935 1.81438 10.6603 2.54528 10.1711C2.68892 10.075 2.84219 9.99211 3.00334 9.92429L6.50131 8.4997L3.00334 7.07508C2.84219 7.00725 2.68892 6.92438 2.54528 6.82823C1.81438 6.33898 1.33317 5.50581 1.33317 4.56024C1.33317 3.05403 2.55419 1.83301 4.06042 1.83301C5.56659 1.83301 6.78767 3.05403 6.78767 4.56024C6.78767 5.50656 6.30567 6.3403 5.5738 6.82939L8.09396 7.85105L13.8326 5.5139C14.1428 5.38814 14.4962 5.53765 14.6219 5.84785C14.7477 6.15804 14.5982 6.51145 14.288 6.6372L9.69386 8.4997L14.288 10.3622C14.5982 10.4879 14.7477 10.8413 14.6219 11.1515ZM4.06042 3.04511C4.8972 3.04511 5.57556 3.72346 5.57556 4.56024C5.57556 5.39703 4.8972 6.07537 4.06042 6.07537C3.22358 6.07537 2.54528 5.39703 2.54528 4.56024C2.54528 3.72346 3.22358 3.04511 4.06042 3.04511ZM4.06042 13.9542C4.8972 13.9542 5.57556 13.2759 5.57556 12.4391C5.57556 11.6023 4.8972 10.924 4.06042 10.924C3.22358 10.924 2.54528 11.6023 2.54528 12.4391C2.54528 13.2759 3.22358 13.9542 4.06042 13.9542Z" fill="#FF42A5" />
-              </svg>
-              Trim
-            </button>
-            {isTrimActive && <div className="trim-options flex options-wrapper">
-              <div className="padding-wrapper flex">
-                <span className="span-time flex">
-                  Start Time
-                  <input id="trim-start-time" className="start-time input-time" value={trimStartTime} min={0} max={duration} placeholder="0 sec" type="number" onChange={(e) => { trimTimeChange(e) }} onBlur={(e) => { trimTimeChangeOnBlur(e) }} />
-                  <input hidden={true} className="start-time input-time" value={startTime} min={0} max={duration} placeholder="0 sec" type="number" onChange={(e) => { handleChange(e) }} />
-                </span>
-                <span className="span-time flex">
-                  End Time
-                  <input id="trim-end-time" className="end-time input-time" value={trimEndTime} min={0} max={duration} placeholder="0 sec" type="number" onChange={(e) => { trimTimeChange(e) }} onBlur={(e) => { trimTimeChangeOnBlur(e) }} />
-                  <input hidden={true} className="end-time input-time" value={endTime} min={0} max={duration} placeholder={`${duration} sec`} type="number" onChange={(e) => { handleChange(e) }} />
-                </span>
-              </div>
+          <div className="flex gap-3">
+              <EditOptionButton onClick={onTrimButtonClick} isActive={isTrimActive}>
+                <IconTrim />
+                Trim
+              </EditOptionButton>
+            {isTrimActive && <div className="flex justify-center items-center gap-4 pl-2 pr-1 h-10 rounded-lg bg-additional-link">
+                <div className=' flex justify-center items-center gap-1'>
+                  <span className="text-xs text-white">Start Time</span>
+                  <input id="start" className="bg-white py-1.5 px-3 rounded-md text-sm text-black placeholder:text-base-100 max-w-[8ch] outline-none" value={trimStartTime} placeholder="0 sec" onChange={handleTrimInput} />
+                </div>
+                <div className='flex justify-center items-center gap-1'>
+                  <span className="text-xs text-white">End Time</span>
+                  <input id="end" className="bg-white py-1.5 px-3 rounded-md text-sm text-black  placeholder:text-base-100 max-w-[8ch] outline-none" value={trimEndTime} placeholder="0 sec" onChange={handleTrimInput} />
+                </div>
             </div>}
           </div>
-          <div className="crop-action flex action-buttons">
-            <button className="crop-btn flex" onClick={onCropButtonClick}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-                <g clipPath="url(#clip0_176_25447)">
-                  <path d="M3.33333 1.5V13.1667H15M1 3.83333H12.6667V15.5" stroke="#FF42A5" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                </g>
-                <defs>
-                  <clipPath id="clip0_176_25447">
-                    <rect width="16" height="16" fill="white" transform="translate(0 0.5)" />
-                  </clipPath>
-                </defs>
-              </svg>
-              Crop
-            </button>
-            {isCropActive && <div className="crop-options flex options-wrapper">
-              <div className="padding-wrapper flex">
-                <span className="input-crop" data-option="" onClick={(e) => { showAspectWrapper(e) }}>Original</span>
-                <span className="input-crop" data-option="1/1" onClick={(e) => { showAspectWrapper(e) }}>1:1</span>
-                <span className="input-crop" data-option="9/16" onClick={(e) => { showAspectWrapper(e) }}>9:16</span>
-                <span className="input-crop" data-option="3/4" onClick={(e) => { showAspectWrapper(e) }}>3:4</span>
-                <span className="input-crop" data-option="4/3" onClick={(e) => { showAspectWrapper(e) }}>4:3</span>
-              </div>
-            </div>}
+          <div className="flex gap-3">
+              <EditOptionButton onClick={onCropButtonClick} isActive={isCropActive}>
+                <IconCrop />
+                Crop
+              </EditOptionButton>
+            {isCropActive && <CropOptions onOptionClick={handleAspectRatioChange} aspectRatio={aspectRatio}  />}
           </div>
         </div>
         <div className="reset-save-options flex">
-          <button className={`reset-btn flex`}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-              <path fillRule="evenodd" clipRule="evenodd" d="M6.00173 6V2C6.00173 1.72386 5.77788 1.5 5.50173 1.5H1.50173C1.22559 1.5 1.00173 1.72386 1.00173 2C1.00173 2.27614 1.22559 2.5 1.50173 2.5H4.39622C2.89613 3.40123 1.7291 4.86389 1.24026 6.68829C0.239664 10.4226 2.45574 14.2609 6.19 15.2615C9.92427 16.2621 13.7626 14.046 14.7632 10.3118C15.7638 6.5775 13.5477 2.73914 9.81347 1.73855C9.54674 1.66707 9.27257 1.82537 9.2011 2.0921C9.12963 2.35883 9.28792 2.633 9.55465 2.70447C12.7554 3.56212 14.6549 6.85214 13.7973 10.0529C12.9396 13.2537 9.64962 15.1532 6.44882 14.2956C3.24803 13.4379 1.34853 10.1479 2.20618 6.94711C2.62935 5.36782 3.64383 4.10597 4.94884 3.33477C4.96746 3.32377 4.9851 3.31175 5.00173 3.29883V6C5.00173 6.27614 5.22559 6.5 5.50173 6.5C5.77788 6.5 6.00173 6.27614 6.00173 6ZM5.00173 2.5097V2.5H4.98884C4.99318 2.50316 4.99748 2.5064 5.00173 2.5097Z" fill="#FF42A5" />
-            </svg>
+          <EditOptionButton onClick={() => {}}>
+            <IconReset />
             Reset
-          </button>
+          </EditOptionButton>
           <button className={`save-btn flex ${saveBtnActive}`} onClick={sendAPIRequest}>
             Save
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
