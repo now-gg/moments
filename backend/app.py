@@ -43,6 +43,10 @@ def process():
 
         logging.info(f'video edit request for {video_id}')
 
+        video_cache_key = f'moments-editor-video-{video_id}'
+        if redis_client.get(video_cache_key):
+            return jsonify({"status": "error", "message": f'Video with id {video_id} is already being processed'}), 400
+
         try:
             video_info = get_video_info(video_id)
             if not video_info:
@@ -78,6 +82,7 @@ def process():
             "new_video_id": new_video_id
         }
         logging.info(f'message to be published: {message}')
+        redis_client.set(video_cache_key, "processing")
         publish_message(json.dumps(message))
         return jsonify({"status": "success", "message": "Video processing started", "new_video_id": new_video_id}), 200
 
@@ -222,6 +227,9 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
         "message": "Video processed successfully"
     }
 
+    video_cache_key = f'moments-editor-video-{video_id}'
+    redis_client.delete(video_cache_key)
+
     logging.info(f'response to be sent: {res_dict}')
     return jsonify(res_dict), 200
 
@@ -255,11 +263,11 @@ def pull_messages():
             if res.received_messages:
                 for received_message in res.received_messages:
                     message = received_message.message
-                    redis_key = f'moments-editor-{message.message_id}'
-                    if redis_client.get(redis_key):
+                    message_cache_key = f'moments-editor-message-{message.message_id}'
+                    if redis_client.get(message_cache_key):
                         logging.info(f'message {message.data} with id {message.message_id} already processed')
                         break
-                    redis_client.set(redis_key, 1)
+                    redis_client.set(message_cache_key, 1)
                     subscriber.acknowledge(subscription=subscription_path, ack_ids=[received_message.ack_id])
                     pull_message_callback(message.data)
                 time.sleep(1)
