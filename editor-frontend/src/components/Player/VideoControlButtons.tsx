@@ -26,6 +26,9 @@ type ControlProps = {
   thumbnails: string[],
   isCropActive: boolean,
   setIsCropActive: Function,
+  videoInfo: any,
+  left: number,
+  top: number,
 };
 
 const VideoControlsWrapper = styled.section`
@@ -172,7 +175,7 @@ const VideoControlsWrapper = styled.section`
   }
 `
 
-const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn, playing, streamRef, palyPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive }: ControlProps) => {
+const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn, playing, streamRef, palyPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive, videoInfo, left, top }: ControlProps) => {
 
 
   const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
@@ -193,6 +196,50 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
   const sendProcessRequest = async () => {
     console.log("sendAPIRequest")
+
+    const headers = {
+      'Content-Type': 'application/json',
+      token: `${localStorage['ng_token']}`,
+    }
+
+    const payload:any = {
+      "videoId": videoInfo.videoId,
+      "title": videoInfo.title,
+    }
+
+    if (isTrimActive) {
+      payload["trim"] = {
+        start: trimStartTime,
+        end: trimEndTime
+      }
+    }
+
+    if (isCropActive) {
+      const cropper = document.querySelector(".draggable");
+      console.log(cropper)
+      if(!cropper) return;
+      payload["crop"] = {
+        x1: left,
+        y1: top,
+        x2: left + cropper.clientWidth,
+        y2: top + cropper.clientHeight,
+      }
+    }
+
+    if(payload["trim"] || payload["crop"]) {
+      fetch(`${import.meta.env.VITE_VIDEO_PROCESS}/video/process`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(payload)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data)
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+    }
 
     // if (payload && Object.keys(payload).length > 0) {
     //   await axios

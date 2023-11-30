@@ -164,6 +164,9 @@ const Player = ({ loggedIn, videoInfo }: PlayerProps) => {
         thumbnails={thumbnails}
         isCropActive={isCropActive}
         setIsCropActive={setIsCropActive}
+        videoInfo={videoInfo}
+        left={left}
+        top={top}
       />)}
       </VideoFrameWrapper >
   );
