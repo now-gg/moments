@@ -1,9 +1,8 @@
 import { ReactEventHandler, useEffect, useState } from "react";
 import styled from "styled-components";
 import VideoTimeline from './VideoTimeline';
-import { IconCrop, IconPause, IconPlay, IconTrim } from '../../assets/icons';
+import { IconCrop, IconPause, IconPlay, IconTrim, IconReset } from '../../assets/icons';
 import EditOptionButton from './EditOptionButton';
-import { IconReset } from '../../assets/icons/IConReset';
 import CropOptions from './CropOptions';
 import Divider from '../Divider';
 import Save from "./Save";
@@ -175,7 +174,7 @@ const VideoControlsWrapper = styled.section`
   }
 `
 
-const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn, playing, streamRef, palyPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive, videoInfo, left, top }: ControlProps) => {
+const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, playing, streamRef, palyPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive, videoInfo, left, top }: ControlProps) => {
 
 
   const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
@@ -267,7 +266,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     setIsTrimActive(!isTrimActive);
   }
 
-  const handleTrimInput: ReactEventHandler = (e) => { 
+  const handleTrimInput: ReactEventHandler = (e) => {
     let x = parseInt(e.target.value);
     console.log("x", x, typeof x)
     if(isNaN(x))

@@ -8,3 +8,4 @@ export { IconCrop } from "./IconCrop";
 export { IconTrim } from "./IconTrim";
 export { IconPlay } from "./IconPlay";
 export { IconPause } from "./IconPause";
+export { IconReset } from "./IconReset";
