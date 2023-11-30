@@ -218,10 +218,10 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
       console.log(cropper)
       if(!cropper) return;
       payload["crop"] = {
-        x1: left,
-        y1: top,
-        x2: left + cropper.clientWidth,
-        y2: top + cropper.clientHeight,
+        x1: Math.floor(left),
+        y1: Math.floor(top),
+        x2: Math.floor(left + cropper.clientWidth),
+        y2: Math.floor(top + cropper.clientHeight),
       }
     }
 
