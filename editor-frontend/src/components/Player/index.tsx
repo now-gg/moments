@@ -144,7 +144,7 @@ const Player = ({ loggedIn, videoInfo }: PlayerProps) => {
     // outer most wrapper
     <VideoFrameWrapper>
       <DndContext onDragEnd={handleDragEnd}>
-        <div className= "relative droppable" data-id={videoID} ref={setNodeRef} >
+        <div className= "relative droppable brightness-95" data-id={videoID} ref={setNodeRef} >
           {videoID && <Stream controls src={videoID} height="100%" width="100%" currentTime={startTime} autoplay muted onLoadedData={showThumbnails} streamRef={ref} onPlay={() => { setPlaying(true) }} onPause={() => { setPlaying(false) }} primaryColor={'#FF42A5'} />}
           {aspectRatio && isCropActive && <CropWidget left={left} top={top} aspectRatio={aspectRatio} />}
         </div>
