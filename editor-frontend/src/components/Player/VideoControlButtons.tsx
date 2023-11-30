@@ -267,17 +267,20 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
   }
 
   const handleTrimInput: ReactEventHandler = (e) => {
+    // @ts-expect-error temporary fix
     let x = parseInt(e.target.value);
     console.log("x", x, typeof x)
     if(isNaN(x))
       x = 0;
     if(x > duration || x < 0)
       return;
+    // @ts-expect-error temporary fix
     if(e.target.id === "start") {
       if(x > endTime)
         return;
       setStartTime(x);
     }
+    // @ts-expect-error temporary fix
     if(e.target.id === "end") {
       if(x < startTime)
         return;

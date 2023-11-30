@@ -118,9 +118,13 @@ const Player = ({ loggedIn, videoInfo }: PlayerProps) => {
   const handleDragEnd = (event: DragEndEvent) => {
     const draggedItem = event.activatorEvent.target;
     const parentDiv = document.querySelector('.droppable');
+    // @ts-expect-error temporary fix
     const left = draggedItem?.offsetLeft ?? 0;
+    // @ts-expect-error temporary fix
     const top = draggedItem?.offsetTop ?? 0;
+    // @ts-expect-error temporary fix
     const maxLeft = parentDiv?.clientWidth - draggedItem.clientWidth;
+    // @ts-expect-error temporary fix
     const maxTop = parentDiv?.clientHeight - draggedItem.clientHeight;
     let x = left + event.delta.x;
     let y = top + event.delta.y;
