@@ -56,7 +56,7 @@ const Player = ({ loggedIn, videoInfo }: PlayerProps) => {
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [isCropActive, setIsCropActive] = useState(false)
 
-  const {isOver, setNodeRef} = useDroppable({
+  const {setNodeRef} = useDroppable({
     id: 'droppable',
   });
 
