@@ -11,7 +11,7 @@ import Button from "../Button";
 import IconButton from "../IconButton";
 import Divider from "../Divider";
 import "./header.css";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useState } from 'react';
 
 type HeaderProps = {
@@ -27,7 +27,6 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
   const [profileIcon, setProfileIcon] = useState('');
   const [userName, setUserName] = useState('');
   const [allowTitleEdit, setAllowTitleEdit] = useState(false);
-  const inputRef = useRef(null);
 
   const fetchUserDetails = async () => {
     await axios
@@ -89,7 +88,6 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
   const editTitle = () => {
     if(!allowTitleEdit) {
       setAllowTitleEdit(true);
-      inputRef?.current?.focus();
       return;
     }
     setAllowTitleEdit(false);
@@ -128,7 +126,6 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
           <input 
             disabled={!allowTitleEdit} 
             className='text-xl font-semibold text-base-900 border border-accent px-1 rounded-md disabled:border-transparent outline-none' 
-            ref={inputRef} 
             value={title} 
             onChange={(e) => {setTitle(e.target.value)}} 
             onBlur={() => setAllowTitleEdit(false)}
