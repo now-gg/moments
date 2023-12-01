@@ -169,7 +169,7 @@ def info():
 
 def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_url, new_video_id):
     request_init_time = time.time()
-
+    video_cache_key = f'moments-editor-video-{video_id}'
     stream = ffmpeg.input(input_video_url)
 
     if trim:
@@ -196,9 +196,11 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
             stream = ffmpeg.overwrite_output(stream)
             ffmpeg.run(stream)
         except ffmpeg.Error as e:
-            logging.debug(e.stderr.decode())
+            redis_client.delete(video_cache_key)
+            logging.debug(e.stderr)
             return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
         except Exception as e:
+            redis_client.delete(video_cache_key)
             logging.error(e)
             return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
         logging.info("clip written to temp file")
@@ -209,10 +211,12 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
     
 
     if upload_res.status_code != 200:
+        redis_client.delete(video_cache_key)
         return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
 
     delete_res = delete_video(video_id, auth_token)
     if delete_res.status_code != 200:
+        redis_client.delete(video_cache_key)
         return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
 
     data_for_bq = {
@@ -227,7 +231,6 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
         "message": "Video processed successfully"
     }
 
-    video_cache_key = f'moments-editor-video-{video_id}'
     redis_client.delete(video_cache_key)
 
     logging.info(f'response to be sent: {res_dict}')
@@ -248,7 +251,7 @@ def pull_message_callback(message):
         new_video_id = message["new_video_id"]
         with app.app_context():
             res = edit_video(video_id, title, trim, crop, auth_token, video_url, upload_url, new_video_id)
-        logging.info(f'response from edit_video async: {res}')
+            logging.info(f'response from edit_video async: {res}')
     except Exception as e:
         logging.error(e)
     logging.info('Message processed: {}'.format(message))
