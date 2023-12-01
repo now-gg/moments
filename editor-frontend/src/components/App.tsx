@@ -43,7 +43,7 @@ export default function App() {
         rel='stylesheet'
       />
       <Header setOpen={setOpen} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} title={title} setTitle={setTitle} />
-      <div className="font-poppins p-4 max-w-7xl mx-auto" >
+      <div className="font-poppins p-4 max-w-7xl mx-auto" style={{height: 'calc(100vh - 72px)'}} >
           <Player loggedIn={loggedIn} videoInfo={videoInfo} title={title}  />
       </div>
       {open && <LoginPopup closePopup={() => setOpen(false)} />}

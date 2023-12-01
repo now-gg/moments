@@ -6,7 +6,6 @@ type CropOptionButtonProps = {
 }
 
 const CropOptionButton = ({text, value, isActive, onClick}: CropOptionButtonProps) => {
-  console.log(value, isActive);
   const valueText = value.replace("/", ":")
   return (
     <button className={`flex py-2 px-3 text-xs ${isActive ? "text-black" : "text-base-100"} border-none rounded-md bg-white shadow-sm`} onClick={() => { onClick(value) }}>{text ?? valueText}</button>

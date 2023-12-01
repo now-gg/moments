@@ -11,35 +11,6 @@ type PlayerProps = {
   videoInfo: any;
   title: string;
 }
-const VideoFrameWrapper = styled.div`
-  .video-wrapper{
-    border-radius: 8px;
-    overflow: hidden;
-    position: relative;
-    display: block;
-    margin: 0 auto;
-    max-width: calc((100vh * 1.7) - 332px);
-  }
-  .canvas-wrapper{
-    position: absolute;
-    bottom: 0;
-    z-index: 9;
-    canvas{
-      height: 20px;
-      color: #fff;
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0.00) 33.52%, rgba(0, 0, 0, 0.80) 81.29%), lightgray -223.782px -1.135px / 145.81% 102.381% no-repeat;
-    }
-  }
-  section.relative{
-    border-radius: 8px;
-    overflow: hidden;
-    margin-top: 8px;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.00) 33.52%, rgba(0, 0, 0, 0.80) 81.29%), lightgray -223.782px -1.135px / 145.81% 102.381% no-repeat;
-    &.bg-color{
-      background: rgba(0,0,0, .7);
-    }
-  }
-`
 
 const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
   const [endTime, setEndTime] = useState(document.querySelector('video')?.duration || 0);
@@ -56,6 +27,7 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
   const [aspectRatio, setAspectRatio] = useState("");
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [isCropActive, setIsCropActive] = useState(false)
+  const [videoAspectRatio, setVideoAspectRatio] = useState(16/9);
 
   const {setNodeRef} = useDroppable({
     id: 'droppable',
@@ -141,12 +113,25 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
     setTop(y);
   }
 
+  const getAspectRatioFromImageUrl = (url: string) => {
+    const img = new Image();
+    img.src = url;
+    img.onload = () => {
+      const aspectRatioValue = img.width / img.height;
+      setVideoAspectRatio(aspectRatioValue);
+    }
+  }
+
+  useEffect(() => {
+    getAspectRatioFromImageUrl(videoInfo?.thumbnailUrl || '');
+  }, [videoInfo])
+
   return (
     // outer most wrapper
-    <VideoFrameWrapper>
+    <div className="h-full">
       <DndContext onDragEnd={handleDragEnd}>
-        <div className= "relative droppable brightness-95" data-id={videoID} ref={setNodeRef} >
-          {videoID && <Stream controls src={videoID} height="100%" width="100%" currentTime={startTime} autoplay muted onLoadedData={showThumbnails} streamRef={ref} onPlay={() => { setPlaying(true) }} onPause={() => { setPlaying(false) }} primaryColor={'#FF42A5'} />}
+        <div className= "relative droppable brightness-95 mx-auto" data-id={videoID} ref={setNodeRef} style={{height: 'calc(100% - 100px)', aspectRatio: `${videoAspectRatio}`, maxWidth: "100%"}} >
+          {videoID && <Stream className="h-full w-full"  controls responsive={false} src={videoID} height="100%" width="100%" currentTime={startTime} autoplay muted onLoadedData={showThumbnails} streamRef={ref} onPlay={() => { setPlaying(true) }} onPause={() => { setPlaying(false) }} primaryColor={'#FF42A5'} />}
           {aspectRatio && isCropActive && <CropWidget left={left} top={top} aspectRatio={aspectRatio} />}
         </div>
       </DndContext>
@@ -174,7 +159,7 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
         top={top}
         title={title}
       />)}
-      </VideoFrameWrapper >
+      </div >
   );
 };
 
