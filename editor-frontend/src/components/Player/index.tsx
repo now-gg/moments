@@ -73,9 +73,24 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
     const h = parentDiv?.clientHeight || 0;
     const [x, y] = aspectRatio.split('/');
     const aspectRatioValue = parseInt(x) / parseInt(y);
-    const cropperW = aspectRatioValue * h;
-    setLeft((w - cropperW) / 2);
-  }, [aspectRatio]);
+    console.log(aspectRatioValue, videoAspectRatio)
+    if(aspectRatioValue === videoAspectRatio){
+      setLeft(0);
+      setTop(0);
+    }
+    if(aspectRatioValue > videoAspectRatio){
+      const cropperH = w / aspectRatioValue;
+      const t = (h - cropperH) / 2;
+      setTop(t);
+      setLeft(0);
+    }
+    else{
+      const cropperW = aspectRatioValue * h;
+      const l = (w - cropperW) / 2;
+      setLeft(l);
+      setTop(0);
+    }
+  }, [aspectRatio, videoAspectRatio]);
 
 
 
@@ -126,13 +141,20 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
     getAspectRatioFromImageUrl(videoInfo?.thumbnailUrl || '');
   }, [videoInfo])
 
+  const [x, y] = aspectRatio.split('/');
+  const aspectRatioValue = parseInt(x) / parseInt(y);
+
+  const hFull = aspectRatioValue <= videoAspectRatio;
+  const wFull = aspectRatioValue >= videoAspectRatio;
+
+
   return (
     // outer most wrapper
     <div className="h-full">
       <DndContext onDragEnd={handleDragEnd}>
-        <div className= "relative droppable brightness-95 mx-auto" data-id={videoID} ref={setNodeRef} style={{height: 'calc(100% - 100px)', aspectRatio: `${videoAspectRatio}`, maxWidth: "100%"}} >
+        <div className= "relative droppable brightness-95 mx-auto" data-id={videoID} ref={setNodeRef} style={{height: 'calc(100% - 120px)', aspectRatio: `${videoAspectRatio}`}} >
           {videoID && <Stream className="h-full w-full" poster={videoInfo?.thumbnailUrl} controls responsive={false} src={videoID} height="100%" width="100%" currentTime={startTime} autoplay muted onLoadedData={showThumbnails} streamRef={ref} onPlay={() => { setPlaying(true) }} onPause={() => { setPlaying(false) }} primaryColor={'#FF42A5'} />}
-          {aspectRatio && isCropActive && <CropWidget left={left} top={top} aspectRatio={aspectRatio} />}
+          {aspectRatio && isCropActive && <CropWidget left={left} top={top} aspectRatio={aspectRatio} hFull={hFull} wFull={wFull} />}
         </div>
       </DndContext>
       {endTime && (
