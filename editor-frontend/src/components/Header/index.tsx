@@ -44,7 +44,7 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
           // localStorage.setItem('ng_token', res.token);
           console.log('res', res);
           setUserName(res?.data?.userData?.name);
-          setProfileIcon(res?.data?.userData?.profilePicture ?? res?.data?.userData?.avatar);
+          setProfileIcon(res?.data?.userData?.profilePicture || res?.data?.userData?.avatar);
           setLoggedIn(true);
           sessionStorage.setItem('userType', 'Authorised');
         }
