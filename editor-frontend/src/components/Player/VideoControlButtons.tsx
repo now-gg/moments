@@ -211,8 +211,8 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
     if (isTrimActive) {
       payload["trim"] = {
-        start: trimStartTime,
-        end: trimEndTime
+        start: Math.floor(trimStartTime),
+        end: Math.floor(trimEndTime)
       }
     }
 
