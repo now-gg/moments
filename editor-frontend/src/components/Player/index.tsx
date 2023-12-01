@@ -73,7 +73,6 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
     const h = parentDiv?.clientHeight || 0;
     const [x, y] = aspectRatio.split('/');
     const aspectRatioValue = parseInt(x) / parseInt(y);
-    console.log(aspectRatioValue, videoAspectRatio)
     if(aspectRatioValue === videoAspectRatio){
       setLeft(0);
       setTop(0);
@@ -146,7 +145,6 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
 
   const hFull = aspectRatioValue <= videoAspectRatio;
   const wFull = aspectRatioValue >= videoAspectRatio;
-
 
   return (
     // outer most wrapper
