@@ -13,6 +13,7 @@ import Divider from "../Divider";
 import "./header.css";
 import { useEffect } from "react";
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 
 type HeaderProps = {
   setOpen: Function,
@@ -95,6 +96,7 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
   }
 
   const copyLink = () => {
+    toast.success('Video link copied to clipboard');
     navigator.clipboard.writeText(`https://stagingngg.net/videos/watch/${videoInfo?.videoId}`);
   }
 
