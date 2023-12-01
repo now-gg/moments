@@ -11,7 +11,7 @@ import Button from "../Button";
 import IconButton from "../IconButton";
 import Divider from "../Divider";
 import "./header.css";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useState } from 'react';
 
 type HeaderProps = {
@@ -19,12 +19,16 @@ type HeaderProps = {
   loggedIn: boolean,
   setLoggedIn: Function,
   videoInfo: any,
+  title: string,
+  setTitle: Function,
 };
 
-const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo }: HeaderProps) => {
+const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: HeaderProps) => {
   const [profileIcon, setProfileIcon] = useState('');
   const [userName, setUserName] = useState('');
-  // const [loggedIn, setLoggedIn] = useState(false);
+  const [allowTitleEdit, setAllowTitleEdit] = useState(false);
+  const inputRef = useRef(null);
+
   const fetchUserDetails = async () => {
     await axios
       .get(`${import.meta.env.VITE_ACCOUNTS_BASE}/accounts/users/v1/userinfo`, {
@@ -83,11 +87,13 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo }: HeaderProps) => {
   }, [])
 
   const editTitle = () => {
-    if (document.querySelector('.video-title')?.getAttribute('contenteditable')) {
-      document.querySelector('.video-title')?.setAttribute('contenteditable', 'true');
-    } else {
-      document.querySelector('.video-title')?.setAttribute('contenteditable', 'false');
+    if(!allowTitleEdit) {
+      setAllowTitleEdit(true);
+      inputRef?.current?.focus();
+      return;
     }
+    setAllowTitleEdit(false);
+
   }
 
   const copyLink = () => {
@@ -119,7 +125,14 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo }: HeaderProps) => {
 
           <Divider />
 
-          <p className="text-base-900 text-xl font-semibold video-title" contentEditable="false">{videoInfo?.title ?? "Edit Video"}</p>
+          <input 
+            disabled={!allowTitleEdit} 
+            className='text-xl font-semibold text-base-900 border border-accent px-1 rounded-md disabled:border-transparent outline-none' 
+            ref={inputRef} 
+            value={title} 
+            onChange={(e) => {setTitle(e.target.value)}} 
+            onBlur={() => setAllowTitleEdit(false)}
+          />
           <div>
             <IconButton type="primary" onClick={() => { editTitle() }}>
               <IconEdit className="group-hover:fill-white" />

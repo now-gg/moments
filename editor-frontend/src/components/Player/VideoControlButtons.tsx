@@ -28,6 +28,7 @@ type ControlProps = {
   videoInfo: any,
   left: number,
   top: number,
+  title: string,
 };
 
 const VideoControlsWrapper = styled.section`
@@ -174,7 +175,7 @@ const VideoControlsWrapper = styled.section`
   }
 `
 
-const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, playing, streamRef, palyPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive, videoInfo, left, top }: ControlProps) => {
+const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, playing, streamRef, palyPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive, videoInfo, left, top, title }: ControlProps) => {
 
 
   const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
@@ -203,7 +204,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
     const payload:any = {
       "videoId": videoInfo.videoId,
-      "title": videoInfo.title,
+      "title": title,
     }
 
     if (isTrimActive) {
@@ -225,7 +226,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
       }
     }
 
-    if(payload["trim"] || payload["crop"]) {
+    if(payload["trim"] || payload["crop"] || payload["title"]) {
       fetch(`${import.meta.env.VITE_VIDEO_PROCESS}/video/process`, {
         method: 'POST',
         headers: headers,
@@ -240,26 +241,6 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
       });
     }
 
-    // if (payload && Object.keys(payload).length > 0) {
-    //   await axios
-    //     .post(`${import.meta.env.VITE_VIDEO_PROCESS}/video/process`, payload, {
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         token: `${localStorage['ng_token']}`,
-    //       },
-    //     })
-    //     .then(function (res: any) {
-    //       if (res && res.status === 200) {
-    //         // localStorage.setItem('ng_token', res.token);
-    //         console.log('res', res);
-    //         setVideoID('');
-    //       }
-    //     })
-    //     .catch((err: any) => {
-    //       console.log('err', err);
-    //       // console.log('signup not possible -- error 401');
-    //     });
-    // }
   }
 
   const onTrimButtonClick: ReactEventHandler = () => { 
@@ -317,7 +298,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     streamRef.current?.play();
   }
 
-  const isSaveAllowed = isCropActive || isTrimActive;
+  const isSaveAllowed = isCropActive || isTrimActive || title !== videoInfo.title;
 
   return (
     <>

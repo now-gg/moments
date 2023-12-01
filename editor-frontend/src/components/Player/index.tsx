@@ -9,6 +9,7 @@ import {DndContext, DragEndEvent, useDroppable} from "@dnd-kit/core"
 type PlayerProps = {
   loggedIn: boolean;
   videoInfo: any;
+  title: string;
 }
 const VideoFrameWrapper = styled.div`
   .video-wrapper{
@@ -40,7 +41,7 @@ const VideoFrameWrapper = styled.div`
   }
 `
 
-const Player = ({ loggedIn, videoInfo }: PlayerProps) => {
+const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
   const [endTime, setEndTime] = useState(document.querySelector('video')?.duration || 0);
   const [startTime, setStartTime] = useState(0);
   const ref = React.useRef() as React.MutableRefObject<StreamPlayerApi | undefined>;
@@ -171,6 +172,7 @@ const Player = ({ loggedIn, videoInfo }: PlayerProps) => {
         videoInfo={videoInfo}
         left={left}
         top={top}
+        title={title}
       />)}
       </VideoFrameWrapper >
   );

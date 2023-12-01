@@ -7,6 +7,7 @@ export default function App() {
   const [open, setOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [videoInfo, setVideoInfo] = useState({});
+  const [title, setTitle] = useState('');
 
   const fetchVideo = () => {
     const headers = new Headers();
@@ -20,6 +21,7 @@ export default function App() {
       .then((res) => res.json())
       .then((data) => {
         setVideoInfo(data?.video);
+        setTitle(data?.video?.title);
       });
   }
 
@@ -40,9 +42,9 @@ export default function App() {
         href='https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap'
         rel='stylesheet'
       />
-      <Header setOpen={setOpen} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} />
+      <Header setOpen={setOpen} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} title={title} setTitle={setTitle} />
       <div className="font-poppins p-4 max-w-7xl mx-auto" >
-          <Player loggedIn={loggedIn} videoInfo={videoInfo}  />
+          <Player loggedIn={loggedIn} videoInfo={videoInfo} title={title}  />
       </div>
       {open && <LoginPopup closePopup={() => setOpen(false)} />}
     </div>
