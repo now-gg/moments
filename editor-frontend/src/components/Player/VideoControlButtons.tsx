@@ -6,6 +6,7 @@ import EditOptionButton from './EditOptionButton';
 import CropOptions from './CropOptions';
 import Divider from '../Divider';
 import Save from "./Save";
+import { toast } from "react-hot-toast";
 
 type ControlProps = {
   videoUrl: string;
@@ -196,6 +197,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
   const sendProcessRequest = async () => {
     console.log("sendAPIRequest")
+    const loadingToast = toast.loading("adding video to queue");
 
     const headers = {
       'Content-Type': 'application/json',
@@ -232,11 +234,28 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
         headers: headers,
         body: JSON.stringify(payload)
       })
-      .then(response => response.json())
+      .then(response => { 
+        toast.remove(loadingToast);
+        if(response.status === 200) {
+          toast.success("Video added to queue");
+        }
+        if(response.status === 401) {
+          localStorage.removeItem('ng_token');
+          toast.error("Unauthorized. Please login again.");
+        }
+        else {
+          toast.error("Error adding video to queue");
+        }
+        return response.json()
+      })
       .then(data => {
         console.log(data)
+        const newVideoId = data.new_video_id;
+        // copy to clipboard
+        navigator.clipboard.writeText(`${import.meta.env.VITE_VIDEO_PROCESS}/video/${newVideoId}`)
       })
       .catch((error) => {
+        toast.error("Error adding video to queue");
         console.error('Error:', error);
       });
     }

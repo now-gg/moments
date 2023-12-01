@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Header from "./Header"
 import LoginPopup from "./LoginPopup/index";
 import Player from "./Player";
+import {Toaster} from "react-hot-toast"
 
 export default function App() {
   const [open, setOpen] = useState(false);
@@ -42,6 +43,7 @@ export default function App() {
         href='https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap'
         rel='stylesheet'
       />
+      <Toaster position="top-right" />
       <Header setOpen={setOpen} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} title={title} setTitle={setTitle} />
       <div className="font-poppins p-4 max-w-7xl mx-auto" style={{height: 'calc(100vh - 72px)'}} >
           <Player loggedIn={loggedIn} videoInfo={videoInfo} title={title}  />
