@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import VideoControlButtons from "./VideoControlButtons";
-import styled from "styled-components";
 import { Stream, StreamPlayerApi } from "@cloudflare/stream-react";
 import * as React from "react";
 import CropWidget from "./CropWidget";
@@ -20,7 +19,7 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
   const [videoURL, setVideoURL] = useState('');
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [palyPointer, setPlayPointer] = useState(0);
+  const [playPointer, setPlayPointer] = useState(0);
   const [cursorTimer, setCursorTimer] = useState<any>();
   const [left, setLeft] = useState(0);
   const [top, setTop] = useState(0);
@@ -36,6 +35,7 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
   function cursorSynch() {
     if (cursorTimer) {
       clearInterval(cursorTimer);
+      setPlayPointer(0);
     }
     let timer = setInterval(() => {
       let currentPlayTime = ref?.current?.currentTime || 0
@@ -131,7 +131,7 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
     <div className="h-full">
       <DndContext onDragEnd={handleDragEnd}>
         <div className= "relative droppable brightness-95 mx-auto" data-id={videoID} ref={setNodeRef} style={{height: 'calc(100% - 100px)', aspectRatio: `${videoAspectRatio}`, maxWidth: "100%"}} >
-          {videoID && <Stream className="h-full w-full"  controls responsive={false} src={videoID} height="100%" width="100%" currentTime={startTime} autoplay muted onLoadedData={showThumbnails} streamRef={ref} onPlay={() => { setPlaying(true) }} onPause={() => { setPlaying(false) }} primaryColor={'#FF42A5'} />}
+          {videoID && <Stream className="h-full w-full" poster={videoInfo?.thumbnailUrl} controls responsive={false} src={videoID} height="100%" width="100%" currentTime={startTime} autoplay muted onLoadedData={showThumbnails} streamRef={ref} onPlay={() => { setPlaying(true) }} onPause={() => { setPlaying(false) }} primaryColor={'#FF42A5'} />}
           {aspectRatio && isCropActive && <CropWidget left={left} top={top} aspectRatio={aspectRatio} />}
         </div>
       </DndContext>
@@ -148,7 +148,7 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
         setVideoID={setVideoID} 
         loggedIn={loggedIn} 
         streamRef={ref}
-        palyPointer={palyPointer} 
+        playPointer={playPointer} 
         aspectRatio={aspectRatio}
         setAspectRatio={setAspectRatio}
         thumbnails={thumbnails}

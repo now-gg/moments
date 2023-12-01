@@ -19,7 +19,7 @@ type ControlProps = {
   setPlaying: Function,
   playing: boolean,
   streamRef: any,
-  palyPointer: number,
+  playPointer: number,
   aspectRatio: string,
   setAspectRatio: Function,
   thumbnails: string[],
@@ -175,7 +175,7 @@ const VideoControlsWrapper = styled.section`
   }
 `
 
-const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, playing, streamRef, palyPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive, videoInfo, left, top, title }: ControlProps) => {
+const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, playing, streamRef, playPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive, videoInfo, left, top, title }: ControlProps) => {
 
 
   const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
@@ -302,7 +302,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
   return (
     <>
-      <VideoTimeline url={videoUrl} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} palyPointer={palyPointer} thumbnails={thumbnails} />
+      <VideoTimeline url={videoUrl} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} playPointer={playPointer} thumbnails={thumbnails} />
       <VideoControlsWrapper className="flex pt-2 pb-4">
         <div className="flex gap-4 items-center">
           <button className="h-9 w-9" onClick={handlePLayClick}>

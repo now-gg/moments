@@ -41,7 +41,7 @@ const InputSliderWrapper = styled.div`
       display:none;
     }
     .bar-inner{
-      background: #FF42A5;
+      background: transparent;
       border: none;
       box-shadow: none;
     }

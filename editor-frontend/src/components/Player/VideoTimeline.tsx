@@ -9,7 +9,7 @@ type VideoProps = {
   duration: number | undefined,
   setStartTime: any,
   setEndTime: any,
-  palyPointer: number,
+  playPointer: number,
   thumbnails: string[]
 };
 
@@ -47,7 +47,7 @@ const VideoTimelineWrapper = styled.div`
     border-left: 4px solid #ff0381b5;
   }
 `
-const VideoTimeline = ({ url, startTime, endTime, setStartTime, setEndTime, duration = 1, palyPointer, thumbnails}: VideoProps) => {
+const VideoTimeline = ({ url, startTime, endTime, setStartTime, setEndTime, duration = 1, playPointer, thumbnails}: VideoProps) => {
   const [video, setVideo] = useState('');
 
   useEffect(() => {
@@ -62,11 +62,14 @@ const VideoTimeline = ({ url, startTime, endTime, setStartTime, setEndTime, dura
           {thumbnails.map((thumbnail, index) => (
             <img style={{width: `${100 / thumbnails.length}%`}} key={index} src={thumbnail} alt="" />
           ))}
-        <span className='play-pointer' style={{left: `${(100 * palyPointer) /duration}%`}}></span>
         </div>
       )}
       <div className="slider-container">
         <InputSlider setStartTime={setStartTime} setEndTime={setEndTime} minVal={startTime} maxVal={endTime} duration={duration} />
+      </div>
+      <div className='progress-div absolute bottom-0 h-1 w-full z-50'>
+          <div className='progress-done bg-accent h-full' style={{width: `${(playPointer / duration) * 100}%`}}></div>
+          <div className='progress-left bg-gray-500 h-full' style={{width: `${((duration - playPointer) / duration) * 100}%`}}></div>
       </div>
     </VideoTimelineWrapper>
   );
