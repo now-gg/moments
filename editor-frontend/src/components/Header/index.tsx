@@ -14,6 +14,7 @@ import "./header.css";
 import { useEffect } from "react";
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
+import DeletePopup from './DeletePopup';
 
 type HeaderProps = {
   setShowLoginPopup: Function,
@@ -111,6 +112,10 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
     window.open(videoInfo?.downloadUrl, '_blank');
   }
 
+  const closeDeletePopup = () => {
+    setShowDeletePopup(false);
+  }
+
   const deleteVideo = () => {
     fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/delete`, {
       method: 'POST',
@@ -204,18 +209,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
           </IconButton>
         </div>
       </div>
-      {showDeletePopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={() => setShowDeletePopup(false)}>
-          <div className="bg-white rounded-md p-4 flex flex-col justify-center gap-4 max-w-md" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-base-500 text-md font-bold">Delete your Moment?</h2>
-            <p className="text-base-500 text-sm font-normal">Are you sure you want to delete your moment. Once deleted you wont be able to access it again.</p>
-            <div className="flex justify-end gap-x-2.5 mt-4 w-full">
-              <button className="w-1/2 bg-white text-accent border border-accent flex justify-center items-center h-10 px-3 gap-3 rounded-md text-sm font-semibold" onClick={() => setShowDeletePopup(false)}>Cancel</button>
-              <button className='w-1/2 bg-accent text-white border border-accent flex justify-center items-center h-10 px-3 gap-3 rounded-md shadow-md text-sm font-semibold' onClick={() => deleteVideo()}>Delete</button>
-            </div> 
-          </div>
-        </div>
-      )}
+      {showDeletePopup && <DeletePopup closePopup={closeDeletePopup} deleteVideo={deleteVideo} />}
     </header>
   );
 };
