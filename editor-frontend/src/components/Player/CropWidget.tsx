@@ -3,12 +3,12 @@ import { useDraggable } from '@dnd-kit/core'
 type CropWidgetProps = {
   left: number;
   top: number;
+  width: number;
+  height: number;
   aspectRatio: string;
-  hFull: boolean;
-  wFull: boolean;
 }
 
-const CropWidget = ({left, top, aspectRatio, hFull, wFull}: CropWidgetProps) => {
+const CropWidget = ({left, top, width, height, aspectRatio}: CropWidgetProps) => {
 
   const {attributes, listeners, setNodeRef, transform} = useDraggable({
     id: 'draggable',
@@ -16,8 +16,9 @@ const CropWidget = ({left, top, aspectRatio, hFull, wFull}: CropWidgetProps) => 
   const baseStyles = {
     top: `${top}px`,
     left: `${left}px`,
-    aspectRatio: aspectRatio,
-    background: `url("https://cms-cdn.now.gg/cms-media/2023/10/${aspectRatio.replace('/', '')}-grid-lines.png") 0% 0% / cover no-repeat, center center rgba(255, 255, 255, 0.05)`
+    width: `${width}px`,
+    height: `${height}px`,
+    background: `url("https://cms-cdn.now.gg/cms-media/2023/10/${aspectRatio.replace('/', '')}-grid-lines.png") 0% 0% / cover no-repeat, center center rgba(255, 255, 255, 0)`
   }
 
   const style = transform ? {
@@ -27,7 +28,7 @@ const CropWidget = ({left, top, aspectRatio, hFull, wFull}: CropWidgetProps) => 
 
 
   return (
-      <div className={`draggable absolute box-content ${hFull && "h-full"} ${wFull && "w-full"}`} ref={setNodeRef} style={style} {...listeners} {...attributes}>
+      <div className="draggable absolute box-content" ref={setNodeRef} style={style} {...listeners} {...attributes}>
           <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42" fill="none" className="svg-1 absolute top-0 left-0">
             <path d="M40 2H4C2.89543 2 2 2.90281 2 4.00738C2 19.497 2 23.5073 2 40" stroke="#FF42A5" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

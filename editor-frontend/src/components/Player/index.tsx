@@ -27,6 +27,8 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [isCropActive, setIsCropActive] = useState(false)
   const [videoAspectRatio, setVideoAspectRatio] = useState(16/9);
+  const [cropperWidth, setCropperWidth] = useState(0);
+  const [cropperHeight, setCropperHeight] = useState(0);
 
   const {setNodeRef} = useDroppable({
     id: 'droppable',
@@ -82,12 +84,16 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
       const t = (h - cropperH) / 2;
       setTop(t);
       setLeft(0);
+      setCropperHeight(cropperH);
+      setCropperWidth(w);
     }
     else{
       const cropperW = aspectRatioValue * h;
       const l = (w - cropperW) / 2;
       setLeft(l);
       setTop(0);
+      setCropperHeight(h);
+      setCropperWidth(cropperW);
     }
   }, [aspectRatio, videoAspectRatio]);
 
@@ -152,7 +158,15 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
       <DndContext onDragEnd={handleDragEnd}>
         <div className= "relative droppable brightness-95 mx-auto" data-id={videoID} ref={setNodeRef} style={{height: 'calc(100% - 120px)', aspectRatio: `${videoAspectRatio}`}} >
           {videoID && <Stream className="h-full w-full" poster={videoInfo?.thumbnailUrl} controls responsive={false} src={videoID} height="100%" width="100%" currentTime={startTime} autoplay muted onLoadedData={showThumbnails} streamRef={ref} onPlay={() => { setPlaying(true) }} onPause={() => { setPlaying(false) }} primaryColor={'#FF42A5'} />}
-          {aspectRatio && isCropActive && <CropWidget left={left} top={top} aspectRatio={aspectRatio} hFull={hFull} wFull={wFull} />}
+          {aspectRatio && isCropActive && (
+            <div className="absolute top-0 left-0 w-full h-full bg-red flex">
+              <CropWidget left={left} top={top} width={cropperWidth} height={cropperHeight} aspectRatio={aspectRatio} />
+              <div className="h-full bg-black opacity-50 absolute top-0 left-0" style={{width: `${left}px`}}></div>
+              <div className="h-full bg-black opacity-50 absolute top-0 right-0" style={{width: `calc(100% - ${cropperWidth}px - ${left}px)`}}></div>
+              <div className="w-full bg-black opacity-50 absolute left-0 top-0" style={{height: `${top}px`}}></div>
+              <div className="w-full bg-black opacity-50 absolute left-0 bottom-0" style={{height: `calc(100% - ${cropperHeight}px - ${top}px)`}}></div>
+            </div>
+          )}
         </div>
       </DndContext>
       {endTime && (
