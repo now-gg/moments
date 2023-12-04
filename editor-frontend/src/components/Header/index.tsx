@@ -124,11 +124,14 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
     })
     .then(res => res.json())
     .then(res => {
-      if(res?.success) {
-        toast.success('Video deleted successfully');
+      if(res?.status === "success") {
+        toast.success(res?.message);
         setTimeout(() => {
           window.location.href = `${import.meta.env.VITE_VIDEO_BASE}/videos/${videoInfo?.channelHandle}`;
-        }, 1000);
+        }, 2000);
+      }
+      else {
+        toast.error(res?.message);
       }
     })
     .catch(err => {
