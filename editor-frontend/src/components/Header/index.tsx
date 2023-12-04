@@ -125,6 +125,7 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
     .then(res => res.json())
     .then(res => {
       if(res?.status === "success") {
+        setShowDeletePopup(false);
         toast.success(res?.message);
         setTimeout(() => {
           window.location.href = `${import.meta.env.VITE_VIDEO_BASE}/videos/${videoInfo?.channelHandle}`;
