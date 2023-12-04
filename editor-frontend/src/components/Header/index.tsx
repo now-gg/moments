@@ -28,6 +28,7 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
   const [profileIcon, setProfileIcon] = useState('');
   const [userName, setUserName] = useState('');
   const [allowTitleEdit, setAllowTitleEdit] = useState(false);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
 
   const fetchUserDetails = async () => {
     await axios
@@ -111,10 +112,29 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
   }
 
   const deleteVideo = () => {
-    // const confirmed = prompt('Are you sure you want to delete this video?') === 'yes';
-    // if(!confirmed) return;
-    // fetch(`${import.meta.env.VITE_VIDEO_PROCESS}/video/delete`, {
-    // }
+    fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/delete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'token': localStorage['ng_token']
+      },
+      body: JSON.stringify({
+        videoId: videoInfo?.videoId
+      })
+    })
+    .then(res => res.json())
+    .then(res => {
+      if(res?.success) {
+        toast.success('Video deleted successfully');
+        setTimeout(() => {
+          window.location.href = `${import.meta.env.VITE_VIDEO_BASE}/videos/${videoInfo?.channelHandle}`;
+        }, 1000);
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      toast.error('Could not delete video');
+    })
   }
 
 
@@ -175,11 +195,23 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
             <IconDownload />
           </IconButton>
           <Divider />
-          <IconButton type="secondary" color="warning" onClick={deleteVideo}>
+          <IconButton type="secondary" color="warning" onClick={() => setShowDeletePopup(true)}>
             <IconTrash />
           </IconButton>
         </div>
       </div>
+      {showDeletePopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={() => setShowDeletePopup(false)}>
+          <div className="bg-white rounded-md p-4 flex flex-col justify-center gap-4 max-w-md" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-base-500 text-md font-bold">Delete your Moment?</h2>
+            <p className="text-base-500 text-sm font-normal">Are you sure you want to delete your moment. Once deleted you wont be able to access it again.</p>
+            <div className="flex justify-end gap-x-2.5 mt-4 w-full">
+              <button className="w-1/2 bg-white text-accent border border-accent flex justify-center items-center h-10 px-3 gap-3 rounded-md text-sm font-semibold" onClick={() => setShowDeletePopup(false)}>Cancel</button>
+              <button className='w-1/2 bg-accent text-white border border-accent flex justify-center items-center h-10 px-3 gap-3 rounded-md shadow-md text-sm font-semibold' onClick={() => deleteVideo()}>Delete</button>
+            </div> 
+          </div>
+        </div>
+      )}
     </header>
   );
 };

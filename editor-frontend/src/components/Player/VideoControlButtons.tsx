@@ -229,7 +229,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     }
 
     if(payload["trim"] || payload["crop"] || payload["title"]) {
-      fetch(`${import.meta.env.VITE_VIDEO_PROCESS}/video/process`, {
+      fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/process`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(payload)
@@ -252,7 +252,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
         console.log(data)
         const newVideoId = data.new_video_id;
         // copy to clipboard
-        navigator.clipboard.writeText(`${import.meta.env.VITE_VIDEO_PROCESS}/video/${newVideoId}`)
+        navigator.clipboard.writeText(`${import.meta.env.VITE_BACKEND_HOST}/video/${newVideoId}`)
       })
       .catch((error) => {
         toast.error("Error adding video to queue");
