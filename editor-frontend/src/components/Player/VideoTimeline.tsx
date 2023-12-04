@@ -1,16 +1,18 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import InputSlider from './InputSlider';
 
 type VideoProps = {
   url: string,
   startTime: number,
-  endTime: number | undefined,
-  duration: number | undefined,
+  endTime: number,
+  duration: number,
   setStartTime: any,
   setEndTime: any,
   playPointer: number,
   thumbnails: string[]
+  isTrimActive: boolean,
+  setIsTrimActive: React.Dispatch<React.SetStateAction<boolean>>,
 };
 
 const VideoTimelineWrapper = styled.div`
@@ -47,7 +49,7 @@ const VideoTimelineWrapper = styled.div`
     border-left: 4px solid #ff0381b5;
   }
 `
-const VideoTimeline = ({ url, startTime, endTime, setStartTime, setEndTime, duration = 1, playPointer, thumbnails}: VideoProps) => {
+const VideoTimeline = ({ url, startTime, endTime, setStartTime, setEndTime, duration = 1, playPointer, thumbnails, isTrimActive, setIsTrimActive}: VideoProps) => {
   const [video, setVideo] = useState('');
 
   useEffect(() => {
@@ -65,11 +67,11 @@ const VideoTimeline = ({ url, startTime, endTime, setStartTime, setEndTime, dura
         </div>
       )}
       <div className="slider-container">
-        <InputSlider setStartTime={setStartTime} setEndTime={setEndTime} minVal={startTime} maxVal={endTime} duration={duration} />
+        <InputSlider setStartTime={setStartTime} setEndTime={setEndTime} minVal={startTime} maxVal={endTime} duration={duration} isTrimActive={isTrimActive} setIsTrimActive={setIsTrimActive}  />
       </div>
-      <div className='progress-div absolute bottom-0 h-1 w-full z-50'>
+      <div className='progress-div bg-transparent absolute bottom-0 h-1 w-full z-10'>
           <div className='progress-done bg-accent h-full' style={{width: `${(playPointer / duration) * 100}%`}}></div>
-          <div className='progress-left bg-gray-500 h-full' style={{width: `${((duration - playPointer) / duration) * 100}%`}}></div>
+          <div className='progress-left bg-transparent h-full' style={{width: `${((duration - playPointer) / duration) * 100}%`}}></div>
       </div>
     </VideoTimelineWrapper>
   );

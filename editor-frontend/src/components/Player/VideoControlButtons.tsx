@@ -181,7 +181,6 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
   const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
   const [trimEndTime, setTrimEndTime] = useState(endTime || 0);
-
   const [isTrimActive, setIsTrimActive] = useState(false);
 
   useEffect(() => {
@@ -321,7 +320,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
   return (
     <>
-      <VideoTimeline url={videoUrl} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} playPointer={playPointer} thumbnails={thumbnails} />
+      <VideoTimeline isTrimActive={isTrimActive} setIsTrimActive={setIsTrimActive} url={videoUrl} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} playPointer={playPointer} thumbnails={thumbnails} />
       <VideoControlsWrapper className="flex pt-2 pb-4">
         <div className="flex gap-4 items-center">
           <button className="h-9 w-9" onClick={handlePLayClick}>

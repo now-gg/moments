@@ -76,13 +76,15 @@ const InputSliderWrapper = styled.div`
 
 type SliderProps = {
   minVal: number;
-  maxVal: number | undefined,
+  maxVal: number,
   duration: number | undefined,
   setStartTime: any,
   setEndTime: any,
+  isTrimActive: boolean,
+  setIsTrimActive: React.Dispatch<React.SetStateAction<boolean>>,
 };
 
-const InputSlider = ({ minVal, maxVal, setStartTime, setEndTime, duration }: SliderProps) => {
+const InputSlider = ({ minVal, maxVal, setStartTime, setEndTime, duration=1, isTrimActive, setIsTrimActive }: SliderProps) => {
   const getTimeLabels = (): string[] => {
     const arr: string[] = [];
     if (duration) {
@@ -101,6 +103,8 @@ const InputSlider = ({ minVal, maxVal, setStartTime, setEndTime, duration }: Sli
    setEndTime(e.maxValue || maxVal);
   }
 
+  const highlightedWidth = (maxVal - minVal) * 100 / duration;
+
   return (
      <InputSliderWrapper className="stuff">
       <MultiRangeSlider
@@ -108,18 +112,24 @@ const InputSlider = ({ minVal, maxVal, setStartTime, setEndTime, duration }: Sli
         min={0}
         max={duration}
         step={1}
-        minValue={minVal}
-        maxValue={maxVal}
+        minValue={isTrimActive ? minVal : 0}
+        maxValue={isTrimActive ? maxVal : duration}
         ruler={true}
         // label={true}
         labels={getTimeLabels()}
         subSteps={true}
     
         onChange={(e: any) => {
+          setIsTrimActive(true);
           handleChanges(e);
         }
         }
       ></MultiRangeSlider>
+      {isTrimActive && <div className="h-16 w-full absolute bottom-1 bg-gradient-to-t from-black to-transparent opacity-20">
+        <div className="h-full absolute left-0" style={{width: `${minVal*100 / duration}%`}}></div>
+        <div className="h-full absolute bg-black opacity-80" style={{left: `${minVal*100 / duration}%`, width: `${highlightedWidth}%`}}></div>
+        <div className="h-full absolute right-0" style={{width: `${(duration - maxVal)*100/duration}%`}}></div>
+      </div>}
     </InputSliderWrapper>
   )
 }
