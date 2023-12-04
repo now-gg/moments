@@ -51,14 +51,15 @@ def upload():
         stream = ffmpeg.input(video_url)
         if video_url_2:
             stream_2 = ffmpeg.input(video_url_2)
-            stream = ffmpeg.concat(stream, stream_2, v=1, a=1).node
+            stream = ffmpeg.concat(stream, stream_2)
             
         with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
             try:
                 stream = ffmpeg.output(stream, temp_file.name, loglevel="quiet")
                 stream = ffmpeg.overwrite_output(stream)
                 ffmpeg.run(stream)
-            except:
+            except Exception as e:
+                logging.error(e)
                 return jsonify({"status": "error", "message": f'Error in running ffmpeg'}), 500 
 
             temp_file.seek(0)
