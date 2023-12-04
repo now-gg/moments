@@ -16,7 +16,7 @@ import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 
 type HeaderProps = {
-  setOpen: Function,
+  setShowLoginPopup: Function,
   loggedIn: boolean,
   setLoggedIn: Function,
   videoInfo: any,
@@ -24,7 +24,7 @@ type HeaderProps = {
   setTitle: Function,
 };
 
-const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: HeaderProps) => {
+const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, setTitle }: HeaderProps) => {
   const [profileIcon, setProfileIcon] = useState('');
   const [userName, setUserName] = useState('');
   const [allowTitleEdit, setAllowTitleEdit] = useState(false);
@@ -76,7 +76,7 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
       })
       .catch((err: any) => {
         if(err?.response?.status === 401)
-          setOpen(true);
+          setShowLoginPopup(true);
         console.log('err', err?.response?.status);
       });
   };
@@ -176,7 +176,7 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
                 sign up
               </a>
               <p>or</p>
-              <a className="text-additional-link" onClick={() => setOpen(true)}>
+              <a className="text-additional-link" onClick={() => setShowLoginPopup(true)}>
                 log in
               </a>
             </div>

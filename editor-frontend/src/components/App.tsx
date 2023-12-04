@@ -5,7 +5,7 @@ import Player from "./Player";
 import {Toaster} from "react-hot-toast"
 
 export default function App() {
-  const [open, setOpen] = useState(false);
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [videoInfo, setVideoInfo] = useState({});
   const [title, setTitle] = useState('');
@@ -36,12 +36,12 @@ export default function App() {
       <link rel='preconnect' href='https://fonts.gstatic.com' />
       <link href='https://fonts.googleapis.com/css2?family=Audiowide&display=swap' rel='stylesheet'/>
       <link href='https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap' rel='stylesheet'/>
-      <Toaster position="top-right" />
-      <Header setOpen={setOpen} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} title={title} setTitle={setTitle} />
+      <Toaster position="top-right" containerClassName="mt-16" />
+      <Header setShowLoginPopup={setShowLoginPopup} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} title={title} setTitle={setTitle} />
       <div className="font-poppins p-4 max-w-7xl mx-auto" style={{height: 'calc(100vh - 72px)'}} >
           <Player loggedIn={loggedIn} videoInfo={videoInfo} title={title}  />
       </div>
-      {open && <LoginPopup closePopup={() => setOpen(false)} />}
+      {showLoginPopup && <LoginPopup closePopup={() => setShowLoginPopup(false)} />}
     </div>
   )
 }
