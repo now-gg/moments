@@ -42,8 +42,6 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
         }
 
         if (res && res.status === 200) {
-          // localStorage.setItem('ng_token', res.token);
-          console.log('res', res);
           setUserName(res?.data?.userData?.name);
           setProfileIcon(res?.data?.userData?.profilePicture || res?.data?.userData?.avatar);
           setLoggedIn(true);
@@ -51,7 +49,10 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
         }
       })
       .catch((err: any) => {
-        if (!localStorage['ng_token']) {
+        const ng_token = localStorage['ng_token'];
+        const ng_token_expiry = localStorage['ng_token_expiry'];
+        const isTokenExpired = new Date(ng_token_expiry) < new Date();
+        if (!ng_token || isTokenExpired) {
           generateFEToken();
         }
         console.log('err', err);
@@ -64,21 +65,26 @@ const Header = ({ setOpen, loggedIn, setLoggedIn, videoInfo, title, setTitle }: 
       .get(`${import.meta.env.VITE_ACCOUNTS_BASE}/accounts/auth/v1/access-token`, {
         withCredentials: true,
       })
-      .then((res: { status: number; data: { token: string; }; }) => {
+      .then((res: { status: number; data: { token: string; token_expiry: string; }; }) => {
         if (res && res.status == 200) {
           localStorage.setItem('ng_token', res.data.token);
+          localStorage.setItem('ng_token_expiry', res.data.token_expiry);
           // console.log('200 code');
           fetchUserDetails();
         }
       })
       .catch((err: any) => {
-        console.log('err', err);
+        if(err?.response?.status === 401)
+          setOpen(true);
+        console.log('err', err?.response?.status);
       });
   };
 
   useEffect(() => {
-    let signup_token = localStorage['ng_token'];
-    if (!signup_token) {
+    const ng_token = localStorage['ng_token'];
+    const ng_token_expiry = localStorage['ng_token_expiry'];
+    const isTokenExpired = new Date(ng_token_expiry) < new Date();
+    if (!ng_token || isTokenExpired) {
       generateFEToken();
       // console.log('Token not Found');
     } else {
