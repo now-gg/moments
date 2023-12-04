@@ -43,7 +43,7 @@ def upload():
         video_info = get_video_info(video_id)
         create_video_res = create_video(video_url, auth_token, video_info)
         if create_video_res.status_code != 200:
-            return create_video_res.json(), create_video_res.status_code
+            return jsonify({"status": "error", "message": f'Error in creating video on nowgg'}), 500
         create_video_res = create_video_res.json()
         upload_url, new_video_id = create_video_res["uploadUrl"], create_video_res["videoId"]
 
@@ -62,7 +62,10 @@ def upload():
             temp_file.close()
             del temp_file
 
-        return upload_res.json(), upload_res.status_code
+        if upload_res.status_code != 200:
+            return jsonify({"status": "error", "message": f'Error in uploading video'}), 500
+        
+        return jsonify({"status": "success", "message": "Video uploaded successfully", "new_video_id": new_video_id}), 200
     
     except Exception as e:
         logging.error(e)
