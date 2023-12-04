@@ -177,7 +177,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
           {!loggedIn &&
             <div className="text-black font-normal text-sm flex" >
               <p>Connect with your account</p>
-              <a className="text-additional-link" href="https://vitejs.dev/">
+              <a className="text-additional-link" onClick={() => setShowLoginPopup(true)}>
                 sign up
               </a>
               <p>or</p>
