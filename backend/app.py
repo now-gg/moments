@@ -36,6 +36,7 @@ def upload():
         body = request.get_json()
         auth_token = request.headers.get("token")
         video_url = body["video_url"]
+        video_url_2 = body.get("video_url_2")
         video_id = body["video_id"]
 
         logging.info("request to upload video")
@@ -48,7 +49,10 @@ def upload():
         upload_url, new_video_id = create_video_res["uploadUrl"], create_video_res["videoId"]
 
         stream = ffmpeg.input(video_url)
-
+        if video_url_2:
+            stream_2 = ffmpeg.input(video_url_2)
+            stream = ffmpeg.concat(stream, stream_2, v=1, a=1).node
+            
         with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
             try:
                 stream = ffmpeg.output(stream, temp_file.name, loglevel="quiet")
