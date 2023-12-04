@@ -15,7 +15,7 @@ export default function App() {
     headers.append("Content-Type", "application/json");
     const searchParams = new URLSearchParams(location.search);
     const videoId = searchParams.get('videoId') || 'doykcyaxtx5bkb';
-    let videoInfoUrl = `${import.meta.env.VITE_VIDEO_PROCESS}/video/info?videoId=${videoId}`;
+    let videoInfoUrl = `${import.meta.env.VITE_BACKEND_HOST}/video/info?videoId=${videoId}`;
     if(import.meta.env.VITE_CURRENT_ENV === 'staging' || import.meta.env.VITE_CURRENT_ENV === 'production')
       videoInfoUrl = `${import.meta.env.VITE_VIDEO_BASE}/7/api/vid/v1/getVideoInfo?videoId=${videoId}`;
     fetch(videoInfoUrl)
@@ -30,19 +30,12 @@ export default function App() {
     fetchVideo();
   }, []);
   
-  console.log('open', open);
   return (
     <div className="bg-background min-h-screen">
       <link rel='preconnect' href='https://fonts.googleapis.com' />
       <link rel='preconnect' href='https://fonts.gstatic.com' />
-      <link
-        href='https://fonts.googleapis.com/css2?family=Audiowide&display=swap'
-        rel='stylesheet'
-      />
-      <link
-        href='https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap'
-        rel='stylesheet'
-      />
+      <link href='https://fonts.googleapis.com/css2?family=Audiowide&display=swap' rel='stylesheet'/>
+      <link href='https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap' rel='stylesheet'/>
       <Toaster position="top-right" />
       <Header setOpen={setOpen} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} title={title} setTitle={setTitle} />
       <div className="font-poppins p-4 max-w-7xl mx-auto" style={{height: 'calc(100vh - 72px)'}} >
