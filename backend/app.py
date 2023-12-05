@@ -1,7 +1,7 @@
 
 import google.cloud.logging
 import logging
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, render_template
 import json
 import os
 import time
@@ -27,7 +27,12 @@ redis_client = RedisWrapper()
 logging.info("starting flask app")
 
 
-@app.route("/video/upload-tus", methods=["POST"])
+@app.route("/video/upload-page", methods=["GET"])
+def upload_page():
+    return render_template("upload.html")
+
+
+@app.route("/video/upload-tus", methods=["GET","POST"])
 def upload_tus():
     try:
         endpoint = f'https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/stream?direct_user=true'
