@@ -146,11 +146,6 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
     getAspectRatioFromImageUrl(videoInfo?.thumbnailUrl || '');
   }, [videoInfo])
 
-  const [x, y] = aspectRatio.split('/');
-  const aspectRatioValue = parseInt(x) / parseInt(y);
-
-  const hFull = aspectRatioValue <= videoAspectRatio;
-  const wFull = aspectRatioValue >= videoAspectRatio;
 
   return (
     // outer most wrapper
