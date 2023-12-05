@@ -38,10 +38,7 @@ def upload_tus():
             'Upload-Metadata': request.headers.get('Upload-Metadata'),
         }
         res = requests.post(endpoint, headers=headers)
-        logging.info(res.headers)
-        logging.info(res)
         destination = res.headers.get('Location')
-        logging.info(destination)
 
         res_headers = {
             'Location': destination,
