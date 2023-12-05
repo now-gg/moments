@@ -34,13 +34,14 @@ def upload_tus():
         headers = {
             'Authorization': f'bearer {CLOUDFLARE_API_TOKEN}',
             'Tus-Resumable': '1.0.0',
-            'Upload=Length': request.headers.get('Upload-Length'),
+            'Upload-Length': request.headers.get('Upload-Length'),
             'Upload-Metadata': request.headers.get('Upload-Metadata'),
         }
         res = requests.post(endpoint, headers=headers)
-        logging.info(res.headers, res.status_code, res.text)
+        logging.info(res.headers)
+        logging.info(res)
         destination = res.headers.get('Location')
-        logging.info("destination", destination)
+        logging.info(destination)
 
         res_headers = {
             'Location': destination,
@@ -104,15 +105,6 @@ def upload():
     
     except Exception as e:
         logging.error(e)
-        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
-        
-
-
-
-    except Exception as e:
-        logging.error(e)
-        if isinstance(e, KeyError):
-            return jsonify({"status": "error", "message": f'Key {e} missing from request body'}), 400
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
 
