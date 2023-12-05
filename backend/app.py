@@ -1,7 +1,7 @@
 
 import google.cloud.logging
 import logging
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 import json
 import os
 import time
@@ -14,6 +14,7 @@ from pubsub import publish_message, get_subscriber
 from redis_wrapper  import RedisWrapper
 from bigquery import send_stat_to_bq
 from utils import get_operation
+from credentials import CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN
 
 app = Flask(__name__)
 CORS(app)
@@ -24,6 +25,33 @@ client.setup_logging()
 redis_client = RedisWrapper()
 
 logging.info("starting flask app")
+
+
+@app.route("/video/upload-tus", methods=["POST"])
+def upload_tus():
+    try:
+        endpoint = f'https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/stream?direct_user=true'
+        headers = {
+            'Authorization': f'bearer {CLOUDFLARE_API_TOKEN}',
+            'Tus-Resumable': '1.0.0',
+            'Upload=Length': request.headers.get('Upload-Length'),
+            'Upload-Metadata': request.headers.get('Upload-Metadata'),
+        }
+        res = requests.post(endpoint, headers=headers)  
+        destination = res.headers.get('Location')
+
+        res_headers = {
+            'Location': destination,
+            'Access-Control-Expose-Headers': 'Location',
+			'Access-Control-Allow-Headers': '*',
+			'Access-Control-Allow-Origin': '*'
+        }
+
+        return Response(status=201, headers=res_headers)
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"status": "error", "message": f'Error in upload-tus'}), 500    
+
 
 @app.route("/")
 def home():
