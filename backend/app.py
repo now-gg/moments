@@ -55,7 +55,7 @@ def upload():
             
         with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
             try:
-                stream = ffmpeg.output(stream, temp_file.name, loglevel="quiet")
+                stream = ffmpeg.output(stream, temp_file.name)
                 stream = ffmpeg.overwrite_output(stream)
                 ffmpeg.run(stream)
             except Exception as e:
