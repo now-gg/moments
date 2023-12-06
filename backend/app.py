@@ -255,7 +255,7 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
             except ffmpeg.Error as e:
                 redis_client.delete(video_cache_key)
                 logging.debug(e.stderr)
-                logging.error(e)
+                logging.error(e.stderr)
                 return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
             except Exception as e:
                 redis_client.delete(video_cache_key)
