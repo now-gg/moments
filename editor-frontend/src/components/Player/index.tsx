@@ -9,9 +9,10 @@ type PlayerProps = {
   loggedIn: boolean;
   videoInfo: any;
   title: string;
+  setVideoInfo: React.Dispatch<React.SetStateAction<any>>;
 }
 
-const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
+const Player = ({ loggedIn, videoInfo, title, setVideoInfo }: PlayerProps) => {
   const [endTime, setEndTime] = useState(document.querySelector('video')?.duration || 0);
   const [startTime, setStartTime] = useState(0);
   const ref = React.useRef() as React.MutableRefObject<StreamPlayerApi | undefined>;
@@ -187,6 +188,7 @@ const Player = ({ loggedIn, videoInfo, title }: PlayerProps) => {
         left={left}
         top={top}
         title={title}
+        setVideoInfo={setVideoInfo}
       />)}
       </div >
   );

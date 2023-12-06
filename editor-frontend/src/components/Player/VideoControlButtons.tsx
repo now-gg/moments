@@ -1,4 +1,4 @@
-import { ReactEventHandler, useEffect, useState } from "react";
+import React, { ReactEventHandler, useEffect, useState } from "react";
 import styled from "styled-components";
 import VideoTimeline from './VideoTimeline';
 import { IconCrop, IconPause, IconPlay, IconTrim, IconReset } from '../../assets/icons';
@@ -30,6 +30,7 @@ type ControlProps = {
   left: number,
   top: number,
   title: string,
+  setVideoInfo: React.Dispatch<React.SetStateAction<any>>;
 };
 
 const VideoControlsWrapper = styled.section`
@@ -176,7 +177,7 @@ const VideoControlsWrapper = styled.section`
   }
 `
 
-const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, playing, streamRef, playPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive, videoInfo, left, top, title }: ControlProps) => {
+const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, playing, streamRef, playPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive, videoInfo, left, top, title, setVideoInfo }: ControlProps) => {
 
 
   const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
@@ -194,9 +195,8 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     console.log(streamRef)
   }, [endTime]);
 
-  const sendProcessRequest = async () => {
+  const onSaveButtonClick = async () => {
     console.log("sendAPIRequest")
-    const loadingToast = toast.loading("adding video to queue");
 
     const headers = {
       'Content-Type': 'application/json',
@@ -227,7 +227,8 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
       }
     }
 
-    if(payload["trim"] || payload["crop"] || payload["title"]) {
+    if(payload["trim"] || payload["crop"]) {
+      const loadingToast = toast.loading("adding video to queue");
       fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/process`, {
         method: 'POST',
         headers: headers,
@@ -258,7 +259,36 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
         console.error('Error:', error);
       });
     }
-
+    else {
+      const loadingToast = toast.loading("updating title");
+      fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/title`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(payload)
+      })
+      .then(response => { 
+        toast.remove(loadingToast);
+        if(response.status === 200) {
+          toast.success("Title Updated");
+          setVideoInfo({...videoInfo, title: title});
+        }
+        else if(response.status === 401) {
+          localStorage.removeItem('ng_token');
+          toast.error("Unauthorized. Please login again.");
+        }
+        else {
+          toast.error("Error while updating title");
+        }
+        return response.json()
+      })
+      .then(data => {
+        console.log(data)
+      })
+      .catch((error) => {
+        toast.error("Error while updating title");
+        console.error('Error:', error);
+      });
+    }
   }
 
   const onTrimButtonClick: ReactEventHandler = () => { 
@@ -356,7 +386,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
             <IconReset />
             Reset
           </EditOptionButton>
-          <Save onClick={sendProcessRequest} isActive={isSaveAllowed} />
+          <Save onClick={onSaveButtonClick} isActive={isSaveAllowed} />
         </div>
       </VideoControlsWrapper >
     </>
