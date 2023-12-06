@@ -35,6 +35,7 @@ def upload_page():
 @app.route("/video/upload-tus", methods=["GET","POST"])
 def upload_tus():
     try:
+        logging.info(f'cf {CLOUDFLARE_ACCOUNT_ID} {CLOUDFLARE_API_TOKEN}')
         endpoint = f'https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/stream?direct_user=true'
         headers = {
             'Authorization': f'bearer {CLOUDFLARE_API_TOKEN}',
