@@ -228,33 +228,54 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     }
 
     if(payload["trim"] || payload["crop"]) {
-      const loadingToast = toast.loading("adding video to queue");
+      const loadingToast = toast.loading("editing video");
       fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/process`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(payload)
       })
       .then(response => { 
-        toast.remove(loadingToast);
-        if(response.status === 200) {
-          toast.success("Video added to queue");
-        }
         if(response.status === 401) {
           localStorage.removeItem('ng_token');
+          toast.remove(loadingToast);
           toast.error("Unauthorized. Please login again.");
         }
-        else {
-          toast.error("Error adding video to queue");
+        else if(response.status >= 400) {
+          toast.remove(loadingToast);
+          toast.error("Error while editing video");
         }
         return response.json()
       })
       .then(data => {
         console.log(data)
         const newVideoId = data.new_video_id;
-        // copy to clipboard
-        navigator.clipboard.writeText(`${import.meta.env.VITE_BACKEND_HOST}/video/${newVideoId}`)
+        let t = 0;
+        const timer = setInterval(() => {
+          if(t > 180) {
+            clearInterval(timer);
+            toast.remove(loadingToast);
+            toast.error("Error while editing video");
+            return;
+          }
+          const videoStatusCheckUrl = `${import.meta.env.VITE_BACKEND_HOST}/video/info?videoId=${newVideoId}`;
+          fetch(videoStatusCheckUrl)
+          .then((res) => {
+            if(res.status === 200) {
+              clearInterval(timer);
+              toast.remove(loadingToast);
+              toast.success("Video edited successfully");
+              const currentPageUrl = window.location.href;
+              const newUrl = currentPageUrl.replace(videoInfo.videoId, newVideoId);
+              setTimeout(() => {
+                window.location.href = newUrl;
+              }, 3*1000);
+            }
+          });
+          t = t + 30;
+        }, 30*1000)
       })
       .catch((error) => {
+        toast.remove(loadingToast);
         toast.error("Error adding video to queue");
         console.error('Error:', error);
       });
