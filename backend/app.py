@@ -138,7 +138,7 @@ def process():
             "new_video_id": new_video_id
         }
         logging.info(f'message to be published: {message}')
-        redis_client.set(video_cache_key, "processing")
+        # redis_client.set(video_cache_key, "processing")
         publish_message(json.dumps(message))
         return jsonify({"status": "success", "message": "Video processing started", "new_video_id": new_video_id}), 200
 
@@ -249,14 +249,14 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
         with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
             try:
                 stream = ffmpeg.filter(stream, 'scale', 1280, -1)
-                stream = ffmpeg.output(stream, temp_file.name, loglevel="quiet")
+                stream = ffmpeg.output(stream, temp_file.name)
                 stream = ffmpeg.overwrite_output(stream)
                 ffmpeg.run(stream)
-            except ffmpeg.Error as e:
-                redis_client.delete(video_cache_key)
-                logging.debug(e.stderr)
-                logging.error(e.stderr)
-                return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
+            # except ffmpeg.Error as e:
+            #     redis_client.delete(video_cache_key)
+            #     logging.debug(e.stderr)
+            #     logging.error(e.stderr)
+            #     return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
             except Exception as e:
                 redis_client.delete(video_cache_key)
                 logging.error(e)
