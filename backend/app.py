@@ -340,8 +340,7 @@ def pull_messages():
                     pull_message_callback(message.data)
                 time.sleep(1)
             else:
-                logging.info("no messages received")
-                time.sleep(30)
+                time.sleep(15)
     except Exception as e:
         logging.error(e)
 
