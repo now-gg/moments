@@ -229,20 +229,21 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
     const payload:any = {
       "videoId": videoInfo.videoId,
-      "title": title,
     }
+
+    if(title !== videoInfo.title)
+      payload["title"] = title;
 
     if (isTrimActive) {
       const trimValidation = validateTrimTimes(trimStartTime, trimEndTime);
-      if(!trimValidation.status) {
-        if(trimValidation.message) 
-          toast.error(trimValidation.message);
-        return;
+      if(trimValidation.status) {
+        payload["trim"] = {
+          start: Math.floor(trimStartTime),
+          end: Math.floor(trimEndTime)
+        }
       }
-      payload["trim"] = {
-        start: Math.floor(trimStartTime),
-        end: Math.floor(trimEndTime)
-      }
+      else if(trimValidation.message) 
+        toast.error(trimValidation.message);
     }
 
     if (isCropActive) {
@@ -310,7 +311,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
         console.error('Error:', error);
       });
     }
-    else {
+    else if(payload["title"]) {
       const loadingToast = toast.loading("updating title");
       fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/title`, {
         method: 'POST',
