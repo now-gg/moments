@@ -26,6 +26,11 @@ export default function App() {
          return res.json()
       })
       .then((data) => {
+        console.log(data);
+        if(data?.status === 'FailureVideoNotExist') {
+          toast.error('Video not found');
+          return;
+        }
         setVideoInfo(data?.video);
         setTitle(data?.video?.title);
       });
