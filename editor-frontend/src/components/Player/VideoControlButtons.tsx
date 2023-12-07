@@ -182,19 +182,42 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
 
   const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
-  const [trimEndTime, setTrimEndTime] = useState(endTime || 0);
+  const [trimEndTime, setTrimEndTime] = useState(endTime || duration);
   const [isTrimActive, setIsTrimActive] = useState(false);
 
   useEffect(() => {
-    console.log("startTime", startTime);
     setTrimStartTime(startTime);
   }, [startTime]);
 
   useEffect(() => {
-    console.log("endTime", endTime);
     setTrimEndTime(endTime);
-    console.log(streamRef)
   }, [endTime]);
+
+  const validateTrimTimes = (start: any, end: any) => {
+    const res = {
+      "status": false,
+      "message": ""
+    }
+    if(start === "" || end === ""){
+      res.message = "Trim start and end times cannot be empty";
+      return res;
+    }
+    if (isNaN(start) || isNaN(end)) {
+      res.message = "Trim start and end times must be numbers";
+      return res;
+    }
+    const startNum = Number(start);
+    const endNum = Number(end);
+    if (startNum < 0 || endNum > duration || startNum >= endNum) {
+        res.message = "Invalid trim values";
+        return res;
+    }
+    if(startNum === 0 && endNum === duration){
+      return res;
+    }
+    res.status = true;
+    return res;
+  }
 
   const onSaveButtonClick = async () => {
     console.log("sendAPIRequest")
@@ -210,6 +233,12 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     }
 
     if (isTrimActive) {
+      const trimValidation = validateTrimTimes(trimStartTime, trimEndTime);
+      if(!trimValidation.status) {
+        if(trimValidation.message) 
+          toast.error(trimValidation.message);
+        return;
+      }
       payload["trim"] = {
         start: Math.floor(trimStartTime),
         end: Math.floor(trimEndTime)
@@ -317,28 +346,6 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     setIsTrimActive(!isTrimActive);
   }
 
-  const handleTrimInput: ReactEventHandler = (e) => {
-    // @ts-expect-error temporary fix
-    let x = parseInt(e.target.value);
-    console.log("x", x, typeof x)
-    if(isNaN(x))
-      x = 0;
-    if(x > duration || x < 0)
-      return;
-    // @ts-expect-error temporary fix
-    if(e.target.id === "start") {
-      if(x > endTime)
-        return;
-      setStartTime(x);
-    }
-    // @ts-expect-error temporary fix
-    if(e.target.id === "end") {
-      if(x < startTime)
-        return;
-      setEndTime(x);
-    }
-  }
-
   const onCropButtonClick: ReactEventHandler = () => { 
     if(!isCropActive) {
       setIsCropActive(true);
@@ -388,11 +395,20 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
             {isTrimActive && <div className="flex justify-center items-center gap-4 pl-2 pr-1 h-10 rounded-lg bg-additional-link">
                 <div className=' flex justify-center items-center gap-1'>
                   <span className="text-xs text-white">Start Time</span>
-                  <input id="start" className="bg-white py-1.5 px-3 rounded-md text-sm text-black placeholder:text-base-100 max-w-[8ch] outline-none" value={trimStartTime} placeholder="0 sec" onChange={handleTrimInput} />
+                  <input 
+                    className="bg-white appearance-none py-1.5 px-3 rounded-md text-sm text-black placeholder:text-base-100 max-w-[8ch] outline-none"
+                    value={trimStartTime} 
+                    placeholder="0 sec" 
+                    onChange={(e) => setTrimStartTime(e.target.value)} 
+                  />
                 </div>
                 <div className='flex justify-center items-center gap-1'>
                   <span className="text-xs text-white">End Time</span>
-                  <input id="end" className="bg-white py-1.5 px-3 rounded-md text-sm text-black  placeholder:text-base-100 max-w-[8ch] outline-none" value={trimEndTime} placeholder="0 sec" onChange={handleTrimInput} />
+                  <input 
+                    className="bg-white appearance-none py-1.5 px-3 rounded-md text-sm text-black  placeholder:text-base-100 max-w-[8ch] outline-none" 
+                    value={trimEndTime}
+                    placeholder={`${duration} sec`} 
+                    onChange={(e) => setTrimEndTime(e.target.value)} />
                 </div>
             </div>}
           </div>
