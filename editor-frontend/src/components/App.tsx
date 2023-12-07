@@ -39,7 +39,7 @@ export default function App() {
       <Toaster position="top-right" containerClassName="mt-16" />
       <Header setShowLoginPopup={setShowLoginPopup} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} title={title} setTitle={setTitle} />
       <div className="font-poppins p-4 max-w-7xl mx-auto" style={{height: 'calc(100vh - 72px)'}} >
-          <Player loggedIn={loggedIn} videoInfo={videoInfo} title={title} setVideoInfo={setVideoInfo}  />
+          <Player loggedIn={loggedIn} videoInfo={videoInfo} setVideoInfo={setVideoInfo} title={title} setTitle={setTitle}  />
       </div>
       {showLoginPopup && <LoginPopup closePopup={() => setShowLoginPopup(false)} />}
     </div>

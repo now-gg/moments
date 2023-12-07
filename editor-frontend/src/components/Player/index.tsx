@@ -8,11 +8,12 @@ import {DndContext, DragEndEvent, useDroppable} from "@dnd-kit/core"
 type PlayerProps = {
   loggedIn: boolean;
   videoInfo: any;
-  title: string;
   setVideoInfo: React.Dispatch<React.SetStateAction<any>>;
+  title: string;
+  setTitle: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const Player = ({ loggedIn, videoInfo, title, setVideoInfo }: PlayerProps) => {
+const Player = ({ loggedIn, videoInfo, setVideoInfo, title, setTitle }: PlayerProps) => {
   const [endTime, setEndTime] = useState(document.querySelector('video')?.duration || 0);
   const [startTime, setStartTime] = useState(0);
   const ref = React.useRef() as React.MutableRefObject<StreamPlayerApi | undefined>;
@@ -188,6 +189,7 @@ const Player = ({ loggedIn, videoInfo, title, setVideoInfo }: PlayerProps) => {
         left={left}
         top={top}
         title={title}
+        setTitle={setTitle}
         setVideoInfo={setVideoInfo}
       />)}
       </div >

@@ -31,6 +31,7 @@ type ControlProps = {
   top: number,
   title: string,
   setVideoInfo: React.Dispatch<React.SetStateAction<any>>;
+  setTitle: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const VideoControlsWrapper = styled.section`
@@ -177,7 +178,7 @@ const VideoControlsWrapper = styled.section`
   }
 `
 
-const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, playing, streamRef, playPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive, videoInfo, left, top, title, setVideoInfo }: ControlProps) => {
+const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, playing, streamRef, playPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive, videoInfo, left, top, title, setVideoInfo, setTitle }: ControlProps) => {
 
 
   const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
@@ -355,6 +356,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     setStartTime(0);
     setEndTime(duration);
     setAspectRatio('');
+    setTitle(videoInfo.title);
     setIsTrimActive(false);
     setIsCropActive(false);
   }
