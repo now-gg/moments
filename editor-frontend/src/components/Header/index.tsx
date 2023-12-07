@@ -146,12 +146,16 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
     })
   }
 
+  const handleBackClick = () => {
+    window.history.go(-1);
+  }
+
 
   return (
     <header className="font-poppins bg-white">
       <div className="py-2 px-4 w-full flex justify-between header-container">
         <div className="flex items-center gap-x-3">
-          <div className="cursor-pointer">
+          <div className="cursor-pointer" onClick={handleBackClick}>
             <IconDirectionalArrow />
           </div>
           <div>
