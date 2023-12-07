@@ -111,7 +111,7 @@ const Player = ({ loggedIn, videoInfo, setVideoInfo, title, setTitle }: PlayerPr
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const draggedItem = event.activatorEvent.target;
+    const draggedItem = document.querySelector('.draggable');
     const parentDiv = document.querySelector('.droppable');
     // @ts-expect-error temporary fix
     const left = draggedItem?.offsetLeft ?? 0;
