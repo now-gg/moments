@@ -249,6 +249,7 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
         with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
             try:
                 stream = ffmpeg.filter(stream, 'scale', 1280, -1)
+                stream = ffmpeg.filter(stream, 'pad', 'ceil(iw/2)*2', 'ceil(ih/2)*2')
                 stream = ffmpeg.output(stream, temp_file.name)
                 stream = ffmpeg.overwrite_output(stream)
                 ffmpeg.run(stream)
