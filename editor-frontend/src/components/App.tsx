@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Header from "./Header"
 import LoginPopup from "./LoginPopup/index";
 import Player from "./Player";
-import {Toaster} from "react-hot-toast"
+import {Toaster, toast} from "react-hot-toast"
 
 export default function App() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
@@ -19,7 +19,12 @@ export default function App() {
     if(import.meta.env.VITE_CURRENT_ENV === 'staging' || import.meta.env.VITE_CURRENT_ENV === 'production')
       videoInfoUrl = `${import.meta.env.VITE_VIDEO_BASE}/7/api/vid/v1/getVideoInfo?videoId=${videoId}`;
     fetch(videoInfoUrl)
-      .then((res) => res.json())
+      .then((res) => {
+        if(res.status == 404) {
+          toast.error('Video not found');
+        }
+         return res.json()
+      })
       .then((data) => {
         setVideoInfo(data?.video);
         setTitle(data?.video?.title);
