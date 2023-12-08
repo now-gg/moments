@@ -259,6 +259,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     }
 
     if(payload["trim"] || payload["crop"]) {
+      payload["title"] = title;
       const loadingToast = toast.loading("editing video");
       fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/process`, {
         method: 'POST',
