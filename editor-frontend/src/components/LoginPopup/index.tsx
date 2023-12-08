@@ -19,7 +19,7 @@ const LoginPopup = ({ closePopup }: LoginProps) => {
                 <img src="https://cdn.now.gg/apps-content/img/nowgg-logo.png" alt="nowgg logo" height="48" width="190" />
               </figure>
             </a>
-            <h2 className="title">Sign in to Save Moment in your library</h2>
+            <h2 className="title">Sign in to edit videos in your library</h2>
             <a className="sign-up-btn flex perfectCenter" href={`${import.meta.env.VITE_ACCOUNTS_BASE}/accounts/auth/v1/identifier?provider=google&continue=${location.href}`}>
               <svg width="33" height="32" viewBox="0 0 33 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g filter="url(#filter0_i_1877_36272)">

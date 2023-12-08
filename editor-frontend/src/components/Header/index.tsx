@@ -13,18 +13,24 @@ import Divider from "../Divider";
 import "./header.css";
 import { useEffect } from "react";
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
+import DeletePopup from './DeletePopup';
 
 type HeaderProps = {
-  title?: string;
-  setOpen: Function,
+  setShowLoginPopup: Function,
   loggedIn: boolean,
-  setLoggedIn: Function
+  setLoggedIn: Function,
+  videoInfo: any,
+  title: string,
+  setTitle: Function,
 };
 
-const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn }: HeaderProps) => {
+const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, setTitle }: HeaderProps) => {
   const [profileIcon, setProfileIcon] = useState('');
   const [userName, setUserName] = useState('');
-  // const [loggedIn, setLoggedIn] = useState(false);
+  const [allowTitleEdit, setAllowTitleEdit] = useState(false);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+
   const fetchUserDetails = async () => {
     await axios
       .get(`${import.meta.env.VITE_ACCOUNTS_BASE}/accounts/users/v1/userinfo`, {
@@ -38,16 +44,17 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
         }
 
         if (res && res.status === 200) {
-          // localStorage.setItem('ng_token', res.token);
-          console.log('res', res);
           setUserName(res?.data?.userData?.name);
-          setProfileIcon(res?.data?.userData?.profilePicture);
+          setProfileIcon(res?.data?.userData?.profilePicture || res?.data?.userData?.avatar);
           setLoggedIn(true);
           sessionStorage.setItem('userType', 'Authorised');
         }
       })
       .catch((err: any) => {
-        if (!localStorage['ng_token']) {
+        const ng_token = localStorage['ng_token'];
+        const ng_token_expiry = localStorage['ng_token_expiry'];
+        const isTokenExpired = new Date(ng_token_expiry) < new Date();
+        if (!ng_token || isTokenExpired) {
           generateFEToken();
         }
         console.log('err', err);
@@ -60,21 +67,26 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
       .get(`${import.meta.env.VITE_ACCOUNTS_BASE}/accounts/auth/v1/access-token`, {
         withCredentials: true,
       })
-      .then((res: { status: number; data: { token: string; }; }) => {
+      .then((res: { status: number; data: { token: string; token_expiry: string; }; }) => {
         if (res && res.status == 200) {
           localStorage.setItem('ng_token', res.data.token);
+          localStorage.setItem('ng_token_expiry', res.data.token_expiry);
           // console.log('200 code');
           fetchUserDetails();
         }
       })
       .catch((err: any) => {
-        console.log('err', err);
+        if(err?.response?.status === 401)
+          setShowLoginPopup(true);
+        console.log('err', err?.response?.status);
       });
   };
 
   useEffect(() => {
-    let signup_token = localStorage['ng_token'];
-    if (!signup_token) {
+    const ng_token = localStorage['ng_token'];
+    const ng_token_expiry = localStorage['ng_token_expiry'];
+    const isTokenExpired = new Date(ng_token_expiry) < new Date();
+    if (!ng_token || isTokenExpired) {
       generateFEToken();
       // console.log('Token not Found');
     } else {
@@ -83,17 +95,67 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
   }, [])
 
   const editTitle = () => {
-    if (document.querySelector('.video-title')?.getAttribute('contenteditable')) {
-      document.querySelector('.video-title')?.setAttribute('contenteditable', 'true');
-    } else {
-      document.querySelector('.video-title')?.setAttribute('contenteditable', 'false');
+    if(!allowTitleEdit) {
+      setAllowTitleEdit(true);
+      return;
     }
+    setAllowTitleEdit(false);
+
   }
+
+  const copyLink = () => {
+    toast.success('Video link copied to clipboard');
+    navigator.clipboard.writeText(`https://stagingngg.net/videos/watch/${videoInfo?.videoId}`);
+  }
+
+  const download = () => {
+    window.open(videoInfo?.downloadUrl, '_blank');
+  }
+
+  const closeDeletePopup = () => {
+    setShowDeletePopup(false);
+  }
+
+  const deleteVideo = () => {
+    fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/delete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'token': localStorage['ng_token']
+      },
+      body: JSON.stringify({
+        videoId: videoInfo?.videoId
+      })
+    })
+    .then(res => res.json())
+    .then(res => {
+      if(res?.status === "success") {
+        setShowDeletePopup(false);
+        toast.success(res?.message);
+        setTimeout(() => {
+          window.location.href = `${import.meta.env.VITE_VIDEO_BASE}/videos/${videoInfo?.channelHandle}`;
+        }, 2000);
+      }
+      else {
+        toast.error(res?.message);
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      toast.error('Could not delete video');
+    })
+  }
+
+  const handleBackClick = () => {
+    window.history.go(-1);
+  }
+
+
   return (
     <header className="font-poppins bg-white">
       <div className="py-2 px-4 w-full flex justify-between header-container">
         <div className="flex items-center gap-x-3">
-          <div className="cursor-pointer">
+          <div className="cursor-pointer" onClick={handleBackClick}>
             <IconDirectionalArrow />
           </div>
           <div>
@@ -102,7 +164,13 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
 
           <Divider />
 
-          <p className="text-base-900 text-xl font-semibold video-title" contentEditable="false">{title}</p>
+          <input 
+            disabled={!allowTitleEdit} 
+            className='text-xl font-semibold text-base-900 bg-gray-100 px-1 rounded-md disabled:bg-transparent outline-none' 
+            value={title} 
+            onChange={(e) => {setTitle(e.target.value)}} 
+            onBlur={() => setAllowTitleEdit(false)}
+          />
           <div>
             <IconButton type="primary" onClick={() => { editTitle() }}>
               <IconEdit className="group-hover:fill-white" />
@@ -113,11 +181,11 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
           {!loggedIn &&
             <div className="text-black font-normal text-sm flex" >
               <p>Connect with your account</p>
-              <a className="text-additional-link" href="https://vitejs.dev/">
+              <a className="text-additional-link" onClick={() => setShowLoginPopup(true)}>
                 sign up
               </a>
               <p>or</p>
-              <a className="text-additional-link" onClick={() => setOpen(true)}>
+              <a className="text-additional-link" onClick={() => setShowLoginPopup(true)}>
                 log in
               </a>
             </div>
@@ -132,23 +200,20 @@ const Header = ({ title = "Moments202305051403", setOpen, loggedIn, setLoggedIn 
             </div>
           }
 
-          <Button type="secondary">
-            <div className="flex items-center gap-x-2.5">
-              <IconCopy className="group-hover:stroke-white" />
-              Copy Link
-            </div>
+          <Button type="secondary" className="flex items-center gap-x-2.5" onClick={copyLink}>
+            <IconCopy className="group-hover:stroke-white" />
+            Copy Link
           </Button>
-          <IconButton type="secondary" color="link">
+          <IconButton type="secondary" color="link" onClick={download}>
             <IconDownload />
           </IconButton>
-
           <Divider />
-
-          <IconButton type="secondary" color="warning">
+          <IconButton type="secondary" color="warning" onClick={() => setShowDeletePopup(true)}>
             <IconTrash />
           </IconButton>
         </div>
       </div>
+      {showDeletePopup && <DeletePopup closePopup={closeDeletePopup} deleteVideo={deleteVideo} />}
     </header>
   );
 };

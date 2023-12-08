@@ -1,8 +1,15 @@
-import axios from 'axios';
-import { useEffect, useState } from "react";
+import React, { ReactEventHandler, useEffect, useState } from "react";
 import styled from "styled-components";
+import VideoTimeline from './VideoTimeline';
+import { IconCrop, IconPause, IconPlay, IconTrim, IconReset } from '../../assets/icons';
+import EditOptionButton from './EditOptionButton';
+import CropOptions from './CropOptions';
+import Divider from '../Divider';
+import Save from "./Save";
+import { toast } from "react-hot-toast";
 
 type ControlProps = {
+  videoUrl: string;
   startTime: any,
   endTime: any,
   setStartTime: Function,
@@ -13,7 +20,18 @@ type ControlProps = {
   setPlaying: Function,
   playing: boolean,
   streamRef: any,
-  palyPointer: number
+  playPointer: number,
+  aspectRatio: string,
+  setAspectRatio: Function,
+  thumbnails: string[],
+  isCropActive: boolean,
+  setIsCropActive: Function,
+  videoInfo: any,
+  left: number,
+  top: number,
+  title: string,
+  setVideoInfo: React.Dispatch<React.SetStateAction<any>>;
+  setTitle: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const VideoControlsWrapper = styled.section`
@@ -160,256 +178,258 @@ const VideoControlsWrapper = styled.section`
   }
 `
 
-const VideoControlButtons = ({ startTime, endTime, setStartTime, setEndTime, duration, setVideoID, loggedIn, playing, streamRef }: ControlProps) => {
+const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, playing, streamRef, playPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive, videoInfo, left, top, title, setVideoInfo, setTitle }: ControlProps) => {
 
-  const [cropSelectedValue, setCropSelectedValue] = useState('');
-  const [saveBtnActive, setSaveBtnActive] = useState('disabled');
 
   const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
-  const [trimEndTime, setTrimEndTime] = useState(endTime || 0);
-
-  // useEffect(()=>{
-  //   console.log("useEffect")
-  // }[startTime])
+  const [trimEndTime, setTrimEndTime] = useState(endTime || duration);
+  const [isTrimActive, setIsTrimActive] = useState(false);
 
   useEffect(() => {
-    console.log("startTime", startTime);
-    document?.getElementById("trim-start-time")?.classList?.remove('error-input');
     setTrimStartTime(startTime);
   }, [startTime]);
 
   useEffect(() => {
-    console.log("endTime", endTime);
-    document?.getElementById("trim-end-time")?.classList?.remove('error-input');
-    // document?.getElementById("trim-start-time")?.classList?.remove('error-input');
     setTrimEndTime(endTime);
-    console.log(streamRef)
   }, [endTime]);
 
-  const showAspectWrapper = (e: any) => {
-    const cropOptionElement = e.target;
-    document.querySelector('.input-crop.selected')?.classList.remove('selected');
-    cropOptionElement.classList.add('selected');
-    const cropOption = cropOptionElement.getAttribute('data-option');
-    document.querySelector('.crop-wrapper-video')?.classList.remove('hide');
-    if (cropOption != '') {
-      document.querySelector('.crop-wrapper-video')?.setAttribute('style', `aspect-ratio:${cropOption};background:url(https://cms-cdn.now.gg/cms-media/2023/10/${cropOption.replace('/', '')}-grid-lines.png), rgba(255,255,255,.2) no-repeat center  / cover; background-repeat:no-repeat;background-size:cover;`);
-      setCropSelectedValue(cropOption);
-    } else {
-      document.querySelector('.crop-wrapper-video')?.setAttribute('style', ``);
-      document.querySelector('.crop-wrapper-video')?.classList.add('hide');
-      setCropSelectedValue('');
+  const validateTrimTimes = (start: any, end: any) => {
+    const res = {
+      "status": false,
+      "message": ""
     }
+    if(start === "" || end === ""){
+      res.message = "Trim start and end times cannot be empty";
+      return res;
+    }
+    if (isNaN(start) || isNaN(end)) {
+      res.message = "Trim start and end times must be numbers";
+      return res;
+    }
+    const startNum = Number(start);
+    const endNum = Number(end);
+    if (startNum < 0 || endNum > duration || startNum >= endNum) {
+        res.message = "Invalid trim values";
+        return res;
+    }
+    if(startNum === 0 && endNum === duration){
+      return res;
+    }
+    res.status = true;
+    return res;
   }
 
-  const trimTimeChange = (e: any) => {
-    let value = parseInt(e.target.value) || 0;
-    if(value < 0){
-      value = 0;
-    }
-    const inputClass = e.target.classList.contains('start-time') ? 'start' : 'end';
-    if (inputClass == 'start') {
-      setTrimStartTime(value.toString());
-    } else {
-      setTrimEndTime(value.toString());
+  const onSaveButtonClick = async () => {
+    console.log("sendAPIRequest")
+
+    const headers = {
+      'Content-Type': 'application/json',
+      token: `${localStorage['ng_token']}`,
     }
 
-    if (value < 0 || value > endTime) {
-      e?.target?.classList?.add('error-input');
-    } else {
-      e?.target?.classList?.remove('error-input');
+    const payload:any = {
+      "videoId": videoInfo.videoId,
     }
-  }
 
+    if(title !== videoInfo.title)
+      payload["title"] = title;
 
-  const trimTimeChangeOnBlur = (e: any) => {
-    let value = parseInt(e.target.value);
-    const inputClass = e.target.classList.contains('start-time') ? 'start' : 'end';
-    if (inputClass == 'start') {
-      value = value || 0;
-      if(value >= duration){
-        value = duration - 1;
+    if (isTrimActive) {
+      const trimValidation = validateTrimTimes(trimStartTime, trimEndTime);
+      if(trimValidation.status) {
+        payload["trim"] = {
+          start: Math.floor(trimStartTime),
+          end: Math.floor(trimEndTime)
+        }
       }
-      if(endTime <= value){
-        setStartTime(value);
-        setEndTime(value + 1);
-      }else{
-        setStartTime(value);
+      else if(trimValidation.message) 
+        toast.error(trimValidation.message);
+    }
+
+    if (isCropActive) {
+      const cropper = document.querySelector(".draggable");
+      console.log(cropper)
+      if(!cropper) return;
+      payload["crop"] = {
+        x1: Math.floor(left),
+        y1: Math.floor(top),
+        x2: Math.floor(left + cropper.clientWidth),
+        y2: Math.floor(top + cropper.clientHeight),
       }
-    } else {
-      value = value || duration;
-      if(value >= duration){
-        value = duration;
-      }
-      if(startTime >= value){
-        setStartTime(value - 1);
-        setEndTime(value);
-      }else{
-        setEndTime(value);
-      }
+    }
+
+    if(payload["trim"] || payload["crop"]) {
+      const loadingToast = toast.loading("editing video");
+      fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/process`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(payload)
+      })
+      .then(response => { 
+        if(response.status === 401) {
+          localStorage.removeItem('ng_token');
+          toast.remove(loadingToast);
+          toast.error("Unauthorized. Please login again.");
+        }
+        else if(response.status >= 400) {
+          toast.remove(loadingToast);
+          toast.error("Error while editing video");
+        }
+        return response.json()
+      })
+      .then(data => {
+        console.log(data)
+        const newVideoId = data.new_video_id;
+        let t = 0;
+        const timer = setInterval(() => {
+          if(t > 180) {
+            clearInterval(timer);
+            toast.remove(loadingToast);
+            toast.error("Error while editing video");
+            return;
+          }
+          const videoStatusCheckUrl = `${import.meta.env.VITE_BACKEND_HOST}/video/info?videoId=${newVideoId}`;
+          fetch(videoStatusCheckUrl)
+          .then((res) => {
+            if(res.status === 200) {
+              clearInterval(timer);
+              toast.remove(loadingToast);
+              toast.success("Video edited successfully");
+              const currentPageUrl = window.location.href;
+              const newUrl = currentPageUrl.replace(videoInfo.videoId, newVideoId);
+              setTimeout(() => {
+                window.location.href = newUrl;
+              }, 3*1000);
+            }
+          });
+          t = t + 30;
+        }, 30*1000)
+      })
+      .catch((error) => {
+        toast.remove(loadingToast);
+        toast.error("Error adding video to queue");
+        console.error('Error:', error);
+      });
+    }
+    else if(payload["title"]) {
+      const loadingToast = toast.loading("updating title");
+      fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/title`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(payload)
+      })
+      .then(response => { 
+        toast.remove(loadingToast);
+        if(response.status === 200) {
+          toast.success("Title Updated");
+          setVideoInfo({...videoInfo, title: title});
+        }
+        else if(response.status === 401) {
+          localStorage.removeItem('ng_token');
+          toast.error("Unauthorized. Please login again.");
+        }
+        else {
+          toast.error("Error while updating title");
+        }
+        return response.json()
+      })
+      .then(data => {
+        console.log(data)
+      })
+      .catch((error) => {
+        toast.error("Error while updating title");
+        console.error('Error:', error);
+      });
     }
   }
 
-  const handleChange = (e: any) => {
-    const inputClass = e.target.classList.contains('start-time') ? 'start' : 'end';
-    if (inputClass == 'start') {
-      setStartTime(e.target.value);
-    } else {
-      setEndTime(e.target.value);
-    }
+  const onTrimButtonClick: ReactEventHandler = () => { 
+    setIsTrimActive(!isTrimActive);
   }
 
-  const toggleOptions = async (e: any) => {
-    const toggleButton = e.target;
-    toggleButton.closest('.action-buttons').querySelector('.options-wrapper').classList.toggle('hide');
-    if (loggedIn) {
-      setSaveBtnActive('');
-    }
-  }
-
-  const sendAPIRequest = async () => {
-    if (cropSelectedValue == '' && endTime && endTime > duration) {
-      document.querySelector('input.end-time')?.classList.add('error-input');
+  const onCropButtonClick: ReactEventHandler = () => { 
+    if(!isCropActive) {
+      setIsCropActive(true);
+      setAspectRatio(aspectRatio ?? '9/16');
       return;
     }
-    if (saveBtnActive == '' && (cropSelectedValue != '' || endTime && endTime != 0)) {
-      let searchParams = new URLSearchParams(location.search);
-      let payload = {};
-      if (cropSelectedValue != '' && endTime != 0) {
-        payload = {
-          "title": document.querySelector('.video-title')?.innerHTML.trim(),
-          "videoId": searchParams.get('videoId') || 'rhjij8mlboksww',
-          "trim": { "start": startTime, "end": endTime },
-          "crop": {
-            "x1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().left,
-            "y1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().top,
-            "x2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().right,
-            "y2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().bottom
-          }
-        }
-      } else if (cropSelectedValue != '') {
-        payload = {
-          "title": document.querySelector('.video-title')?.innerHTML.trim(),
-          "videoId": searchParams.get('videoId') || 'rhjij8mlboksww',
-          "crop": {
-            "x1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().left,
-            "y1": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().top,
-            "x2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().right,
-            "y2": document.querySelector('.crop-wrapper-video')?.getBoundingClientRect().bottom
-          }
-        }
-        console.log('payload', payload);
-      } else {
-        payload = {
-          "title": document.querySelector('.video-title')?.innerHTML.trim(),
-          "videoId": searchParams.get('videoId') || 'rhjij8mlboksww',
-          "trim": { "start": startTime, "end": endTime },
-        }
-        // setStartTime('');
-        // setEndTime('');
-        console.log('payload', payload);
-      }
-
-      if (payload && Object.keys(payload).length > 0) {
-        await axios
-          .post(`${import.meta.env.VITE_VIDEO_PROCESS}/video/process`, payload, {
-            headers: {
-              'Content-Type': 'application/json',
-              token: `${localStorage['ng_token']}`,
-            },
-          })
-          .then(function (res: any) {
-            if (res && res.status === 200) {
-              // localStorage.setItem('ng_token', res.token);
-              console.log('res', res);
-              setVideoID('');
-            }
-          })
-          .catch((err: any) => {
-            console.log('err', err);
-            // console.log('signup not possible -- error 401');
-          });
-      }
-    }
+    setIsCropActive(false);
   }
+
+  const handleAspectRatioChange = (cropRatio: string) => {
+    setAspectRatio(cropRatio);
+  }
+
+  const resetOptions = () => {
+    setStartTime(0);
+    setEndTime(duration);
+    setAspectRatio('');
+    setTitle(videoInfo.title);
+    setIsTrimActive(false);
+    setIsCropActive(false);
+  }
+
+  const handlePLayClick: ReactEventHandler = () => {
+    if (playing) {
+      streamRef.current?.pause();
+      return;
+    }
+    streamRef.current?.play();
+  }
+
+  const isSaveAllowed = isCropActive || isTrimActive || title !== videoInfo.title;
+
   return (
-    <VideoControlsWrapper className="flex">
-      <div className="play-trim-crop-options flex">
-        <button className="play-btn ">
-          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none" className={`${playing ? 'hide' : ''}`} onClick={() => { streamRef.current.play(); }}>
-            <rect width="36" height="36" rx="8" fill="#FAFAFB" />
-            <path d="M28.25 17.567C28.5833 17.7594 28.5833 18.2406 28.25 18.433L13.25 27.0933C12.9167 27.2857 12.5 27.0452 12.5 26.6603L12.5 9.33975C12.5 8.95485 12.9167 8.71428 13.25 8.90673L28.25 17.567Z" fill="#FF42A5" stroke="white" />
-          </svg>
-          <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="36" height="36" viewBox="0 0 36 36" fill="none" className={`${playing ? '' : 'hide'}`} onClick={() => { streamRef.current.pause(); }}>
-            <rect width="36" height="36" rx="8" fill="#FAFAFB" />
-            <g transform='translate(6, 6)'>
-              <path fill="#fe42a4" d="M 2.5,2.5 C 4.83333,2.5 7.16667,2.5 9.5,2.5C 9.5,8.5 9.5,14.5 9.5,20.5C 7.16667,20.5 4.83333,20.5 2.5,20.5C 2.5,14.5 2.5,8.5 2.5,2.5 Z" />
-              <path fill="#fe42a4" d="M 13.5,2.5 C 15.8333,2.5 18.1667,2.5 20.5,2.5C 20.5,8.5 20.5,14.5 20.5,20.5C 18.1667,20.5 15.8333,20.5 13.5,20.5C 13.5,14.5 13.5,8.5 13.5,2.5 Z" />
-            </g>
-          </svg>
-        </button>
-        <div className="trim-action flex action-buttons">
-          <button className="trim-btn flex" onClick={(e) => { toggleOptions(e) }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-              <path fillRule="evenodd" clipRule="evenodd" d="M14.6219 11.1515C14.4962 11.4617 14.1428 11.6112 13.8326 11.4855L8.09396 9.1483L5.5738 10.17C6.30567 10.6591 6.78767 11.4928 6.78767 12.4391C6.78767 13.9453 5.56659 15.1663 4.06042 15.1663C2.55419 15.1663 1.33317 13.9453 1.33317 12.4391C1.33317 11.4935 1.81438 10.6603 2.54528 10.1711C2.68892 10.075 2.84219 9.99211 3.00334 9.92429L6.50131 8.4997L3.00334 7.07508C2.84219 7.00725 2.68892 6.92438 2.54528 6.82823C1.81438 6.33898 1.33317 5.50581 1.33317 4.56024C1.33317 3.05403 2.55419 1.83301 4.06042 1.83301C5.56659 1.83301 6.78767 3.05403 6.78767 4.56024C6.78767 5.50656 6.30567 6.3403 5.5738 6.82939L8.09396 7.85105L13.8326 5.5139C14.1428 5.38814 14.4962 5.53765 14.6219 5.84785C14.7477 6.15804 14.5982 6.51145 14.288 6.6372L9.69386 8.4997L14.288 10.3622C14.5982 10.4879 14.7477 10.8413 14.6219 11.1515ZM4.06042 3.04511C4.8972 3.04511 5.57556 3.72346 5.57556 4.56024C5.57556 5.39703 4.8972 6.07537 4.06042 6.07537C3.22358 6.07537 2.54528 5.39703 2.54528 4.56024C2.54528 3.72346 3.22358 3.04511 4.06042 3.04511ZM4.06042 13.9542C4.8972 13.9542 5.57556 13.2759 5.57556 12.4391C5.57556 11.6023 4.8972 10.924 4.06042 10.924C3.22358 10.924 2.54528 11.6023 2.54528 12.4391C2.54528 13.2759 3.22358 13.9542 4.06042 13.9542Z" fill="#FF42A5" />
-            </svg>
-            Trim
+    <>
+      <VideoTimeline isTrimActive={isTrimActive} setIsTrimActive={setIsTrimActive} url={videoUrl} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} playPointer={playPointer} thumbnails={thumbnails} />
+      <VideoControlsWrapper className="flex pt-2 pb-4">
+        <div className="flex gap-4 items-center">
+          <button className="h-9 w-9" onClick={handlePLayClick}>
+            {playing ? <IconPause /> : <IconPlay />}
           </button>
-          <div className="trim-options flex options-wrapper hide">
-            <div className="padding-wrapper flex">
-              <span className="span-time flex">
-                Start Time
-                <input id="trim-start-time" className="start-time input-time" value={trimStartTime} min={0} max={duration} placeholder="0 sec" type="number" onChange={(e) => { trimTimeChange(e) }} onBlur={(e) => { trimTimeChangeOnBlur(e) }} />
-                <input hidden={true} className="start-time input-time" value={startTime} min={0} max={duration} placeholder="0 sec" type="number" onChange={(e) => { handleChange(e) }} />
-              </span>
-              <span className="span-time flex">
-                End Time
-                <input id="trim-end-time" className="end-time input-time" value={trimEndTime} min={0} max={duration} placeholder="0 sec" type="number" onChange={(e) => { trimTimeChange(e) }} onBlur={(e) => { trimTimeChangeOnBlur(e) }} />
-                <input hidden={true} className="end-time input-time" value={endTime} min={0} max={duration} placeholder={`${duration} sec`} type="number" onChange={(e) => { handleChange(e) }} />
-              </span>
-            </div>
+          <Divider />
+          <div className="flex gap-3">
+              <EditOptionButton onClick={onTrimButtonClick} isActive={isTrimActive}>
+                <IconTrim />
+                Trim
+              </EditOptionButton>
+            {isTrimActive && <div className="flex justify-center items-center gap-4 pl-2 pr-1 h-10 rounded-lg bg-additional-link">
+                <div className=' flex justify-center items-center gap-1'>
+                  <span className="text-xs text-white">Start Time</span>
+                  <input 
+                    className="bg-white appearance-none py-1.5 px-3 rounded-md text-sm text-black placeholder:text-base-100 max-w-[8ch] outline-none"
+                    value={trimStartTime} 
+                    placeholder="0 sec" 
+                    onChange={(e) => setTrimStartTime(e.target.value)} 
+                  />
+                </div>
+                <div className='flex justify-center items-center gap-1'>
+                  <span className="text-xs text-white">End Time</span>
+                  <input 
+                    className="bg-white appearance-none py-1.5 px-3 rounded-md text-sm text-black  placeholder:text-base-100 max-w-[8ch] outline-none" 
+                    value={trimEndTime}
+                    placeholder={`${duration} sec`} 
+                    onChange={(e) => setTrimEndTime(e.target.value)} />
+                </div>
+            </div>}
+          </div>
+          <div className="flex gap-3">
+              <EditOptionButton onClick={onCropButtonClick} isActive={isCropActive}>
+                <IconCrop />
+                Crop
+              </EditOptionButton>
+            {isCropActive && <CropOptions onOptionClick={handleAspectRatioChange} aspectRatio={aspectRatio}  />}
           </div>
         </div>
-        <div className="crop-action flex action-buttons">
-          <button className="crop-btn flex" onClick={(e) => { toggleOptions(e) }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-              <g clipPath="url(#clip0_176_25447)">
-                <path d="M3.33333 1.5V13.1667H15M1 3.83333H12.6667V15.5" stroke="#FF42A5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
-              </g>
-              <defs>
-                <clipPath id="clip0_176_25447">
-                  <rect width="16" height="16" fill="white" transform="translate(0 0.5)" />
-                </clipPath>
-              </defs>
-            </svg>
-            Crop
-          </button>
-          <div className="crop-options flex options-wrapper hide">
-            <div className="padding-wrapper flex">
-              <span className="input-crop" data-option="" onClick={(e) => { showAspectWrapper(e) }}>Original</span>
-              <span className="input-crop" data-option="1/1" onClick={(e) => { showAspectWrapper(e) }}>1:1</span>
-              <span className="input-crop" data-option="9/16" onClick={(e) => { showAspectWrapper(e) }}>9:16</span>
-              <span className="input-crop" data-option="3/4" onClick={(e) => { showAspectWrapper(e) }}>3:4</span>
-              <span className="input-crop" data-option="4/3" onClick={(e) => { showAspectWrapper(e) }}>4:3</span>
-            </div>
-          </div>
+        <div className="reset-save-options flex">
+          <EditOptionButton onClick={resetOptions}>
+            <IconReset />
+            Reset
+          </EditOptionButton>
+          <Save onClick={onSaveButtonClick} isActive={isSaveAllowed} />
         </div>
-      </div>
-      <div className="reset-save-options flex">
-        <button className={`reset-btn flex`}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-            <path fillRule="evenodd" clipRule="evenodd" d="M6.00173 6V2C6.00173 1.72386 5.77788 1.5 5.50173 1.5H1.50173C1.22559 1.5 1.00173 1.72386 1.00173 2C1.00173 2.27614 1.22559 2.5 1.50173 2.5H4.39622C2.89613 3.40123 1.7291 4.86389 1.24026 6.68829C0.239664 10.4226 2.45574 14.2609 6.19 15.2615C9.92427 16.2621 13.7626 14.046 14.7632 10.3118C15.7638 6.5775 13.5477 2.73914 9.81347 1.73855C9.54674 1.66707 9.27257 1.82537 9.2011 2.0921C9.12963 2.35883 9.28792 2.633 9.55465 2.70447C12.7554 3.56212 14.6549 6.85214 13.7973 10.0529C12.9396 13.2537 9.64962 15.1532 6.44882 14.2956C3.24803 13.4379 1.34853 10.1479 2.20618 6.94711C2.62935 5.36782 3.64383 4.10597 4.94884 3.33477C4.96746 3.32377 4.9851 3.31175 5.00173 3.29883V6C5.00173 6.27614 5.22559 6.5 5.50173 6.5C5.77788 6.5 6.00173 6.27614 6.00173 6ZM5.00173 2.5097V2.5H4.98884C4.99318 2.50316 4.99748 2.5064 5.00173 2.5097Z" fill="#FF42A5" />
-          </svg>
-          Reset
-        </button>
-        <button className={`save-btn flex ${saveBtnActive}`} onClick={sendAPIRequest}>
-          Save
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path fillRule="evenodd" clipRule="evenodd" d="M3.64645 5.64645C3.84171 5.45118 4.15829 5.45118 4.35355 5.64645L8 9.29289L11.6464 5.64645C11.8417 5.45118 12.1583 5.45118 12.3536 5.64645C12.5488 5.84171 12.5488 6.15829 12.3536 6.35355L8.35355 10.3536C8.15829 10.5488 7.84171 10.5488 7.64645 10.3536L3.64645 6.35355C3.45118 6.15829 3.45118 5.84171 3.64645 5.64645Z" fill="white" fillOpacity="0.5" />
-          </svg>
-        </button>
-      </div>
-    </VideoControlsWrapper >
+      </VideoControlsWrapper >
+    </>
   );
 };
 

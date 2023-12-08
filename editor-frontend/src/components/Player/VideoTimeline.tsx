@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import InputSlider from './InputSlider';
 
 type VideoProps = {
   url: string,
   startTime: number,
-  endTime: number | undefined,
-  duration: number | undefined,
+  endTime: number,
+  duration: number,
   setStartTime: any,
   setEndTime: any,
-  palyPointer: number,
+  playPointer: number,
+  thumbnails: string[]
+  isTrimActive: boolean,
+  setIsTrimActive: React.Dispatch<React.SetStateAction<boolean>>,
 };
 
 const VideoTimelineWrapper = styled.div`
@@ -46,22 +49,29 @@ const VideoTimelineWrapper = styled.div`
     border-left: 4px solid #ff0381b5;
   }
 `
-const VideoTimeline = ({ url, startTime, endTime, setStartTime, setEndTime, duration = 1, palyPointer}: VideoProps) => {
+const VideoTimeline = ({ url, startTime, endTime, setStartTime, setEndTime, duration = 1, playPointer, thumbnails, isTrimActive, setIsTrimActive}: VideoProps) => {
   const [video, setVideo] = useState('');
 
   useEffect(() => {
     setVideo(url);
     // generateTimeline();
-  }, [])
+  }, [url])
 
   return (
-    <VideoTimelineWrapper className="VideoTimeline" data-video={video}>
-      <div className="frames-container flex bg-color">
-      <span className='play-pointer' style={{left: `${(100 * palyPointer) /duration}%`}}></span>
-
-      </div>
+    <VideoTimelineWrapper className="VideoTimeline relative mt-2" data-video={video}>
+      {thumbnails.length > 0 && (
+        <div className='flex w-full frames-container'>
+          {thumbnails.map((thumbnail, index) => (
+            <img style={{width: `${100 / thumbnails.length}%`}} key={index} src={thumbnail} alt="" />
+          ))}
+        </div>
+      )}
       <div className="slider-container">
-        <InputSlider setStartTime={setStartTime} setEndTime={setEndTime} minVal={startTime} maxVal={endTime} duration={duration} />
+        <InputSlider setStartTime={setStartTime} setEndTime={setEndTime} minVal={startTime} maxVal={endTime} duration={duration} isTrimActive={isTrimActive} setIsTrimActive={setIsTrimActive}  />
+      </div>
+      <div className='progress-div bg-transparent absolute bottom-0 h-1 w-full z-10'>
+          <div className='progress-done bg-accent h-full' style={{width: `${(playPointer / duration) * 100}%`}}></div>
+          <div className='progress-left bg-transparent h-full' style={{width: `${((duration - playPointer) / duration) * 100}%`}}></div>
       </div>
     </VideoTimelineWrapper>
   );

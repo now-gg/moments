@@ -4,3 +4,8 @@ export { IconDownload } from "./IconDownload";
 export { IconEdit } from "./IconEdit";
 export { IconProductLogo } from "./IconProductLogo";
 export { IconTrash } from "./IconTrash";
+export { IconCrop } from "./IconCrop";
+export { IconTrim } from "./IconTrim";
+export { IconPlay } from "./IconPlay";
+export { IconPause } from "./IconPause";
+export { IconReset } from "./IconReset";
