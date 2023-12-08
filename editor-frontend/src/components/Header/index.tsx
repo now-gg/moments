@@ -147,7 +147,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
   }
 
   const handleBackClick = () => {
-    window.history.go(-1);
+    window.location.href = `${import.meta.env.VITE_VIDEO_BASE}/videos/watch/${videoInfo?.videoId}`;
   }
 
 
