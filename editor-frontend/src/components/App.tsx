@@ -3,12 +3,14 @@ import Header from "./Header"
 import LoginPopup from "./LoginPopup/index";
 import Player from "./Player";
 import {Toaster, toast} from "react-hot-toast"
+import Page404 from "./Page404";
 
 export default function App() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [videoInfo, setVideoInfo] = useState({});
   const [title, setTitle] = useState('');
+  const [show404, setShow404] = useState(false);
 
   const fetchVideo = () => {
     const headers = new Headers();
@@ -21,14 +23,14 @@ export default function App() {
     fetch(videoInfoUrl)
       .then((res) => {
         if(res.status == 404) {
-          toast.error('Video not found');
+          setShow404(true);
         }
          return res.json()
       })
       .then((data) => {
         console.log(data);
         if(data?.status === 'FailureVideoNotExist') {
-          toast.error('Video not found');
+          setShow404(true);
           return;
         }
         setVideoInfo(data?.video);
@@ -52,6 +54,7 @@ export default function App() {
           <Player loggedIn={loggedIn} videoInfo={videoInfo} setVideoInfo={setVideoInfo} title={title} setTitle={setTitle}  />
       </div>
       {showLoginPopup && <LoginPopup closePopup={() => setShowLoginPopup(false)} />}
+      {show404 && <Page404 />}
     </div>
   )
 }
