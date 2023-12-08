@@ -190,6 +190,12 @@
                     cloud_host = paramsObj["cloud_host"];
                     delete paramsObj["cloud_host"];
                 }
+                let signinSource = "nowgg_sign_in"
+                if (paramsObj.hasOwnProperty("guestSid")) {
+                    cloud_host = paramsObj["guestSid"];
+                    delete paramsObj["guestSid"];
+                    signinSource = "linked_account"
+                }
                 var formData;
                 if (cloud_host) {
                     formData = new FormData();
@@ -198,6 +204,7 @@
                     });
                     formData.set("event_type", "moments_signin_page_completed");
                     formData.set("tag", "moments");
+                    formData.set("arg2", signinSource);
                     sendStats(cloud_host, formData);
                 }
 
