@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Header from "./Header"
 import LoginPopup from "./LoginPopup/index";
 import Player from "./Player";
-import {Toaster, toast} from "react-hot-toast"
+import {Toaster} from "react-hot-toast"
 import Page404 from "./Page404";
 
 export default function App() {
