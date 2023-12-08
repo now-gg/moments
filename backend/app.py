@@ -30,7 +30,6 @@ def home():
     return "Moments backend"
 
 
-
 @app.route("/video/process", methods=["POST"])
 def process():
     try:
@@ -42,6 +41,10 @@ def process():
         auth_token = request.headers.get("token")
 
         logging.info(f'video edit request for {video_id}')
+
+        video_cache_key = f'moments-editor-video-{video_id}'
+        if redis_client.get(video_cache_key):
+            return jsonify({"status": "error", "message": f'Video with id {video_id} is already being processed'}), 400
 
         try:
             video_info = get_video_info(video_id)
@@ -78,6 +81,7 @@ def process():
             "new_video_id": new_video_id
         }
         logging.info(f'message to be published: {message}')
+        redis_client.set(video_cache_key, "processing")
         publish_message(json.dumps(message))
         return jsonify({"status": "success", "message": "Video processing started", "new_video_id": new_video_id}), 200
 
@@ -163,67 +167,82 @@ def info():
 
 
 def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_url, new_video_id):
-    request_init_time = time.time()
+    try:
+        request_init_time = time.time()
+        video_cache_key = f'moments-editor-video-{video_id}'
+        stream = ffmpeg.input(input_video_url)
 
-    stream = ffmpeg.input(input_video_url)
+        if trim:
+            trim_start = int(float(trim.get("start", "0")))
+            trim_end = int(float(trim.get("end", "1")))
+            # validate input
+            stream = ffmpeg.trim(stream, start=trim_start, end=trim_end)
 
-    if trim:
-        trim_start = int(float(trim.get("start", "0")))
-        trim_end = int(float(trim.get("end", "1")))
-        # validate input
-        stream = ffmpeg.trim(stream, start=trim_start, end=trim_end)
+        if crop:
+            x1 = int(float(crop["x1"]))
+            y1 = int(float(crop["y1"]))
+            x2 = int(float(crop["x2"]))
+            y2 = int(float(crop["y2"]))
+            width = x2 - x1
+            height = y2 - y1
+            # validate input
+            stream = ffmpeg.crop(stream, x1, y1, width, height)
 
-    if crop:
-        x1 = int(float(crop["x1"]))
-        y1 = int(float(crop["y1"]))
-        x2 = int(float(crop["x2"]))
-        y2 = int(float(crop["y2"]))
-        width = x2 - x1
-        height = y2 - y1
-        # validate input
-        stream = ffmpeg.crop(stream, x1, y1, width, height)
+        # write clip to a temp file
+        with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
+            try:
+                stream = ffmpeg.filter(stream, 'scale', 1280, -1)
+                stream = ffmpeg.filter(stream, 'pad', 'ceil(iw/2)*2', 'ceil(ih/2)*2')
+                stream = ffmpeg.output(stream, temp_file.name, loglevel="error")
+                stream = ffmpeg.overwrite_output(stream)
+                ffmpeg.run(stream)
+            except ffmpeg.Error as e:
+                redis_client.delete(video_cache_key)
+                logging.error(e.stderr)
+                return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
+            except Exception as e:
+                redis_client.delete(video_cache_key)
+                logging.error(e)
+                return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
+            logging.info("clip written to temp file")
+            temp_file.seek(0)
+            upload_res = upload_video(temp_file.name, title, upload_url)
+            temp_file.close()
+            del temp_file
+        
 
-    # write clip to a temp file
-    with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
-        try:
-            stream = ffmpeg.filter(stream, 'scale', 1280, -1)
-            stream = ffmpeg.output(stream, temp_file.name, loglevel="quiet")
-            stream = ffmpeg.overwrite_output(stream)
-            ffmpeg.run(stream)
-        except ffmpeg.Error as e:
-            logging.debug(e.stderr.decode())
-            return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
-        except Exception as e:
-            logging.error(e)
-            return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
-        logging.info("clip written to temp file")
-        temp_file.seek(0)
-        upload_res = upload_video(temp_file.name, title, upload_url)
-        temp_file.close()
-        del temp_file
+        if upload_res.status_code != 200:
+            redis_client.delete(video_cache_key)
+            logging.error("error while uploading video", upload_res.json())
+            return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
+
+        delete_res = delete_video(video_id, auth_token)
+        if delete_res.status_code != 200:
+            redis_client.delete(video_cache_key)
+            logging.error("error while deleting old video", delete_res.json())
+            return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
+
+        data_for_bq = {
+            "arg1": video_id,
+            "arg2": new_video_id,
+            "arg3": time.time() - request_init_time
+        }
+        send_stat_to_bq("video_edit_processed", data_for_bq)
+
+        res_dict = {
+            "status": "success",
+            "message": "Video processed successfully"
+        }
+
+        redis_client.delete(video_cache_key)
+
+        logging.info(f'response to be sent: {res_dict}')
+        return jsonify(res_dict), 200
     
-
-    if upload_res.status_code != 200:
-        return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
-
-    delete_res = delete_video(video_id, auth_token)
-    if delete_res.status_code != 200:
-        return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
-
-    data_for_bq = {
-        "arg1": video_id,
-        "arg2": new_video_id,
-        "arg3": time.time() - request_init_time
-    }
-    send_stat_to_bq("video_edit_processed", data_for_bq)
-
-    res_dict = {
-        "status": "success",
-        "message": "Video processed successfully"
-    }
-
-    logging.info(f'response to be sent: {res_dict}')
-    return jsonify(res_dict), 200
+    except Exception as e:
+        redis_client.delete(video_cache_key)
+        logging.error(e)
+        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
 
 def pull_message_callback(message):
@@ -240,7 +259,7 @@ def pull_message_callback(message):
         new_video_id = message["new_video_id"]
         with app.app_context():
             res = edit_video(video_id, title, trim, crop, auth_token, video_url, upload_url, new_video_id)
-        logging.info(f'response from edit_video async: {res}')
+            logging.info(f'response from edit_video async: {res.json()}')
     except Exception as e:
         logging.error(e)
     logging.info('Message processed: {}'.format(message))
@@ -255,17 +274,16 @@ def pull_messages():
             if res.received_messages:
                 for received_message in res.received_messages:
                     message = received_message.message
-                    redis_key = f'moments-editor-{message.message_id}'
-                    if redis_client.get(redis_key):
+                    message_cache_key = f'moments-editor-message-{message.message_id}'
+                    if redis_client.get(message_cache_key):
                         logging.info(f'message {message.data} with id {message.message_id} already processed')
                         break
-                    redis_client.set(redis_key, 1)
+                    redis_client.set(message_cache_key, 1)
                     subscriber.acknowledge(subscription=subscription_path, ack_ids=[received_message.ack_id])
                     pull_message_callback(message.data)
                 time.sleep(1)
             else:
-                logging.info("no messages received")
-                time.sleep(30)
+                time.sleep(15)
     except Exception as e:
         logging.error(e)
 
