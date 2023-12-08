@@ -30,63 +30,6 @@ def home():
     return "Moments backend"
 
 
-@app.route("/video/upload", methods=["POST"])
-def upload():
-    try:
-        body = request.get_json()
-        auth_token = request.headers.get("token")
-        video_url = body["video_url"]
-        video_url_2 = body.get("video_url_2")
-        video_id = body["video_id"]
-
-        logging.info("request to upload video")
-
-        video_info = get_video_info(video_id)
-        create_video_res = create_video(video_url, auth_token, video_info)
-        if create_video_res.status_code != 200:
-            return jsonify({"status": "error", "message": f'Error in creating video on nowgg'}), 500
-        create_video_res = create_video_res.json()
-        upload_url, new_video_id = create_video_res["uploadUrl"], create_video_res["videoId"]
-
-        stream = ffmpeg.input(video_url)
-        if video_url_2:
-            stream_2 = ffmpeg.input(video_url_2)
-            stream = ffmpeg.concat(stream, stream_2)
-            
-        with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
-            try:
-                stream = ffmpeg.output(stream, temp_file.name)
-                stream = ffmpeg.overwrite_output(stream)
-                ffmpeg.run(stream)
-            except Exception as e:
-                logging.error(e)
-                return jsonify({"status": "error", "message": f'Error in running ffmpeg'}), 500 
-
-            temp_file.seek(0)
-            upload_res = upload_video(temp_file.name, new_video_id, upload_url)
-            temp_file.close()
-            del temp_file
-
-        if upload_res.status_code != 200:
-            return jsonify({"status": "error", "message": f'Error in uploading video'}), 500
-        
-        return jsonify({"status": "success", "message": "Video uploaded successfully", "new_video_id": new_video_id}), 200
-    
-    except Exception as e:
-        logging.error(e)
-        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
-        
-
-
-
-    except Exception as e:
-        logging.error(e)
-        if isinstance(e, KeyError):
-            return jsonify({"status": "error", "message": f'Key {e} missing from request body'}), 400
-        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
-
-
-
 @app.route("/video/process", methods=["POST"])
 def process():
     try:
