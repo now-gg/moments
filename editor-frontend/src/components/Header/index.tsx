@@ -166,7 +166,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
 
           <input 
             disabled={!allowTitleEdit} 
-            className='text-xl font-semibold text-base-900 bg-gray-100 px-1 rounded-md disabled:bg-transparent outline-none' 
+            className='text-xl font-semibold text-base-900 bg-gray-100 h-9 px-1 rounded-md disabled:bg-transparent outline-none' 
             value={title} 
             onChange={(e) => {setTitle(e.target.value)}} 
             onBlur={() => setAllowTitleEdit(false)}
