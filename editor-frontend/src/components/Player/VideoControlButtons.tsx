@@ -265,7 +265,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
     if(payload["trim"] || payload["crop"]) {
       payload["title"] = title;
-      const loadingToast = toast.loading("editing video");
+      const loadingToast = toast.loading("Editing your video, please wait");
       setShowEditingOverlay(true);
       fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/process`, {
         method: 'POST',
@@ -281,7 +281,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
         }
         else if(response.status >= 400) {
           toast.remove(loadingToast);
-          toast.error("Error while editing video");
+          toast.error("Error while editing the video");
           setShowEditingOverlay(false);
         }
         return response.json()
@@ -294,7 +294,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
           if(t > 180) {
             clearInterval(timer);
             toast.remove(loadingToast);
-            toast.error("Error while editing video");
+            toast.error("Error while editing the video");
             setShowEditingOverlay(false);
             return;
           }
@@ -327,7 +327,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
             else if(data.status === "failed") {
               clearInterval(timer);
               toast.remove(loadingToast);
-              toast.error("Error while editing video");
+              toast.error("Error while editing the video");
               setShowEditingOverlay(false);
             }
           })
@@ -339,13 +339,13 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
       })
       .catch((error) => {
         toast.remove(loadingToast);
-        toast.error("Error adding video to queue");
+        toast.error("Error while editing the video");
         console.error('Error:', error);
         setShowEditingOverlay(false);
       });
     }
     else if(payload["title"]) {
-      const loadingToast = toast.loading("updating title");
+      const loadingToast = toast.loading("Updating title");
       fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/title`, {
         method: 'POST',
         headers: headers,
@@ -354,7 +354,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
       .then(response => { 
         toast.remove(loadingToast);
         if(response.status === 200) {
-          toast.success("Title Updated");
+          toast.success("Title updated successfully");
           setVideoInfo({...videoInfo, title: title});
         }
         else if(response.status === 401) {
@@ -362,7 +362,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
           toast.error("Unauthorized. Please login again.");
         }
         else {
-          toast.error("Error while updating title");
+          toast.error("Error while updating the title");
         }
         return response.json()
       })
@@ -370,7 +370,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
         console.log(data)
       })
       .catch((error) => {
-        toast.error("Error while updating title");
+        toast.error("Error while updating the title");
         console.error('Error:', error);
       });
     }

@@ -145,7 +145,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
     })
     .catch(err => {
       console.error(err);
-      toast.error('Could not delete video');
+      toast.error('Unable to delete video');
     })
   }
 
