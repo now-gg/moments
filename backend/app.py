@@ -185,7 +185,7 @@ def status():
             if video_info:
                 res_status = "success"
             else:
-                res_status = "processing"
+                res_status = "processedButNotPublishedYet"
         elif video_status == "processing":
             res_status = "processing"            
         elif video_status == "failed":
