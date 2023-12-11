@@ -197,7 +197,24 @@ def status():
     except Exception as e:
         logging.error(e)
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
-    
+
+
+@app.route("/video/stat", methods=["POST"])
+def stat():
+    try:
+        body = request.get_json()
+        event = body["event"]
+        data = body["data"]
+        logging.info(f'video stat request for {event} with data {data} of type {type(data)}')
+        send_stat_to_bq(event, data)
+        return jsonify({
+            "status": "success",
+            "message": "Video stat submitted",
+        }), 201
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
+
 
 def edit_video(request_id, video_id, title, trim, crop, auth_token, input_video_url, upload_url, new_video_id):
     try:
