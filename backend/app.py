@@ -272,15 +272,15 @@ def edit_video(request_id, video_id, title, trim, crop, auth_token, input_video_
             return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
 
 
-        delete_res = delete_video(video_id, auth_token)
-        time_log["deleting"] = time.time() - request_init_time - time_log["editing"] - time_log["uploading"]
-        if delete_res.status_code != 200:
-            redis_client.set(video_cache_key, "failed", xx=True)
-            data_for_bq["arg4"] = "failed"
-            data_for_bq["arg5"] = json.dumps(time_log)
-            send_stat_to_bq("video_edit_processed", data_for_bq)
-            logging.error("error while deleting old video", delete_res.json())
-            return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
+        # delete_res = delete_video(video_id, auth_token)
+        # time_log["deleting"] = time.time() - request_init_time - time_log["editing"] - time_log["uploading"]
+        # if delete_res.status_code != 200:
+        #     redis_client.set(video_cache_key, "failed", xx=True)
+        #     data_for_bq["arg4"] = "failed"
+        #     data_for_bq["arg5"] = json.dumps(time_log)
+        #     send_stat_to_bq("video_edit_processed", data_for_bq)
+        #     logging.error("error while deleting old video", delete_res.json())
+        #     return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
 
         time_log["total"] = time.time() - request_init_time
         data_for_bq["arg4"] = "success"
