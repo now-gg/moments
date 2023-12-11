@@ -294,10 +294,22 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
             setShowEditingOverlay(false);
             return;
           }
-          const videoStatusCheckUrl = `${import.meta.env.VITE_BACKEND_HOST}/video/info?videoId=${newVideoId}`;
-          fetch(videoStatusCheckUrl)
-          .then((res) => {
-            if(res.status === 200) {
+          const videoStatusCheckUrl = `${import.meta.env.VITE_BACKEND_HOST}/video/status`;
+          const statusPayload = {
+            "oldVideoId": videoInfo.videoId,
+            "newVideoId": newVideoId
+          }
+          fetch(videoStatusCheckUrl, {
+            method: 'POST',
+            body: JSON.stringify(statusPayload)
+          })
+          .then(response => {
+            console.log(response)
+            return response.json()
+          })
+          .then(data => {
+            console.log(data)
+            if(data.status === "success") {
               clearInterval(timer);
               toast.remove(loadingToast);
               toast.success("Video edited successfully");
@@ -307,7 +319,16 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
                 window.location.href = newUrl;
               }, 3*1000);
             }
-          });
+            else if(data.status === "failed") {
+              clearInterval(timer);
+              toast.remove(loadingToast);
+              toast.error("Error while editing video");
+              setShowEditingOverlay(false);
+            }
+          })
+          .catch(error => {
+            console.error(error)
+          })
           t = t + 30;
         }, 30*1000)
       })
