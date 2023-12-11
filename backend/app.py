@@ -214,6 +214,7 @@ def edit_video(request_id, video_id, title, trim, crop, auth_token, input_video_
             "arg1": request_id,
             "arg2": video_id,
             "arg3": new_video_id,
+            "arg4": "failed"
         }
 
         if trim:
@@ -243,14 +244,12 @@ def edit_video(request_id, video_id, title, trim, crop, auth_token, input_video_
                 time_log["editing"] = time.time() - request_init_time
             except ffmpeg.Error as e:
                 redis_client.set(video_cache_key, "failed", xx=True)
-                data_for_bq["arg4"] = "failed"
                 data_for_bq["arg5"] = json.dumps(time_log)
                 send_stat_to_bq("video_edit_processed", data_for_bq)
                 logging.error(e.stderr)
                 return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
             except Exception as e:
                 redis_client.set(video_cache_key, "failed", xx=True)
-                data_for_bq["arg4"] = "failed"
                 data_for_bq["arg5"] = json.dumps(time_log)
                 send_stat_to_bq("video_edit_processed", data_for_bq)
                 logging.error(e)
@@ -265,7 +264,6 @@ def edit_video(request_id, video_id, title, trim, crop, auth_token, input_video_
 
         if upload_res.status_code != 200:
             redis_client.set(video_cache_key, "failed", xx=True)
-            data_for_bq["arg4"] = "failed"
             data_for_bq["arg5"] = json.dumps(time_log)
             send_stat_to_bq("video_edit_processed", data_for_bq)
             logging.error("error while uploading video", upload_res.json())
@@ -276,7 +274,6 @@ def edit_video(request_id, video_id, title, trim, crop, auth_token, input_video_
         # time_log["deleting"] = time.time() - request_init_time - time_log["editing"] - time_log["uploading"]
         # if delete_res.status_code != 200:
         #     redis_client.set(video_cache_key, "failed", xx=True)
-        #     data_for_bq["arg4"] = "failed"
         #     data_for_bq["arg5"] = json.dumps(time_log)
         #     send_stat_to_bq("video_edit_processed", data_for_bq)
         #     logging.error("error while deleting old video", delete_res.json())
