@@ -29,7 +29,7 @@ export default function App() {
       })
       .then((data) => {
         console.log(data);
-        if(data?.status === 'FailureVideoNotExist') {
+        if(data?.status === 'FailureVideoNotExist' || data?.status === 'FailureNotPublished') {
           setShow404(true);
           return;
         }
