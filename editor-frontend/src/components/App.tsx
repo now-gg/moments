@@ -4,6 +4,7 @@ import LoginPopup from "./LoginPopup/index";
 import Player from "./Player";
 import {Toaster} from "react-hot-toast"
 import Page404 from "./Page404";
+import { sendStats, Events } from "../stats";
 
 export default function App() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
@@ -16,7 +17,12 @@ export default function App() {
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
     const searchParams = new URLSearchParams(location.search);
-    const videoId = searchParams.get('videoId') || '';
+    const videoId = searchParams.get('videoId');
+    if(!videoId) {
+      setShow404(true);
+      return;
+    }
+    sendStats(Events.EDIT_PAGE_IMPRESSION, {"arg1": videoId});
     let videoInfoUrl = `${import.meta.env.VITE_BACKEND_HOST}/video/info?videoId=${videoId}`;
     if(import.meta.env.VITE_CURRENT_ENV === 'staging' || import.meta.env.VITE_CURRENT_ENV === 'production')
       videoInfoUrl = `${import.meta.env.VITE_VIDEO_BASE}/7/api/vid/v1/getVideoInfo?videoId=${videoId}`;

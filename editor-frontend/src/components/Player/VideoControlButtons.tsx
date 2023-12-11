@@ -7,6 +7,7 @@ import CropOptions from './CropOptions';
 import Divider from '../Divider';
 import Save from "./Save";
 import { toast } from "react-hot-toast";
+import { Events, sendStats } from "../../stats";
 
 type ControlProps = {
   videoUrl: string;
@@ -399,6 +400,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     setTitle(videoInfo.title);
     setIsTrimActive(false);
     setIsCropActive(false);
+    sendStats(Events.RESET_CLICK, {"arg1": videoInfo.videoId});
   }
 
   const handlePLayClick: ReactEventHandler = () => {

@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import DeletePopup from './DeletePopup';
+import { Events, sendStats } from '../../stats';
 
 type HeaderProps = {
   setShowLoginPopup: Function,
@@ -104,11 +105,13 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
   }
 
   const copyLink = () => {
+    sendStats(Events.COPY_LINK_CLICK, { "arg1": videoInfo?.videoId})
     toast.success('Video link copied to clipboard');
     navigator.clipboard.writeText(`https://stagingngg.net/videos/watch/${videoInfo?.videoId}`);
   }
 
   const download = () => {
+    sendStats(Events.VIDEO_DOWNLOAD, { "arg1": videoInfo?.videoId})
     window.open(videoInfo?.downloadUrl, '_blank');
   }
 
