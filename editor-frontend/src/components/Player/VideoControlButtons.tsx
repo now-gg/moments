@@ -330,8 +330,8 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
           .catch(error => {
             console.error(error)
           })
-          t = t + 30;
-        }, 30*1000)
+          t = t + 15;
+        }, 15*1000)
       })
       .catch((error) => {
         toast.remove(loadingToast);
