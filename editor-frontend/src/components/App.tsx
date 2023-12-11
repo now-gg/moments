@@ -16,7 +16,7 @@ export default function App() {
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
     const searchParams = new URLSearchParams(location.search);
-    const videoId = searchParams.get('videoId') || 'doykcyaxtx5bkb';
+    const videoId = searchParams.get('videoId') || '';
     let videoInfoUrl = `${import.meta.env.VITE_BACKEND_HOST}/video/info?videoId=${videoId}`;
     if(import.meta.env.VITE_CURRENT_ENV === 'staging' || import.meta.env.VITE_CURRENT_ENV === 'production')
       videoInfoUrl = `${import.meta.env.VITE_VIDEO_BASE}/7/api/vid/v1/getVideoInfo?videoId=${videoId}`;
