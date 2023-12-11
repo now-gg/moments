@@ -243,8 +243,11 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
           end: Math.floor(trimEndTime)
         }
       }
-      else if(trimValidation.message) 
-        toast.error(trimValidation.message);
+      else {
+        if(trimValidation.message) 
+          toast.error(trimValidation.message);
+        return;
+      }
     }
 
     if (isCropActive) {
