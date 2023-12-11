@@ -199,7 +199,7 @@ def status():
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
 
-@app.route("/video/stat", methods=["POST"])
+@app.route("/video/stats", methods=["POST"])
 def stat():
     try:
         body = request.get_json()
