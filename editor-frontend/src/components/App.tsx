@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import Header from "./Header"
 import LoginPopup from "./LoginPopup/index";
 import Player from "./Player";
-import {Toaster} from "react-hot-toast"
 import Page404 from "./Page404";
 import { sendStats, Events } from "../stats";
+import Toaster from "./Toaster";
 
 export default function App() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
@@ -54,7 +54,7 @@ export default function App() {
       <link rel='preconnect' href='https://fonts.gstatic.com' />
       <link href='https://fonts.googleapis.com/css2?family=Audiowide&display=swap' rel='stylesheet'/>
       <link href='https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap' rel='stylesheet'/>
-      <Toaster position="top-center" containerClassName="mt-24" />
+      <Toaster />
       <Header setShowLoginPopup={setShowLoginPopup} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} title={title} setTitle={setTitle} />
       <div className="font-poppins p-4 max-w-7xl mx-auto" style={{height: 'calc(100vh - 72px)'}} >
           <Player loggedIn={loggedIn} videoInfo={videoInfo} setVideoInfo={setVideoInfo} title={title} setTitle={setTitle}  />
