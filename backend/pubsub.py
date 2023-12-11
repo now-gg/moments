@@ -1,9 +1,10 @@
 from google.cloud import pubsub_v1
 from concurrent.futures import TimeoutError
+from constants import GCP_PROJECT_ID, PUBSUB_TOPIC_NAME, PUBSUB_SUBSCRIPTION_ID
 
-project_id = "bs3-appcenter-engg"
-topic_name = "moments-editor"
-subscription_id = "moments-editor-sub"
+project_id = GCP_PROJECT_ID
+topic_name = PUBSUB_TOPIC_NAME
+subscription_id = PUBSUB_SUBSCRIPTION_ID
 
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(project_id, topic_name)

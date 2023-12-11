@@ -13,8 +13,8 @@ import threading
 from pubsub import publish_message, get_subscriber
 from redis_wrapper  import RedisWrapper
 from bigquery import send_stat_to_bq, Event
-from utils import get_operation
 from uuid import uuid4
+from constants import VIDEO_PORTAL_HOST
 
 app = Flask(__name__)
 CORS(app)
@@ -25,6 +25,7 @@ client.setup_logging()
 redis_client = RedisWrapper()
 
 logging.info("starting flask app")
+logging.info(f'env is {os.environ.get("ENV")}')
 
 @app.route("/")
 def home():
@@ -105,7 +106,7 @@ def edit_title():
         title = body["title"]
         auth_token = request.headers.get("token")
 
-        url = 'https://stagingngg.net/6/api/vid/v1/updateVideo'
+        url = f'{VIDEO_PORTAL_HOST}/updateVideo'
         headers = {
             'Authorization': f'Bearer {auth_token}'
         }
@@ -382,17 +383,14 @@ def create_video(title, token, video_info):
         "creatorPlatform": video_info["creatorPlatform"],
         "appName": video_info["appName"]
     }
-
-    url = 'https://stagingngg.net/6/api/vid/v1/createVideo'
-
+    url = f'{VIDEO_PORTAL_HOST}/createVideo'
     res = requests.post(url, headers=headers, json=create_video_body)
-
     return res
 
 
 def delete_video(video_id, token):
     try:
-        url = 'https://stagingngg.net/6/api/vid/v1/updateVideo'
+        url = f'{VIDEO_PORTAL_HOST}/updateVideo'
         headers = {
             'Authorization': f'Bearer {token}'
         }
@@ -412,7 +410,7 @@ def delete_video(video_id, token):
 
 def get_video_info(video_id):
     try:
-        url = f'https://stagingngg.net/6/api/vid/v1/getVideoInfo?videoId={video_id}'
+        url = f'{VIDEO_PORTAL_HOST}/getVideoInfo?videoId={video_id}'
         res = requests.get(url)
         res_json = res.json()
         if res.status_code != 200:
