@@ -171,6 +171,34 @@ def info():
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
 
+@app.route("/video/status", methods=["POST"])
+def status():
+    try:
+        body = request.get_json()
+        old_video_id = body["oldVideoId"]
+        new_video_id = body["newVideoId"]
+        res_status = ""
+        video_cache_key = f'moments-editor-video-{old_video_id}'
+        video_status = redis_client.get(video_cache_key)
+        if video_status == "success":
+            video_info = get_video_info(new_video_id)
+            if video_info:
+                res_status = "success"
+            else:
+                res_status = "processing"
+        elif video_status == "processing":
+            res_status = "processing"            
+        elif video_status == "failed":
+            res_status = "failed"
+        return jsonify({
+            "status": res_status,
+            "message": "Video status received successfully",
+        }), 200
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
+    
+
 def edit_video(request_id, video_id, title, trim, crop, auth_token, input_video_url, upload_url, new_video_id):
     try:
         request_init_time = time.time()
