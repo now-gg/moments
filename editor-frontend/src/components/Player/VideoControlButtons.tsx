@@ -301,6 +301,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
           }
           fetch(videoStatusCheckUrl, {
             method: 'POST',
+            headers: headers,
             body: JSON.stringify(statusPayload)
           })
           .then(response => {
