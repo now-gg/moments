@@ -315,7 +315,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
         toast.remove(loadingToast);
         toast.error("Error adding video to queue");
         console.error('Error:', error);
-        setShowEditingOverlay(false);s
+        setShowEditingOverlay(false);
       });
     }
     else if(payload["title"]) {
