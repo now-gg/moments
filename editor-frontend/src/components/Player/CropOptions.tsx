@@ -22,7 +22,7 @@ const CropOptions = ({onOptionClick, aspectRatio}: CropOptionsProps) => (
         <div className="flex p-1 gap-1">
         <CropOptionButton value="1/1" onClick={onOptionClick} isActive={aspectRatio === "1/1"} />
         <CropOptionButton value="9/16" onClick={onOptionClick} isActive={aspectRatio === "9/16"} />
-        <CropOptionButton value="16/9" text='16/9' onClick={onOptionClick} isActive={aspectRatio === "16/9"} />
+        <CropOptionButton value="16/9" onClick={onOptionClick} isActive={aspectRatio === "16/9"} />
         <CropOptionButton value="3/4" onClick={onOptionClick} isActive={aspectRatio === "3/4"} />
         <CropOptionButton value="4/3" onClick={onOptionClick} isActive={aspectRatio === "4/3"} />
         </div>
