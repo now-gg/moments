@@ -1,10 +1,10 @@
 import redis
 import logging
-
+from constants import REDIS_HOST, REDIS_PORT
 class RedisWrapper:
     def __init__(self):
         try:
-            self.redis = redis.Redis(host='10.216.98.51', port=6379, decode_responses=True)
+            self.redis = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
         except Exception as e:
             logging.error(e)
 
