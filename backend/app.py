@@ -67,12 +67,18 @@ def process():
         create_video_res = create_video_res.json()
         upload_url, new_video_id = create_video_res["uploadUrl"], create_video_res["videoId"]
 
+        editing_params_log = {
+            "trim": trim if trim else "",
+            "crop": crop if crop else "",
+            "aspectRatio": aspect_ratio if aspect_ratio else ""
+        }
+
         data_for_bq = {
             "arg1": request_id,
             "arg2": video_id,
             "arg3": new_video_id,
             "arg4": video_info.get("durationSecs", ""),
-            "arg5": json.dumps({'trim': trim, 'crop': crop, 'aspect_ratio': aspect_ratio})
+            "arg5": json.dumps(editing_params_log)
         }
         send_stat_to_bq(VIDEO_EDIT_REQUEST, data_for_bq)
 

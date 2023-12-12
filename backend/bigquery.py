@@ -13,6 +13,7 @@ VIDEO_DELETED =  "video_deleted"
 
 def send_stat_to_bq(event, data):
     try:
+        logging.info(f'data to send to BQ: {data}')
         stats_url = f'{BLUESTACKS_CLOUD_HOST}/app_player/miscellaneousstats'
         form_data = {
             "event_type": event,
