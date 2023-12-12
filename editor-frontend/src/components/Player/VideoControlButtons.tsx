@@ -6,6 +6,7 @@ import EditOptionButton from './EditOptionButton';
 import CropOptions from './CropOptions';
 import Divider from '../Divider';
 import Save from "./Save";
+import TrimInput from "./TrimInput";
 import { toast } from "react-hot-toast";
 import { Events, sendStats } from "../../stats";
 
@@ -411,6 +412,19 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     streamRef.current?.play();
   }
 
+  const validateInputs = () => {
+    if(isTrimActive) {
+      const { status, message } = validateTrimTimes(trimStartTime, trimEndTime);
+      if(status === true) {
+        setStartTime(trimStartTime);
+        setEndTime(trimEndTime);
+        return;
+      }
+      setTrimStartTime(startTime);
+      setTrimEndTime(endTime);
+    }
+  }
+ 
   const isSaveAllowed = isCropActive || isTrimActive || title !== videoInfo.title;
 
   return (
@@ -429,23 +443,22 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
                 Trim
               </EditOptionButton>
             {isTrimActive && <div className="flex justify-center items-center gap-4 pl-2 pr-1 h-10 rounded-lg bg-additional-link">
-                <div className=' flex justify-center items-center gap-1'>
-                  <span className="text-xs text-white">Start Time</span>
-                  <input 
-                    className="bg-white appearance-none py-1.5 px-3 rounded-md text-sm text-black placeholder:text-base-100 max-w-[8ch] outline-none"
-                    value={trimStartTime} 
-                    placeholder="0 sec" 
-                    onChange={(e) => setTrimStartTime(e.target.value)} 
-                  />
-                </div>
-                <div className='flex justify-center items-center gap-1'>
-                  <span className="text-xs text-white">End Time</span>
-                  <input 
-                    className="bg-white appearance-none py-1.5 px-3 rounded-md text-sm text-black  placeholder:text-base-100 max-w-[8ch] outline-none" 
-                    value={trimEndTime}
-                    placeholder={`${duration} sec`} 
-                    onChange={(e) => setTrimEndTime(e.target.value)} />
-                </div>
+                <TrimInput
+                  label="Start Time"
+                  value={trimStartTime}
+                  placeholder="0 sec"
+                  onChange={(e) => {setTrimStartTime(e.target.value)}}
+                  onBlur={validateInputs}
+                  onEnterClick={validateInputs}
+                />
+                <TrimInput 
+                  label="End Time"
+                  value={trimEndTime}
+                  placeholder={`${duration} sec`}
+                  onChange={(e) => {setTrimEndTime(e.target.value)}}
+                  onBlur={validateInputs}
+                  onEnterClick={validateInputs}
+                />
             </div>}
           </div>
           <div className="flex gap-3">
