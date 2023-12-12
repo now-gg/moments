@@ -1,6 +1,8 @@
 # Use an official Python runtime as a parent image
 FROM python:3.11.0
 
+ENV ENVIRONMENT=${ENVIRONMENT}
+
 # Install ffmpeg
 RUN apt-get update && apt-get install -y ffmpeg
 
