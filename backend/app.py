@@ -413,5 +413,5 @@ def get_video_info(video_id):
 
 
 
-pull_message_threading = threading.Thread(target=pull_messages)
-pull_message_threading.start()
+# pull_message_threading = threading.Thread(target=pull_messages)
+# pull_message_threading.start()
