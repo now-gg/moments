@@ -420,6 +420,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
         setEndTime(trimEndTime);
         return;
       }
+      console.log(message)
       setTrimStartTime(startTime);
       setTrimEndTime(endTime);
     }
