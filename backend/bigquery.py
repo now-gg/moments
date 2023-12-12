@@ -17,7 +17,6 @@ def send_stat_to_bq(event, data):
         stats_url = f'{BLUESTACKS_CLOUD_HOST}/app_player/miscellaneousstats'
         form_data = {
             "event_type": event,
-            "created_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
             "tag": "moments",
             "arg1": data.get("arg1", ""),
             "arg2": data.get("arg2", ""),
