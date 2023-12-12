@@ -264,7 +264,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     }
 
     if(payload["trim"] || payload["crop"]) {
-      payload["title"] = title;
+      payload["title"] = title === videoInfo.title ? title + " (copy)" : title;
       const loadingToast = toast.loading("Editing your video, please wait");
       setShowEditingOverlay(true);
       fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/process`, {
