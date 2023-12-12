@@ -6,15 +6,17 @@ export const Events = {
 }
 
 export const sendStats = (event: string, data: any) => {
-    const StatsEndpoint = `${import.meta.env.VITE_BACKEND_HOST}/video/stats`;
-    fetch(StatsEndpoint, {
+    const arg1 = data?.arg1 || "";
+    const formData = new FormData();
+    formData.append("event_type", event);
+    formData.append("arg1", arg1);
+    formData.append("tag", "moments");
+    const statsUrl = `${import.meta.env.VITE_BS_CLOUD_HOST}/app_player/miscellaneousstats`;
+    fetch(statsUrl, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            event,
-            data
-        })
-    });
+        body: formData
+    })
+        .then(response => response.text())
+        .then(result => console.log(result))
+        .catch(error => console.error('error', error));
 }
