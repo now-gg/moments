@@ -1,6 +1,7 @@
 # Use an official Python runtime as a parent image
 FROM python:3.11.0
 
+ARG ENVIRONMENT=dev
 ENV ENVIRONMENT=${ENVIRONMENT}
 
 # Install ffmpeg
