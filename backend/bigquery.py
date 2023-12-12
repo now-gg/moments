@@ -6,10 +6,10 @@ from constants import BQ_DATASET_NAME, BQ_TABLE_NAME
 
 client = bigquery.Client(project='bs3-appcenter-engg')
 
-class Event(Enum):
-    VIDEO_EDIT_REQUEST = "video_edit_request",
-    VIDEO_EDIT_PROCESSED =  "video_edit_processed",
-    VIDEO_DELETED =  "video_deleted"
+# Event Types
+VIDEO_EDIT_REQUEST = "video_edit_request"
+VIDEO_EDIT_PROCESSED =  "video_edit_processed"
+VIDEO_DELETED =  "video_deleted"
 
 
 def insert_data(data):
