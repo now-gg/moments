@@ -40,6 +40,7 @@ def process():
         video_id = body["videoId"]
         crop = body.get("crop")
         trim = body.get("trim")
+        aspect_ratio = body.get("aspectRatio")
         auth_token = request.headers.get("token")
         request_id = str(uuid4())
 
@@ -66,12 +67,18 @@ def process():
         create_video_res = create_video_res.json()
         upload_url, new_video_id = create_video_res["uploadUrl"], create_video_res["videoId"]
 
+        editing_params_log = {
+            "trim": trim if trim else "",
+            "crop": crop if crop else "",
+            "aspectRatio": aspect_ratio if aspect_ratio else ""
+        }
+
         data_for_bq = {
             "arg1": request_id,
             "arg2": video_id,
             "arg3": new_video_id,
             "arg4": video_info.get("durationSecs", ""),
-            "arg5": json.dumps({'trim': trim, 'crop': crop})
+            "arg5": json.dumps(editing_params_log)
         }
         send_stat_to_bq(VIDEO_EDIT_REQUEST, data_for_bq)
 
@@ -195,23 +202,6 @@ def status():
             "status": res_status,
             "message": "Video status received successfully",
         }), 200
-    except Exception as e:
-        logging.error(e)
-        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
-
-
-@app.route("/video/stats", methods=["POST"])
-def stat():
-    try:
-        body = request.get_json()
-        event = body["event"]
-        data = body["data"]
-        logging.info(f'video stat request for {event} with data {data} of type {type(data)}')
-        send_stat_to_bq(event, data)
-        return jsonify({
-            "status": "success",
-            "message": "Video stat submitted",
-        }), 201
     except Exception as e:
         logging.error(e)
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
