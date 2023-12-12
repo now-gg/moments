@@ -54,6 +54,8 @@ def process():
         except Exception as e:
             logging.error(f'Error while using redis: {e}')
             return jsonify({"status": "error", "message": f'Error while using redis: {e}'}), 500
+        
+        logging.info(f'video edit request for {video_id} is not processing already')
 
         try:
             video_info = get_video_info(video_id)
@@ -66,11 +68,15 @@ def process():
         except Exception as e:
             return jsonify({"status": "error", "message": f'Something went wrong with getting downloadUrl of {video_id}', "error": str(e)}), 500
 
+        logging.info(f'video url is {video_url}')
+
         create_video_res = create_video(title, auth_token, video_info)
         if create_video_res.status_code != 200:
             return create_video_res.json(), create_video_res.status_code
         create_video_res = create_video_res.json()
         upload_url, new_video_id = create_video_res["uploadUrl"], create_video_res["videoId"]
+
+        logging.info(f'upload url is {upload_url}')
 
         editing_params_log = {
             "trim": trim if trim else "",
@@ -86,6 +92,8 @@ def process():
             "arg5": json.dumps(editing_params_log)
         }
         send_stat_to_bq(VIDEO_EDIT_REQUEST, data_for_bq)
+
+        logging.info(f'sent stat to bq for video edit request for {video_id}')
 
         message = {
             "request_id": request_id,
