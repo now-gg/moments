@@ -1,6 +1,6 @@
 import os
 
-is_prod = os.environ.get('ENV') == 'prod'
+is_prod = os.environ.get('ENVIRONMENT') == 'prod'
 
 PROD_VIDEO_PORTAL_HOST = 'https://now.gg/6/api/vid/v1'
 STAGING_VIDEO_PORTAL_HOST = 'https://stagingngg.net/6/api/vid/v1'

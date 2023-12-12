@@ -25,7 +25,7 @@ client.setup_logging()
 redis_client = RedisWrapper()
 
 logging.info("starting flask app")
-logging.info(f'env is {os.environ.get("ENV")}')
+logging.info(f'env is {os.environ.get("ENVIRONMENT")}')
 
 @app.route("/")
 def home():
