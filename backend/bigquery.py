@@ -2,9 +2,9 @@ from google.cloud import bigquery
 import logging
 from datetime import datetime
 from enum import Enum
-from constants import BQ_DATASET_NAME, BQ_TABLE_NAME
+from constants import BQ_DATASET_NAME, BQ_TABLE_NAME, GCP_PROJECT_ID
 
-client = bigquery.Client(project='bs3-appcenter-engg')
+client = bigquery.Client(project=GCP_PROJECT_ID)
 
 # Event Types
 VIDEO_EDIT_REQUEST = "video_edit_request"
