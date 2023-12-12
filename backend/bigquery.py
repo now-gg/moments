@@ -1,13 +1,21 @@
 from google.cloud import bigquery
 import logging
 from datetime import datetime
+from enum import Enum
+from constants import BQ_DATASET_NAME, BQ_TABLE_NAME
 
 client = bigquery.Client(project='bs3-appcenter-engg')
 
+# Event Types
+VIDEO_EDIT_REQUEST = "video_edit_request"
+VIDEO_EDIT_PROCESSED =  "video_edit_processed"
+VIDEO_DELETED =  "video_deleted"
+
+
 def insert_data(data):
     try:
-        dataset_ref = client.dataset('BS5WWStats')
-        table_ref = dataset_ref.table('MomentsStats')
+        dataset_ref = client.dataset(BQ_DATASET_NAME)
+        table_ref = dataset_ref.table(BQ_TABLE_NAME)
         table = client.get_table(table_ref)
         errors = client.insert_rows(table, [data])
         if errors == []:

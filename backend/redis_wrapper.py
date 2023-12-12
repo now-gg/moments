@@ -7,8 +7,8 @@ class RedisWrapper:
     def get(self, key):
         return self.redis.get(key)
     
-    def set(self, key, value, expiry=60*60):
-        return self.redis.set(key, value, ex=expiry, nx=True)
+    def set(self, key, value, expiry=30*60, nx=False, xx=False):
+        return self.redis.set(key, value, ex=expiry, nx=nx, xx=xx)
     
     def delete(self, key):
         return self.redis.delete(key)

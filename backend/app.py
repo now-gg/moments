@@ -12,8 +12,9 @@ import ffmpeg
 import threading
 from pubsub import publish_message, get_subscriber
 from redis_wrapper  import RedisWrapper
-from bigquery import send_stat_to_bq
-from utils import get_operation
+from bigquery import send_stat_to_bq, VIDEO_EDIT_PROCESSED, VIDEO_EDIT_REQUEST, VIDEO_DELETED
+from uuid import uuid4
+from constants import VIDEO_PORTAL_HOST
 
 app = Flask(__name__)
 CORS(app)
@@ -24,6 +25,7 @@ client.setup_logging()
 redis_client = RedisWrapper()
 
 logging.info("starting flask app")
+logging.info(f'env is {os.environ.get("ENVIRONMENT")}')
 
 @app.route("/")
 def home():
@@ -39,11 +41,12 @@ def process():
         crop = body.get("crop")
         trim = body.get("trim")
         auth_token = request.headers.get("token")
+        request_id = str(uuid4())
 
         logging.info(f'video edit request for {video_id}')
 
         video_cache_key = f'moments-editor-video-{video_id}'
-        if redis_client.get(video_cache_key):
+        if redis_client.get(video_cache_key) == "processing":
             return jsonify({"status": "error", "message": f'Video with id {video_id} is already being processed'}), 400
 
         try:
@@ -64,13 +67,16 @@ def process():
         upload_url, new_video_id = create_video_res["uploadUrl"], create_video_res["videoId"]
 
         data_for_bq = {
-            "arg1": video_id,
-            "arg2": video_info.get("durationSecs", ""),
-            "arg3": get_operation(trim, crop)
+            "arg1": request_id,
+            "arg2": video_id,
+            "arg3": new_video_id,
+            "arg4": video_info.get("durationSecs", ""),
+            "arg5": json.dumps({'trim': trim, 'crop': crop})
         }
-        send_stat_to_bq("video_edit_request", data_for_bq)
+        send_stat_to_bq(VIDEO_EDIT_REQUEST, data_for_bq)
 
         message = {
+            "request_id": request_id,
             "video_id": video_id,
             "title": title,
             "trim": trim,
@@ -100,7 +106,7 @@ def edit_title():
         title = body["title"]
         auth_token = request.headers.get("token")
 
-        url = 'https://stagingngg.net/6/api/vid/v1/updateVideo'
+        url = f'{VIDEO_PORTAL_HOST}/updateVideo'
         headers = {
             'Authorization': f'Bearer {auth_token}'
         }
@@ -127,7 +133,7 @@ def delete():
         delete_res = delete_video(video_id, auth_token)
         if delete_res.status_code != 200:
             return jsonify({"status": "error", "message": "Something went wrong while deleting the video"}), delete_res.status_code
-
+        send_stat_to_bq(VIDEO_DELETED, {"arg1": video_id})
         return jsonify({
             "status": "success",
             "message": "Video deleted successfully",
@@ -166,11 +172,68 @@ def info():
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
 
-def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_url, new_video_id):
+@app.route("/video/status", methods=["POST"])
+def status():
+    try:
+        body = request.get_json()
+        old_video_id = body["oldVideoId"]
+        new_video_id = body["newVideoId"]
+        res_status = ""
+        video_cache_key = f'moments-editor-video-{old_video_id}'
+        video_status = redis_client.get(video_cache_key)
+        if video_status == "success":
+            video_info = get_video_info(new_video_id)
+            if video_info:
+                res_status = "success"
+            else:
+                res_status = "processedButNotPublishedYet"
+        elif video_status == "processing":
+            res_status = "processing"            
+        elif video_status == "failed":
+            res_status = "failed"
+        return jsonify({
+            "status": res_status,
+            "message": "Video status received successfully",
+        }), 200
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
+
+
+@app.route("/video/stats", methods=["POST"])
+def stat():
+    try:
+        body = request.get_json()
+        event = body["event"]
+        data = body["data"]
+        logging.info(f'video stat request for {event} with data {data} of type {type(data)}')
+        send_stat_to_bq(event, data)
+        return jsonify({
+            "status": "success",
+            "message": "Video stat submitted",
+        }), 201
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
+
+
+def edit_video(request_id, video_id, title, trim, crop, auth_token, input_video_url, upload_url, new_video_id):
     try:
         request_init_time = time.time()
         video_cache_key = f'moments-editor-video-{video_id}'
         stream = ffmpeg.input(input_video_url)
+        time_log = {
+            "editing": "",
+            "uploading": "",
+            "deleting": "",
+            "total": ""
+        }
+        data_for_bq = {
+            "arg1": request_id,
+            "arg2": video_id,
+            "arg3": new_video_id,
+            "arg4": "failed"
+        }
 
         if trim:
             trim_start = int(float(trim.get("start", "0")))
@@ -196,51 +259,61 @@ def edit_video(video_id, title, trim, crop, auth_token, input_video_url, upload_
                 stream = ffmpeg.output(stream, temp_file.name, loglevel="error")
                 stream = ffmpeg.overwrite_output(stream)
                 ffmpeg.run(stream)
+                time_log["editing"] = time.time() - request_init_time
             except ffmpeg.Error as e:
-                redis_client.delete(video_cache_key)
+                redis_client.set(video_cache_key, "failed", xx=True)
+                data_for_bq["arg5"] = json.dumps(time_log)
+                send_stat_to_bq(VIDEO_EDIT_PROCESSED, data_for_bq)
                 logging.error(e.stderr)
                 return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
             except Exception as e:
-                redis_client.delete(video_cache_key)
+                redis_client.set(video_cache_key, "failed", xx=True)
+                data_for_bq["arg5"] = json.dumps(time_log)
+                send_stat_to_bq(VIDEO_EDIT_PROCESSED, data_for_bq)
                 logging.error(e)
                 return jsonify({"status": "error", "message": f'Something went wrong while writing the video', "error": str(e)}), 500
             logging.info("clip written to temp file")
             temp_file.seek(0)
             upload_res = upload_video(temp_file.name, title, upload_url)
+            time_log["uploading"] = time.time() - request_init_time - time_log["editing"]
             temp_file.close()
             del temp_file
         
 
         if upload_res.status_code != 200:
-            redis_client.delete(video_cache_key)
+            redis_client.set(video_cache_key, "failed", xx=True)
+            data_for_bq["arg5"] = json.dumps(time_log)
+            send_stat_to_bq(VIDEO_EDIT_PROCESSED, data_for_bq)
             logging.error("error while uploading video", upload_res.json())
             return jsonify({"status": "error", "message": "Something went wrong while uploading the video"}), upload_res.status_code
 
-        delete_res = delete_video(video_id, auth_token)
-        if delete_res.status_code != 200:
-            redis_client.delete(video_cache_key)
-            logging.error("error while deleting old video", delete_res.json())
-            return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
 
-        data_for_bq = {
-            "arg1": video_id,
-            "arg2": new_video_id,
-            "arg3": time.time() - request_init_time
-        }
-        send_stat_to_bq("video_edit_processed", data_for_bq)
+        # delete_res = delete_video(video_id, auth_token)
+        # time_log["deleting"] = time.time() - request_init_time - time_log["editing"] - time_log["uploading"]
+        # if delete_res.status_code != 200:
+        #     redis_client.set(video_cache_key, "failed", xx=True)
+        #     data_for_bq["arg5"] = json.dumps(time_log)
+        #     send_stat_to_bq(VIDEO_EDIT_PROCESSED, data_for_bq)
+        #     logging.error("error while deleting old video", delete_res.json())
+        #     return jsonify({"status": "error", "message": "Something went wrong while deleting the previous video"}), delete_res.status_code
+
+        time_log["total"] = time.time() - request_init_time
+        data_for_bq["arg4"] = "success"
+        data_for_bq["arg5"] = json.dumps(time_log)
+        send_stat_to_bq(VIDEO_EDIT_PROCESSED, data_for_bq)
 
         res_dict = {
             "status": "success",
             "message": "Video processed successfully"
         }
 
-        redis_client.delete(video_cache_key)
+        redis_client.set(video_cache_key, "success", xx=True)
 
         logging.info(f'response to be sent: {res_dict}')
         return jsonify(res_dict), 200
     
     except Exception as e:
-        redis_client.delete(video_cache_key)
+        redis_client.set(video_cache_key, "failed", xx=True)
         logging.error(e)
         return jsonify({"status": "error", "message": f'Something went wrong', "error": str(e)}), 500
 
@@ -249,6 +322,7 @@ def pull_message_callback(message):
     logging.info('Received message on subscriber: {}'.format(message))
     try:
         message = json.loads(message)
+        request_id = message["request_id"]
         video_id = message["video_id"]
         title = message["title"]
         trim = message["trim"]
@@ -258,8 +332,8 @@ def pull_message_callback(message):
         upload_url = message["upload_url"]
         new_video_id = message["new_video_id"]
         with app.app_context():
-            res = edit_video(video_id, title, trim, crop, auth_token, video_url, upload_url, new_video_id)
-            logging.info(f'response from edit_video async: {res.json()}')
+            res = edit_video(request_id, video_id, title, trim, crop, auth_token, video_url, upload_url, new_video_id)
+            logging.info(f'response from edit_video async: {res}')
     except Exception as e:
         logging.error(e)
     logging.info('Message processed: {}'.format(message))
@@ -278,7 +352,7 @@ def pull_messages():
                     if redis_client.get(message_cache_key):
                         logging.info(f'message {message.data} with id {message.message_id} already processed')
                         break
-                    redis_client.set(message_cache_key, 1)
+                    redis_client.set(message_cache_key, 1, nx=True)
                     subscriber.acknowledge(subscription=subscription_path, ack_ids=[received_message.ack_id])
                     pull_message_callback(message.data)
                 time.sleep(1)
@@ -309,17 +383,14 @@ def create_video(title, token, video_info):
         "creatorPlatform": video_info["creatorPlatform"],
         "appName": video_info["appName"]
     }
-
-    url = 'https://stagingngg.net/6/api/vid/v1/createVideo'
-
+    url = f'{VIDEO_PORTAL_HOST}/createVideo'
     res = requests.post(url, headers=headers, json=create_video_body)
-
     return res
 
 
 def delete_video(video_id, token):
     try:
-        url = 'https://stagingngg.net/6/api/vid/v1/updateVideo'
+        url = f'{VIDEO_PORTAL_HOST}/updateVideo'
         headers = {
             'Authorization': f'Bearer {token}'
         }
@@ -339,7 +410,7 @@ def delete_video(video_id, token):
 
 def get_video_info(video_id):
     try:
-        url = f'https://stagingngg.net/6/api/vid/v1/getVideoInfo?videoId={video_id}'
+        url = f'{VIDEO_PORTAL_HOST}/getVideoInfo?videoId={video_id}'
         res = requests.get(url)
         res_json = res.json()
         if res.status_code != 200:
