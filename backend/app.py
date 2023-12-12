@@ -48,12 +48,8 @@ def process():
 
         video_cache_key = f'moments-editor-video-{video_id}'
 
-        # try:
-        #     if redis_client.get(video_cache_key) == "processing":
-        #         return jsonify({"status": "error", "message": f'Video with id {video_id} is already being processed'}), 400
-        # except Exception as e:
-        #     logging.error(f'Error while using redis: {e}')
-        #     return jsonify({"status": "error", "message": f'Error while using redis: {e}'}), 500
+        if redis_client.get(video_cache_key) == "processing":
+            return jsonify({"status": "error", "message": f'Video with id {video_id} is already being processed'}), 400
         
         logging.info(f'video edit request for {video_id} is not processing already')
 
@@ -107,11 +103,7 @@ def process():
             "new_video_id": new_video_id
         }
         logging.info(f'message to be published: {message}')
-        # try:
-        #     redis_client.set(video_cache_key, "processing")
-        # except Exception as e:
-        #     logging.error(f'Error while using redis: {e}')
-        #     return jsonify({"status": "error", "message": f'Error while using redis: {e}'}), 500
+        redis_client.set(video_cache_key, "processing")
         publish_message(json.dumps(message))
         return jsonify({"status": "success", "message": "Video processing started", "new_video_id": new_video_id}), 200
 
