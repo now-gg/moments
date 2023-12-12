@@ -166,14 +166,14 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
           </div>
 
           <Divider />
-
-          <input 
-            disabled={!allowTitleEdit} 
-            className='text-xl font-semibold text-base-900 bg-gray-100 h-9 px-1 rounded-md disabled:bg-transparent outline-none' 
+          {allowTitleEdit ? <input 
+            className='text-xl font-semibold text-base-900 h-9 px-1 bg-gray-100 rounded-md outline-none w-[25ch]' 
             value={title} 
             onChange={(e) => {setTitle(e.target.value)}} 
-            onBlur={() => setAllowTitleEdit(false)}
-          />
+            autoFocus={true}
+          /> : <h3 className="text-xl font-semibold text-base-900 px-1 w-[25ch] truncate overflow-hidden text-clip">{title}</h3> 
+          
+          }
           <div>
             <IconButton type="primary" onClick={() => { editTitle() }}>
               <IconEdit className="group-hover:fill-white" />
