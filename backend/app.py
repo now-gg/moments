@@ -40,6 +40,7 @@ def process():
         video_id = body["videoId"]
         crop = body.get("crop")
         trim = body.get("trim")
+        aspect_ratio = body.get("aspectRatio")
         auth_token = request.headers.get("token")
         request_id = str(uuid4())
 
@@ -71,7 +72,7 @@ def process():
             "arg2": video_id,
             "arg3": new_video_id,
             "arg4": video_info.get("durationSecs", ""),
-            "arg5": json.dumps({'trim': trim, 'crop': crop})
+            "arg5": json.dumps({'trim': trim, 'crop': crop, 'aspect_ratio': aspect_ratio})
         }
         send_stat_to_bq(VIDEO_EDIT_REQUEST, data_for_bq)
 
