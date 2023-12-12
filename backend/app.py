@@ -78,7 +78,7 @@ def process():
             "arg2": video_id,
             "arg3": new_video_id,
             "arg4": video_info.get("durationSecs", ""),
-            "arg5": json.dumps(editing_params_log)
+            "arg5": editing_params_log
         }
         send_stat_to_bq(VIDEO_EDIT_REQUEST, data_for_bq)
 
