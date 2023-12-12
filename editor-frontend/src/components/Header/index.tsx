@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import DeletePopup from './DeletePopup';
+import { Events, sendStats } from '../../stats';
 
 type HeaderProps = {
   setShowLoginPopup: Function,
@@ -104,11 +105,13 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
   }
 
   const copyLink = () => {
+    sendStats(Events.COPY_LINK_CLICK, { "arg1": videoInfo?.videoId})
     toast.success('Video link copied to clipboard');
     navigator.clipboard.writeText(`https://stagingngg.net/videos/watch/${videoInfo?.videoId}`);
   }
 
   const download = () => {
+    sendStats(Events.VIDEO_DOWNLOAD, { "arg1": videoInfo?.videoId})
     window.open(videoInfo?.downloadUrl, '_blank');
   }
 
@@ -142,12 +145,12 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
     })
     .catch(err => {
       console.error(err);
-      toast.error('Could not delete video');
+      toast.error('Unable to delete video');
     })
   }
 
   const handleBackClick = () => {
-    window.history.go(-1);
+    window.location.href = `${import.meta.env.VITE_VIDEO_BASE}/videos/watch/${videoInfo?.videoId}`;
   }
 
 
@@ -163,14 +166,14 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
           </div>
 
           <Divider />
-
-          <input 
-            disabled={!allowTitleEdit} 
-            className='text-xl font-semibold text-base-900 bg-gray-100 px-1 rounded-md disabled:bg-transparent outline-none' 
+          {allowTitleEdit ? <input 
+            className='text-xl font-semibold text-base-900 h-9 px-1 bg-gray-100 rounded-md outline-none w-[25ch]' 
             value={title} 
             onChange={(e) => {setTitle(e.target.value)}} 
-            onBlur={() => setAllowTitleEdit(false)}
-          />
+            autoFocus={true}
+          /> : <h3 className="text-xl font-semibold text-base-900 px-1 w-[25ch] truncate overflow-hidden text-clip">{title}</h3> 
+          
+          }
           <div>
             <IconButton type="primary" onClick={() => { editTitle() }}>
               <IconEdit className="group-hover:fill-white" />

@@ -28,7 +28,7 @@ const CropWidget = ({left, top, width, height, aspectRatio}: CropWidgetProps) =>
 
 
   return (
-      <div className="draggable absolute box-content" ref={setNodeRef} style={style} {...listeners} {...attributes}>
+      <div className="draggable absolute box-content cursor-grab" ref={setNodeRef} style={style} {...listeners} {...attributes}>
           <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42" fill="none" className="svg-1 absolute top-0 left-0">
             <path d="M40 2H4C2.89543 2 2 2.90281 2 4.00738C2 19.497 2 23.5073 2 40" stroke="#FF42A5" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

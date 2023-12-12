@@ -2,33 +2,41 @@ import { useEffect, useState } from "react";
 import Header from "./Header"
 import LoginPopup from "./LoginPopup/index";
 import Player from "./Player";
-import {Toaster, toast} from "react-hot-toast"
+import Page404 from "./Page404";
+import { sendStats, Events } from "../stats";
+import Toaster from "./Toaster";
 
 export default function App() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [videoInfo, setVideoInfo] = useState({});
   const [title, setTitle] = useState('');
+  const [show404, setShow404] = useState(false);
 
   const fetchVideo = () => {
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
     const searchParams = new URLSearchParams(location.search);
-    const videoId = searchParams.get('videoId') || 'doykcyaxtx5bkb';
+    const videoId = searchParams.get('videoId');
+    if(!videoId) {
+      setShow404(true);
+      return;
+    }
+    sendStats(Events.EDIT_PAGE_IMPRESSION, {"arg1": videoId});
     let videoInfoUrl = `${import.meta.env.VITE_BACKEND_HOST}/video/info?videoId=${videoId}`;
     if(import.meta.env.VITE_CURRENT_ENV === 'staging' || import.meta.env.VITE_CURRENT_ENV === 'production')
       videoInfoUrl = `${import.meta.env.VITE_VIDEO_BASE}/7/api/vid/v1/getVideoInfo?videoId=${videoId}`;
     fetch(videoInfoUrl)
       .then((res) => {
         if(res.status == 404) {
-          toast.error('Video not found');
+          setShow404(true);
         }
          return res.json()
       })
       .then((data) => {
         console.log(data);
-        if(data?.status === 'FailureVideoNotExist') {
-          toast.error('Video not found');
+        if(data?.status === 'FailureVideoNotExist' || data?.status === 'FailureNotPublished') {
+          setShow404(true);
           return;
         }
         setVideoInfo(data?.video);
@@ -46,12 +54,13 @@ export default function App() {
       <link rel='preconnect' href='https://fonts.gstatic.com' />
       <link href='https://fonts.googleapis.com/css2?family=Audiowide&display=swap' rel='stylesheet'/>
       <link href='https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap' rel='stylesheet'/>
-      <Toaster position="top-right" containerClassName="mt-16" />
+      <Toaster />
       <Header setShowLoginPopup={setShowLoginPopup} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} title={title} setTitle={setTitle} />
       <div className="font-poppins p-4 max-w-7xl mx-auto" style={{height: 'calc(100vh - 72px)'}} >
           <Player loggedIn={loggedIn} videoInfo={videoInfo} setVideoInfo={setVideoInfo} title={title} setTitle={setTitle}  />
       </div>
       {showLoginPopup && <LoginPopup closePopup={() => setShowLoginPopup(false)} />}
+      {show404 && <Page404 />}
     </div>
   )
 }

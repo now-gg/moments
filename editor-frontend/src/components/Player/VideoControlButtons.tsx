@@ -6,7 +6,9 @@ import EditOptionButton from './EditOptionButton';
 import CropOptions from './CropOptions';
 import Divider from '../Divider';
 import Save from "./Save";
+import TrimInput from "./TrimInput";
 import { toast } from "react-hot-toast";
+import { Events, sendStats } from "../../stats";
 
 type ControlProps = {
   videoUrl: string;
@@ -184,6 +186,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
   const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
   const [trimEndTime, setTrimEndTime] = useState(endTime || duration);
   const [isTrimActive, setIsTrimActive] = useState(false);
+  const [showEditingOverlay, setShowEditingOverlay] = useState(false);
 
   useEffect(() => {
     setTrimStartTime(startTime);
@@ -242,8 +245,11 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
           end: Math.floor(trimEndTime)
         }
       }
-      else if(trimValidation.message) 
-        toast.error(trimValidation.message);
+      else if(!isCropActive) {
+        if(trimValidation.message) 
+          toast.error(trimValidation.message);
+        return;
+      }
     }
 
     if (isCropActive) {
@@ -259,7 +265,10 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     }
 
     if(payload["trim"] || payload["crop"]) {
-      const loadingToast = toast.loading("editing video");
+      payload["title"] = title === videoInfo.title ? title + " (copy)" : title;
+      payload["aspectRatio"] = payload["crop"] ? aspectRatio : "";
+      const loadingToast = toast.loading("Editing your video, please wait");
+      setShowEditingOverlay(true);
       fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/process`, {
         method: 'POST',
         headers: headers,
@@ -270,10 +279,12 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
           localStorage.removeItem('ng_token');
           toast.remove(loadingToast);
           toast.error("Unauthorized. Please login again.");
+          setShowEditingOverlay(false);
         }
         else if(response.status >= 400) {
           toast.remove(loadingToast);
-          toast.error("Error while editing video");
+          toast.error("Error while editing the video");
+          setShowEditingOverlay(false);
         }
         return response.json()
       })
@@ -285,13 +296,27 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
           if(t > 180) {
             clearInterval(timer);
             toast.remove(loadingToast);
-            toast.error("Error while editing video");
+            toast.error("Error while editing the video");
+            setShowEditingOverlay(false);
             return;
           }
-          const videoStatusCheckUrl = `${import.meta.env.VITE_BACKEND_HOST}/video/info?videoId=${newVideoId}`;
-          fetch(videoStatusCheckUrl)
-          .then((res) => {
-            if(res.status === 200) {
+          const videoStatusCheckUrl = `${import.meta.env.VITE_BACKEND_HOST}/video/status`;
+          const statusPayload = {
+            "oldVideoId": videoInfo.videoId,
+            "newVideoId": newVideoId
+          }
+          fetch(videoStatusCheckUrl, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(statusPayload)
+          })
+          .then(response => {
+            console.log(response)
+            return response.json()
+          })
+          .then(data => {
+            console.log(data)
+            if(data.status === "success") {
               clearInterval(timer);
               toast.remove(loadingToast);
               toast.success("Video edited successfully");
@@ -301,18 +326,28 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
                 window.location.href = newUrl;
               }, 3*1000);
             }
-          });
-          t = t + 30;
-        }, 30*1000)
+            else if(data.status === "failed") {
+              clearInterval(timer);
+              toast.remove(loadingToast);
+              toast.error("Error while editing the video");
+              setShowEditingOverlay(false);
+            }
+          })
+          .catch(error => {
+            console.error(error)
+          })
+          t = t + 15;
+        }, 15*1000)
       })
       .catch((error) => {
         toast.remove(loadingToast);
-        toast.error("Error adding video to queue");
+        toast.error("Error while editing the video");
         console.error('Error:', error);
+        setShowEditingOverlay(false);
       });
     }
     else if(payload["title"]) {
-      const loadingToast = toast.loading("updating title");
+      const loadingToast = toast.loading("Updating title");
       fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/title`, {
         method: 'POST',
         headers: headers,
@@ -321,7 +356,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
       .then(response => { 
         toast.remove(loadingToast);
         if(response.status === 200) {
-          toast.success("Title Updated");
+          toast.success("Title updated successfully");
           setVideoInfo({...videoInfo, title: title});
         }
         else if(response.status === 401) {
@@ -329,7 +364,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
           toast.error("Unauthorized. Please login again.");
         }
         else {
-          toast.error("Error while updating title");
+          toast.error("Error while updating the title");
         }
         return response.json()
       })
@@ -337,7 +372,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
         console.log(data)
       })
       .catch((error) => {
-        toast.error("Error while updating title");
+        toast.error("Error while updating the title");
         console.error('Error:', error);
       });
     }
@@ -367,6 +402,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     setTitle(videoInfo.title);
     setIsTrimActive(false);
     setIsCropActive(false);
+    sendStats(Events.RESET_CLICK, {"arg1": videoInfo.videoId});
   }
 
   const handlePLayClick: ReactEventHandler = () => {
@@ -377,10 +413,25 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     streamRef.current?.play();
   }
 
+  const validateInputs = () => {
+    if(isTrimActive) {
+      const { status, message } = validateTrimTimes(trimStartTime, trimEndTime);
+      if(status === true) {
+        setStartTime(trimStartTime);
+        setEndTime(trimEndTime);
+        return;
+      }
+      console.log(message)
+      setTrimStartTime(startTime);
+      setTrimEndTime(endTime);
+    }
+  }
+ 
   const isSaveAllowed = isCropActive || isTrimActive || title !== videoInfo.title;
 
   return (
     <>
+    {showEditingOverlay && <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-[1000] flex justify-center items-center"></div>}
       <VideoTimeline isTrimActive={isTrimActive} setIsTrimActive={setIsTrimActive} url={videoUrl} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} playPointer={playPointer} thumbnails={thumbnails} />
       <VideoControlsWrapper className="flex pt-2 pb-4">
         <div className="flex gap-4 items-center">
@@ -394,23 +445,22 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
                 Trim
               </EditOptionButton>
             {isTrimActive && <div className="flex justify-center items-center gap-4 pl-2 pr-1 h-10 rounded-lg bg-additional-link">
-                <div className=' flex justify-center items-center gap-1'>
-                  <span className="text-xs text-white">Start Time</span>
-                  <input 
-                    className="bg-white appearance-none py-1.5 px-3 rounded-md text-sm text-black placeholder:text-base-100 max-w-[8ch] outline-none"
-                    value={trimStartTime} 
-                    placeholder="0 sec" 
-                    onChange={(e) => setTrimStartTime(e.target.value)} 
-                  />
-                </div>
-                <div className='flex justify-center items-center gap-1'>
-                  <span className="text-xs text-white">End Time</span>
-                  <input 
-                    className="bg-white appearance-none py-1.5 px-3 rounded-md text-sm text-black  placeholder:text-base-100 max-w-[8ch] outline-none" 
-                    value={trimEndTime}
-                    placeholder={`${duration} sec`} 
-                    onChange={(e) => setTrimEndTime(e.target.value)} />
-                </div>
+                <TrimInput
+                  label="Start Time"
+                  value={trimStartTime}
+                  placeholder="0 sec"
+                  onChange={(e) => {setTrimStartTime(e.target.value)}}
+                  onBlur={validateInputs}
+                  onEnterClick={validateInputs}
+                />
+                <TrimInput 
+                  label="End Time"
+                  value={trimEndTime}
+                  placeholder={`${duration} sec`}
+                  onChange={(e) => {setTrimEndTime(e.target.value)}}
+                  onBlur={validateInputs}
+                  onEnterClick={validateInputs}
+                />
             </div>}
           </div>
           <div className="flex gap-3">
