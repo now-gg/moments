@@ -245,7 +245,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
           end: Math.floor(trimEndTime)
         }
       }
-      else {
+      else if(!isCropActive) {
         if(trimValidation.message) 
           toast.error(trimValidation.message);
         return;
