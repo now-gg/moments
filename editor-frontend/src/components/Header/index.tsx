@@ -84,6 +84,11 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
   };
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if(searchParams.get('ng_token') && searchParams.get('ng_token_expiry')) {
+      localStorage.setItem('ng_token', searchParams.get('ng_token') || '');
+      localStorage.setItem('ng_token_expiry', searchParams.get('ng_token_expiry') || '');
+    }
     const ng_token = localStorage['ng_token'];
     const ng_token_expiry = localStorage['ng_token_expiry'];
     const isTokenExpired = new Date(ng_token_expiry) < new Date();
