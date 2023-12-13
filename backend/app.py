@@ -139,7 +139,9 @@ def delete():
 
         delete_res = delete_video(video_id, auth_token)
         if delete_res.status_code != 200:
-            return jsonify({"status": "error", "message": "Something went wrong while deleting the video"}), delete_res.status_code
+            if delete_res.status_code == 401:
+                return jsonify({"status": "error", "message": "You are not authorized to delete this video"}), 401
+            return jsonify({"status": "error", "message": "Unable to delete the video"}), delete_res.status_code
         send_stat_to_bq(VIDEO_DELETED, {"arg1": video_id})
         return jsonify({
             "status": "success",
