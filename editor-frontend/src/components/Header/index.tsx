@@ -89,7 +89,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
     const isGuestUserCase = searchParams.get('refresh_token')
     if(isGuestUserCase) {
       const refresh_token = searchParams.get('refresh_token') || '';
-      document.cookie = `_NSID=${refresh_token}; path=/video/edit/; samesite=None; secure`;
+      document.cookie = `_NSID=${refresh_token}; path=/video/edit; samesite=None; secure`;
       generateFEToken();
       // const ng_token = searchParams.get('ng_token') || '';
       // const ng_token_expiry = searchParams.get('ng_token_expiry') || '';
