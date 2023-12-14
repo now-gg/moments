@@ -85,16 +85,20 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const isGuestUserCase = searchParams.get('ng_token') && searchParams.get('ng_token_expiry')
+    // const isGuestUserCase = searchParams.get('ng_token') && searchParams.get('ng_token_expiry')
+    const isGuestUserCase = searchParams.get('refresh_token')
     if(isGuestUserCase) {
-      const ng_token = searchParams.get('ng_token') || '';
-      const ng_token_expiry = searchParams.get('ng_token_expiry') || '';
-      localStorage.setItem('ng_token', ng_token);
-      localStorage.setItem('ng_token_expiry', ng_token_expiry);
-      const isTokenExpired = new Date(ng_token_expiry) < new Date();
-      if(!isTokenExpired)
-        fetchUserDetails();
-      return;
+      const refresh_token = searchParams.get('refresh_token') || '';
+      document.cookie = `_NSID=${refresh_token}`;
+      generateFEToken();
+      // const ng_token = searchParams.get('ng_token') || '';
+      // const ng_token_expiry = searchParams.get('ng_token_expiry') || '';
+      // localStorage.setItem('ng_token', ng_token);
+      // localStorage.setItem('ng_token_expiry', ng_token_expiry);
+      // const isTokenExpired = new Date(ng_token_expiry) < new Date();
+      // if(!isTokenExpired)
+      //   fetchUserDetails();
+      // return;
     }
     const ng_token = localStorage['ng_token'];
     const ng_token_expiry = localStorage['ng_token_expiry'];
