@@ -90,7 +90,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
     if(isGuestUserCase) {
       const refresh_token = searchParams.get('refresh_token') || '';
       // clear existing cookies
-      document.cookie = `_NSID=; path=/; samesite=None; secure`;
+      document.cookie = `_NSID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; samesite=None; secure`;
       // save refresh token in cookie
       document.cookie = `_NSID=${refresh_token}; path=/; samesite=None; secure`;
       generateFEToken();
