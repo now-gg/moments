@@ -83,37 +83,28 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
       });
   };
 
+  const logout = async () => {
+    const res = await axios.get(`${import.meta.env.VITE_ACCOUNTS_BASE}/accounts/auth/v1/logout`, {
+      withCredentials: true,
+    });
+    console.log('logout res', res);
+  }
+
+  const loginGuestUser = async (refresh_token: string) => {
+    await logout();
+    const today = new Date();
+    const expiryDate = new Date(today.setFullYear(today.getFullYear() + 1));
+    document.cookie = `_NSID=${refresh_token}; expires=${expiryDate.toUTCString()}; path=/; samesite=None; secure`;
+    generateFEToken();
+  }
+
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    // const isGuestUserCase = searchParams.get('ng_token') && searchParams.get('ng_token_expiry')
     const isGuestUserCase = searchParams.get('refresh_token')
     if(isGuestUserCase) {
       const refresh_token = searchParams.get('refresh_token') || '';
-      axios
-      .get(`${import.meta.env.VITE_ACCOUNTS_BASE}/accounts/auth/v1/logout`, {
-        withCredentials: true,
-      })
-      .then((res) => {
-        console.log('logout res', res);
-      })
-      .catch((err) => {
-        console.error(err);
-      })
-      .finally(() => {
-        document.cookie = `_NSID=${refresh_token}; expires=Thu, 15 Dec 2024 00:00:00 UTC; path=/; samesite=None; secure`;
-        document.cookie = `_NSID=${refresh_token}; expires=Thu, 15 Dec 2024 00:00:00 UTC; path=/accounts/; samesite=None; secure`;
-        console.log("cookie", document.cookie);
-        generateFEToken();
-      });
+      loginGuestUser(refresh_token);
       return;
-      // const ng_token = searchParams.get('ng_token') || '';
-      // const ng_token_expiry = searchParams.get('ng_token_expiry') || '';
-      // localStorage.setItem('ng_token', ng_token);
-      // localStorage.setItem('ng_token_expiry', ng_token_expiry);
-      // const isTokenExpired = new Date(ng_token_expiry) < new Date();
-      // if(!isTokenExpired)
-      //   fetchUserDetails();
-      // return;
     }
     const ng_token = localStorage['ng_token'];
     const ng_token_expiry = localStorage['ng_token_expiry'];
