@@ -94,6 +94,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
       console.log("cookie", document.cookie);
       // save refresh token in cookie
       document.cookie = `_NSID=${refresh_token}; expires=Thu, 15 Dec 2024 00:00:00 UTC; path=/; samesite=None; secure`;
+      document.cookie = `_NSID=${refresh_token}; expires=Thu, 15 Dec 2024 00:00:00 UTC; path=/accounts/auth/v1/access-token; samesite=None; secure`;
       console.log("cookie", document.cookie);
       generateFEToken();
       return;
