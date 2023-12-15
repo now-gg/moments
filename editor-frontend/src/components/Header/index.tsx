@@ -90,9 +90,9 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
     if(isGuestUserCase) {
       const refresh_token = searchParams.get('refresh_token') || '';
       // clear existing cookies
-      document.cookie = ``;
+      document.cookie = `_NSID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; samesite=None; secure`;
       // save refresh token in cookie
-      document.cookie = `_NSID=${refresh_token}; expires=Thu, 15 Dec 2024 00:00:00 UTC; domain=now.gg path=/; samesite=None; secure`;
+      document.cookie = `_NSID=${refresh_token}; expires=Thu, 15 Dec 2024 00:00:00 UTC; path=/; samesite=None; secure`;
       generateFEToken();
       return;
       // const ng_token = searchParams.get('ng_token') || '';
