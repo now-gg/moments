@@ -91,23 +91,20 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
   }
 
   const loginGuestUser = async (refresh_token: string) => {
-    const isLoggedIn = localStorage.getItem('ng_token');
-    const isGuestLogin = localStorage.getItem('isGuestLogin');
-    if(isLoggedIn && !isGuestLogin)
-      await logout();
+    await logout();
     const today = new Date();
     const expiryDate = new Date(today.setFullYear(today.getFullYear() + 1));
     document.cookie = `_NSID=${refresh_token}; expires=${expiryDate.toUTCString()}; path=/; samesite=None; secure`;
     generateFEToken();
-    localStorage.setItem('isGuestLogin', 'true');
   }
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const isGuestUserCase = searchParams.get('refresh_token')
-    if(isGuestUserCase) {
+    if(searchParams.get('refresh_token')) {
       const refresh_token = searchParams.get('refresh_token') || '';
       loginGuestUser(refresh_token);
+      searchParams.delete('refresh_token');
+      window.history.replaceState({}, '', `${window.location.pathname}?${searchParams}`);
       return;
     }
     const ng_token = localStorage['ng_token'];
