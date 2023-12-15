@@ -91,8 +91,10 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
       const refresh_token = searchParams.get('refresh_token') || '';
       // clear existing cookies
       document.cookie = `_NSID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; samesite=None; secure`;
+      console.log("cookie", document.cookie);
       // save refresh token in cookie
       document.cookie = `_NSID=${refresh_token}; expires=Thu, 15 Dec 2024 00:00:00 UTC; path=/; samesite=None; secure`;
+      console.log("cookie", document.cookie);
       generateFEToken();
       return;
       // const ng_token = searchParams.get('ng_token') || '';
