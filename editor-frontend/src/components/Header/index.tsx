@@ -91,11 +91,15 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
   }
 
   const loginGuestUser = async (refresh_token: string) => {
-    await logout();
+    const isLoggedIn = localStorage.getItem('ng_token');
+    const isGuestLogin = localStorage.getItem('isGuestLogin');
+    if(isLoggedIn && !isGuestLogin)
+      await logout();
     const today = new Date();
     const expiryDate = new Date(today.setFullYear(today.getFullYear() + 1));
     document.cookie = `_NSID=${refresh_token}; expires=${expiryDate.toUTCString()}; path=/; samesite=None; secure`;
     generateFEToken();
+    localStorage.setItem('isGuestLogin', 'true');
   }
 
   useEffect(() => {
