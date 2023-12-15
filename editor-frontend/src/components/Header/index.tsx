@@ -72,7 +72,6 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
         if (res && res.status == 200) {
           localStorage.setItem('ng_token', res.data.token);
           localStorage.setItem('ng_token_expiry', res.data.token_expiry);
-          // console.log('200 code');
           fetchUserDetails();
         }
       })
