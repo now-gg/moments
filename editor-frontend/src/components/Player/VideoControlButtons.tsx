@@ -316,7 +316,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
           })
           .then(data => {
             console.log(data)
-            if(data.status === "success") {
+            if(data.videoStatus === "success") {
               clearInterval(timer);
               toast.remove(loadingToast);
               toast.success("Video edited successfully");
