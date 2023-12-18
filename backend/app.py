@@ -14,10 +14,10 @@ from pubsub import publish_message, get_subscriber
 from redis_wrapper  import RedisWrapper
 from bigquery import send_stat_to_bq, VIDEO_EDIT_PROCESSED, VIDEO_EDIT_REQUEST, VIDEO_DELETED
 from uuid import uuid4
-from constants import VIDEO_PORTAL_HOST
+from constants import VIDEO_PORTAL_HOST, ALLOWED_ORIGINS
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=ALLOWED_ORIGINS)
 
 client = google.cloud.logging.Client()
 client.setup_logging()
@@ -26,6 +26,7 @@ redis_client = RedisWrapper()
 
 logging.info("starting flask app")
 logging.info(f'env is {os.environ.get("ENVIRONMENT")}')
+
 
 @app.route("/")
 def home():
