@@ -326,7 +326,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
                 window.location.href = newUrl;
               }, 3*1000);
             }
-            else if(data.status === "failed") {
+            else if(data.videoStatus === "failed") {
               clearInterval(timer);
               toast.remove(loadingToast);
               toast.error("Error while editing the video");
