@@ -1,7 +1,7 @@
 
 import google.cloud.logging
 import logging
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import json
 import os
 import time
@@ -30,6 +30,11 @@ logging.info(f'env is {os.environ.get("ENVIRONMENT")}')
 @app.route("/")
 def home():
     return "Moments backend"
+
+
+@app.route("/robots.txt")
+def robots():
+    return send_from_directory("./templates", request.path[1:])
 
 
 @app.route("/video/process", methods=["POST"])
