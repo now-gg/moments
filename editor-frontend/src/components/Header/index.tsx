@@ -83,6 +83,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
   };
 
   const logout = async () => {
+    console.log('logout old user');
     const res = await axios.get(`${import.meta.env.VITE_ACCOUNTS_BASE}/accounts/auth/v1/logout`, {
       withCredentials: true,
     });
@@ -93,7 +94,9 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
     await logout();
     const today = new Date();
     const expiryDate = new Date(today.setFullYear(today.getFullYear() + 1));
+    console.log(`set refresh token in cookie ${refresh_token}`)
     document.cookie = `_NSID=${refresh_token}; expires=${expiryDate.toUTCString()}; path=/; samesite=None; secure`;
+    console.log("login guest user")
     generateFEToken();
   }
 
