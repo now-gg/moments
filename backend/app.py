@@ -31,7 +31,7 @@ logging.info(f'env is {os.environ.get("ENVIRONMENT")}')
 
 @app.route("/")
 def home():
-    return "Moments backend"
+    return send_response({"message": "Welcome to Moments Backend"}, 200)
 
 
 @app.route("/robots.txt")
@@ -129,7 +129,7 @@ def edit_title():
             "title": title
         }
         res = requests.post(url, headers=headers, json=data)
-        return res.json(), res.status_code
+        return send_response(res.json(), res.status_code)
     except Exception as e:
         logging.error(e)
         return send_response({ "message": f'Something went wrong', "error": str(e)}, 500)
@@ -198,7 +198,7 @@ def status():
             res_status = "processing"            
         elif video_status == "failed":
             res_status = "failed"
-        return send_response({"message": "Video status received successfully"}, 200)
+        return send_response({"status": res_status, "message": "Video status received successfully"}, 200)
     except Exception as e:
         logging.error(e)
         return send_response({ "message": f'Something went wrong', "error": str(e)}, 500)
