@@ -198,7 +198,7 @@ def status():
             res_status = "processing"            
         elif video_status == "failed":
             res_status = "failed"
-        return send_response({"status": res_status, "message": "Video status received successfully"}, 200)
+        return send_response({"videoStatus": res_status, "message": "Video status received successfully"}, 200)
     except Exception as e:
         logging.error(e)
         return send_response({ "message": f'Something went wrong', "error": str(e)}, 500)
