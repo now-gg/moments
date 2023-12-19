@@ -146,7 +146,10 @@ def delete():
 
         delete_res = delete_video(video_id, auth_token)
         if delete_res.status_code != 200:
+            if delete_res.status_code == 401:
+                return send_response({"message": "You are not authorized to delete this video"}, 401)
             return send_response({ "message": "Something went wrong while deleting the video"}, delete_res.status_code)
+
         send_stat_to_bq(VIDEO_DELETED, {"arg1": video_id})
         return send_response({"message": "Video deleted successfully",}, 200)
 

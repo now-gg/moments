@@ -278,7 +278,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
         if(response.status === 401) {
           localStorage.removeItem('ng_token');
           toast.remove(loadingToast);
-          toast.error("Unauthorized. Please login again.");
+          toast.error("You are not authorized to edit this video");
           setShowEditingOverlay(false);
         }
         else if(response.status >= 400) {
@@ -316,7 +316,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
           })
           .then(data => {
             console.log(data)
-            if(data.status === "success") {
+            if(data.videoStatus === "success") {
               clearInterval(timer);
               toast.remove(loadingToast);
               toast.success("Video edited successfully");
@@ -326,7 +326,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
                 window.location.href = newUrl;
               }, 3*1000);
             }
-            else if(data.status === "failed") {
+            else if(data.videoStatus === "failed") {
               clearInterval(timer);
               toast.remove(loadingToast);
               toast.error("Error while editing the video");
@@ -361,7 +361,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
         }
         else if(response.status === 401) {
           localStorage.removeItem('ng_token');
-          toast.error("Unauthorized. Please login again.");
+          toast.error("You are not authorized to update the title");
         }
         else {
           toast.error("Error while updating the title");

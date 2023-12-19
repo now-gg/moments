@@ -72,7 +72,6 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
         if (res && res.status == 200) {
           localStorage.setItem('ng_token', res.data.token);
           localStorage.setItem('ng_token_expiry', res.data.token_expiry);
-          // console.log('200 code');
           fetchUserDetails();
         }
       })
@@ -83,16 +82,44 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
       });
   };
 
+  const logout = async () => {
+    console.log('logout old user');
+    const res = await axios.get(`${import.meta.env.VITE_ACCOUNTS_BASE}/accounts/auth/v1/logout`, {
+      withCredentials: true,
+    });
+    console.log('logout res', res);
+  }
+
+  const loginGuestUser = async (refresh_token: string) => {
+    if(!localStorage.getItem('ng_token'))
+      await logout();
+    const today = new Date();
+    const expiryDate = new Date(today.setFullYear(today.getFullYear() + 1));
+    console.log(`set refresh token in cookie ${refresh_token}`)
+    document.cookie = `_NSID=${refresh_token}; expires=${expiryDate.toUTCString()}; path=/; samesite=None; secure`;
+    document.cookie = `_NSID=${refresh_token}; expires=${expiryDate.toUTCString()}; path=/accounts/; samesite=None; secure`;
+    console.log("cookie",  document.cookie)
+    console.log("login guest user")
+    generateFEToken();
+  }
+
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if(searchParams.get('refresh_token')) {
+      const refresh_token = searchParams.get('refresh_token') || '';
+      loginGuestUser(refresh_token);
+      searchParams.delete('refresh_token');
+      window.history.replaceState({}, '', `${window.location.pathname}?${searchParams}`);
+      return;
+    }
     const ng_token = localStorage['ng_token'];
     const ng_token_expiry = localStorage['ng_token_expiry'];
     const isTokenExpired = new Date(ng_token_expiry) < new Date();
     if (!ng_token || isTokenExpired) {
       generateFEToken();
-      // console.log('Token not Found');
-    } else {
-      fetchUserDetails();
+      return;
     }
+    fetchUserDetails();
   }, [])
 
   const editTitle = () => {
@@ -112,7 +139,9 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
 
   const download = () => {
     sendStats(Events.VIDEO_DOWNLOAD, { "arg1": videoInfo?.videoId})
-    window.open(videoInfo?.downloadUrl, '_blank');
+    const filename = videoInfo?.title?.replace(/\s/g, '_');
+    const downloadUrl = `${videoInfo?.downloadUrl}?filename=${filename}`;
+    window.open(downloadUrl, '_blank');
   }
 
   const closeDeletePopup = () => {
