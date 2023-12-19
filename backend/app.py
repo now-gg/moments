@@ -18,7 +18,7 @@ from constants import VIDEO_PORTAL_HOST, ALLOWED_ORIGINS
 from utils import send_response
 
 app = Flask(__name__)
-CORS(app, origins=ALLOWED_ORIGINS, methods=['GET','POST'])
+CORS(app, origins=ALLOWED_ORIGINS, methods=['GET','POST'], allow_headers=['Content-Type', 'Authorization', 'token'])
 
 client = google.cloud.logging.Client()
 client.setup_logging()
