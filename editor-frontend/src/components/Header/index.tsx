@@ -139,7 +139,8 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
 
   const download = () => {
     sendStats(Events.VIDEO_DOWNLOAD, { "arg1": videoInfo?.videoId})
-    const downloadUrl = `${videoInfo?.downloadUrl}?filename=${videoInfo?.title}`;
+    const filename = videoInfo?.title?.replace(/\s/g, '_');
+    const downloadUrl = `${videoInfo?.downloadUrl}?filename=${filename}`;
     window.open(downloadUrl, '_blank');
   }
 
