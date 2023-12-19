@@ -91,7 +91,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
   }
 
   const loginGuestUser = async (refresh_token: string) => {
-    if(!localStorage.getItem('ng_token'))
+    if(localStorage.getItem('ng_token'))
       await logout();
     const today = new Date();
     const expiryDate = new Date(today.setFullYear(today.getFullYear() + 1));
