@@ -96,8 +96,9 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
     const today = new Date();
     const expiryDate = new Date(today.setFullYear(today.getFullYear() + 1));
     console.log(`set refresh token in cookie ${refresh_token}`)
-    document.cookie = `_NSID=${refresh_token}; expires=${expiryDate.toUTCString()}; path=/accounts/; samesite=None; secure`;
     document.cookie = `_NSID=${refresh_token}; expires=${expiryDate.toUTCString()}; path=/; samesite=None; secure`;
+    document.cookie = `_NSID=${refresh_token}; expires=${expiryDate.toUTCString()}; path=/accounts/; samesite=None; secure`;
+    console.log("cookie",  document.cookie)
     console.log("login guest user")
     generateFEToken();
   }
