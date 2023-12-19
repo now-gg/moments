@@ -24,3 +24,7 @@ ENGG_REDIS_HOST = '10.216.98.51'
 PROD_REDIS_HOST = '10.32.129.20'
 REDIS_HOST = PROD_REDIS_HOST if is_prod else ENGG_REDIS_HOST
 REDIS_PORT = 6379
+
+STAGING_ALLOWED_ORIGINS = ['https://now.gg', 'https://stagingngg.net', 'http://localhost:5173']
+PROD_ALLOWED_ORIGINS = ['https://now.gg']
+ALLOWED_ORIGINS = PROD_ALLOWED_ORIGINS if is_prod else STAGING_ALLOWED_ORIGINS
