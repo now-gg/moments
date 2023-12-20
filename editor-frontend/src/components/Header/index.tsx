@@ -63,7 +63,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
       });
   };
 
-  const generateFEToken = async () => {
+  const generateFEToken = async (guest_refresh_token?: string) => {
     axios
       .get(`${import.meta.env.VITE_ACCOUNTS_BASE}/accounts/auth/v1/access-token`, {
         withCredentials: true,
@@ -72,6 +72,8 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
         if (res && res.status == 200) {
           localStorage.setItem('ng_token', res.data.token);
           localStorage.setItem('ng_token_expiry', res.data.token_expiry);
+          if(guest_refresh_token)
+            localStorage.setItem('guest_refresh_token', guest_refresh_token);
           fetchUserDetails();
         }
       })
@@ -90,17 +92,17 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
     console.log('logout res', res);
   }
 
-  const loginGuestUser = async (refresh_token: string) => {
-    if(localStorage.getItem('ng_token'))
+  const loginGuestUser = async (guest_refresh_token: string) => {
+    if(localStorage.getItem('ng_token') && localStorage.getItem('guest_refresh_token') !== guest_refresh_token)
       await logout();
     const today = new Date();
     const expiryDate = new Date(today.setFullYear(today.getFullYear() + 1));
-    console.log(`set refresh token in cookie ${refresh_token}`)
-    document.cookie = `_NSID=${refresh_token}; expires=${expiryDate.toUTCString()}; path=/; samesite=None; secure`;
-    document.cookie = `_NSID=${refresh_token}; expires=${expiryDate.toUTCString()}; path=/accounts/; samesite=None; secure`;
+    console.log(`set refresh token in cookie ${guest_refresh_token}`)
+    document.cookie = `_NSID=${guest_refresh_token}; expires=${expiryDate.toUTCString()}; path=/; samesite=None; secure`;
+    document.cookie = `_NSID=${guest_refresh_token}; expires=${expiryDate.toUTCString()}; path=/accounts/; samesite=None; secure`;
     console.log("cookie",  document.cookie)
     console.log("login guest user")
-    generateFEToken();
+    generateFEToken(guest_refresh_token);
   }
 
   useEffect(() => {
