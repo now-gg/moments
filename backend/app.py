@@ -172,7 +172,7 @@ def info():
         video_info = get_video_info(video_id)
 
         if video_info:
-            logging.info("video info received", video_info)
+            logging.info(f'video info received for {video_id}')
             return send_response({"message": "Video info received successfully", "video": video_info}, 200)
         
         return send_response({ "message": f'Video with id {video_id} not found'}, 404)
@@ -274,18 +274,9 @@ def edit_video(request_id, video_id, title, trim, crop, auth_token, input_video_
             redis_client.set(video_cache_key, "failed", xx=True)
             data_for_bq["arg5"] = json.dumps(time_log)
             send_stat_to_bq(VIDEO_EDIT_PROCESSED, data_for_bq)
-            logging.error("error while uploading video", upload_res.json())
+            logging.error(f'error while uploading video: {upload_res.json()}')
             return send_response({ "message": "Something went wrong while uploading the video"}, upload_res.status_code)
 
-
-        # delete_res = delete_video(video_id, auth_token)
-        # time_log["deleting"] = time.time() - request_init_time - time_log["editing"] - time_log["uploading"]
-        # if delete_res.status_code != 200:
-        #     redis_client.set(video_cache_key, "failed", xx=True)
-        #     data_for_bq["arg5"] = json.dumps(time_log)
-        #     send_stat_to_bq(VIDEO_EDIT_PROCESSED, data_for_bq)
-        #     logging.error("error while deleting old video", delete_res.json())
-        #     return send_response({ "message": "Something went wrong while deleting the previous video"}, delete_res.status_code)
 
         time_log["total"] = time.time() - request_init_time
         data_for_bq["arg4"] = "success"
