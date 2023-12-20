@@ -265,7 +265,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     }
 
     if(payload["trim"] || payload["crop"]) {
-      payload["title"] = title === videoInfo.title ? title + " (copy)" : title;
+      payload["title"] = title === videoInfo.title ? title + "_copy" : title;
       payload["aspectRatio"] = payload["crop"] ? aspectRatio : "";
       const loadingToast = toast.loading("Editing your video, please wait");
       setShowEditingOverlay(true);
