@@ -139,10 +139,20 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
     navigator.clipboard.writeText(`https://stagingngg.net/videos/watch/${videoInfo?.videoId}`);
   }
 
+  const getDownloadUrl = (filename: string) => {
+    if(videoInfo?.downloadUrl)
+      return `${videoInfo?.downloadUrl}?filename=${filename}`;
+    if(videoInfo?.cflVideoId)
+      return `https://customer-0ae3bmzhlvu9twn2.cloudflarestream.com/${videoInfo.cflVideoId}/downloads/default.mp4?filename=${filename}`;
+    return '';
+  }
+
   const download = () => {
     sendStats(Events.VIDEO_DOWNLOAD, { "arg1": videoInfo?.videoId})
     const filename = videoInfo?.title?.replace(/\s/g, '_');
-    const downloadUrl = `${videoInfo?.downloadUrl}?filename=${filename}`;
+    const downloadUrl = getDownloadUrl(filename);
+    if(!downloadUrl)
+      return;
     window.open(downloadUrl, '_blank');
   }
 
