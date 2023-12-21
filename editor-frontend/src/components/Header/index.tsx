@@ -24,11 +24,11 @@ type HeaderProps = {
   videoInfo: any,
   title: string,
   setTitle: Function,
+  userData: any,
+  setUserData: Function,
 };
 
-const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, setTitle }: HeaderProps) => {
-  const [profileIcon, setProfileIcon] = useState('');
-  const [userName, setUserName] = useState('');
+const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, setTitle, userData, setUserData }: HeaderProps) => {
   const [allowTitleEdit, setAllowTitleEdit] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 
@@ -45,8 +45,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
         }
 
         if (res && res.status === 200) {
-          setUserName(res?.data?.userData?.name);
-          setProfileIcon(res?.data?.userData?.profilePicture || res?.data?.userData?.avatar);
+          setUserData(res?.data?.userData);
           setLoggedIn(true);
           sessionStorage.setItem('userType', 'Authorised');
         }
@@ -134,7 +133,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
   }
 
   const copyLink = () => {
-    sendStats(Events.COPY_LINK_CLICK, { "arg1": videoInfo?.videoId})
+    sendStats(Events.COPY_LINK_CLICK, videoInfo?.videoId, userData)
     toast.success('Video link copied to clipboard');
     navigator.clipboard.writeText(`https://stagingngg.net/videos/watch/${videoInfo?.videoId}`);
   }
@@ -148,7 +147,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
   }
 
   const download = () => {
-    sendStats(Events.VIDEO_DOWNLOAD, { "arg1": videoInfo?.videoId})
+    sendStats(Events.VIDEO_DOWNLOAD, videoInfo?.videoId, userData)
     const filename = videoInfo?.title?.replace(/\s/g, '_');
     const downloadUrl = getDownloadUrl(filename);
     if(!downloadUrl)
@@ -168,6 +167,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
         'token': localStorage['ng_token']
       },
       body: JSON.stringify({
+        userId: userData?.userId,
         videoId: videoInfo?.videoId
       })
     })
@@ -238,9 +238,9 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
             loggedIn &&
             <div className="profile-details flex">
               <figure className="profile-img">
-                <img src={profileIcon} height="36" width="36" />
+                <img src={userData?.profilePicture || userData?.avatar} height="36" width="36" />
               </figure>
-              <p className="profile-name">{userName}</p>
+              <p className="profile-name">{userData?.name}</p>
             </div>
           }
 

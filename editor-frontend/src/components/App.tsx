@@ -12,6 +12,7 @@ export default function App() {
   const [videoInfo, setVideoInfo] = useState({});
   const [title, setTitle] = useState('');
   const [show404, setShow404] = useState(false);
+  const [userData, setUserData] = useState({});
 
   const fetchVideo = () => {
     const headers = new Headers();
@@ -22,7 +23,7 @@ export default function App() {
       setShow404(true);
       return;
     }
-    sendStats(Events.EDIT_PAGE_IMPRESSION, {"arg1": videoId});
+    sendStats(Events.EDIT_PAGE_IMPRESSION, videoId, userData);
     let videoInfoUrl = `${import.meta.env.VITE_BACKEND_HOST}/video/info?videoId=${videoId}`;
     if(import.meta.env.VITE_CURRENT_ENV === 'staging' || import.meta.env.VITE_CURRENT_ENV === 'production')
       videoInfoUrl = `${import.meta.env.VITE_VIDEO_BASE}/7/api/vid/v1/getVideoInfo?videoId=${videoId}`;
@@ -55,9 +56,9 @@ export default function App() {
       <link href='https://fonts.googleapis.com/css2?family=Audiowide&display=swap' rel='stylesheet'/>
       <link href='https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap' rel='stylesheet'/>
       <Toaster />
-      <Header setShowLoginPopup={setShowLoginPopup} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} title={title} setTitle={setTitle} />
+      <Header setShowLoginPopup={setShowLoginPopup} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} title={title} setTitle={setTitle} userData={userData} setUserData={setUserData} />
       <div className="font-poppins p-4 max-w-7xl mx-auto" style={{height: 'calc(100vh - 72px)'}} >
-          <Player loggedIn={loggedIn} videoInfo={videoInfo} setVideoInfo={setVideoInfo} title={title} setTitle={setTitle}  />
+          <Player loggedIn={loggedIn} videoInfo={videoInfo} setVideoInfo={setVideoInfo} title={title} setTitle={setTitle} userData={userData}  />
       </div>
       {showLoginPopup && <LoginPopup closePopup={() => setShowLoginPopup(false)} />}
       {show404 && <Page404 />}

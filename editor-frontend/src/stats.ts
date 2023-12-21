@@ -5,11 +5,12 @@ export const Events = {
     RESET_CLICK: "reset_click",
 }
 
-export const sendStats = (event: string, data: any) => {
-    const arg1 = data?.arg1 || "";
+export const sendStats = (event: string, videoId: string, userData?: any) => {
+    const userId = userData?.userId || "";
     const formData = new FormData();
     formData.append("event_type", event);
-    formData.append("arg1", arg1);
+    formData.append("arg1", userId);
+    formData.append("arg2", videoId);
     formData.append("tag", "moments");
     const statsUrl = `${import.meta.env.VITE_BS_CLOUD_HOST}/app_player/miscellaneousstats`;
     fetch(statsUrl, {

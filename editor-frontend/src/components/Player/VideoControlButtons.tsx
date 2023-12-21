@@ -34,6 +34,7 @@ type ControlProps = {
   title: string,
   setVideoInfo: React.Dispatch<React.SetStateAction<any>>;
   setTitle: React.Dispatch<React.SetStateAction<string>>;
+  userData: any;
 };
 
 const VideoControlsWrapper = styled.section`
@@ -180,7 +181,7 @@ const VideoControlsWrapper = styled.section`
   }
 `
 
-const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, playing, streamRef, playPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive, videoInfo, left, top, title, setVideoInfo, setTitle }: ControlProps) => {
+const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEndTime, duration, playing, streamRef, playPointer, aspectRatio, setAspectRatio, thumbnails, isCropActive, setIsCropActive, videoInfo, left, top, title, setVideoInfo, setTitle, userData }: ControlProps) => {
 
 
   const [trimStartTime, setTrimStartTime] = useState(startTime || 0);
@@ -232,6 +233,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
     const payload:any = {
       "videoId": videoInfo.videoId,
+      "userId": userData?.userId
     }
 
     if(title !== videoInfo.title)
@@ -402,7 +404,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
     setTitle(videoInfo.title);
     setIsTrimActive(false);
     setIsCropActive(false);
-    sendStats(Events.RESET_CLICK, {"arg1": videoInfo.videoId});
+    sendStats(Events.RESET_CLICK, videoInfo?.videoId, userData);
   }
 
   const handlePLayClick: ReactEventHandler = () => {
