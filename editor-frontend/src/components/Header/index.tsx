@@ -80,7 +80,9 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
         }
       })
       .catch((err: any) => {
-        sendStats(Events.EDIT_PAGE_IMPRESSION, "", userData);
+        const searchParams = new URLSearchParams(location.search);
+        const videoId = searchParams.get('videoId') ?? '';
+        sendStats(Events.EDIT_PAGE_IMPRESSION, videoId, userData);
         if(err?.response?.status === 401)
           setShowLoginPopup(true);
         console.log('err', err?.response?.status);
