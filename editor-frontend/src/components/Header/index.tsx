@@ -48,7 +48,9 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
           setUserData(res?.data?.userData);
           setLoggedIn(true);
           sessionStorage.setItem('userType', 'Authorised');
-          sendStats(Events.EDIT_PAGE_IMPRESSION, videoInfo?.videoId, userData);
+          const searchParams = new URLSearchParams(location.search);
+          const videoId = searchParams.get('videoId') ?? '';
+          sendStats(Events.EDIT_PAGE_IMPRESSION, videoId, res?.data?.userData);
         }
       })
       .catch((err: any) => {
