@@ -48,6 +48,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
           setUserData(res?.data?.userData);
           setLoggedIn(true);
           sessionStorage.setItem('userType', 'Authorised');
+          sendStats(Events.EDIT_PAGE_IMPRESSION, videoInfo?.videoId, userData);
         }
       })
       .catch((err: any) => {
@@ -77,6 +78,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
         }
       })
       .catch((err: any) => {
+        sendStats(Events.EDIT_PAGE_IMPRESSION, "", userData);
         if(err?.response?.status === 401)
           setShowLoginPopup(true);
         console.log('err', err?.response?.status);

@@ -3,7 +3,6 @@ import Header from "./Header"
 import LoginPopup from "./LoginPopup/index";
 import Player from "./Player";
 import Page404 from "./Page404";
-import { sendStats, Events } from "../stats";
 import Toaster from "./Toaster";
 
 export default function App() {
@@ -35,7 +34,6 @@ export default function App() {
       })
       .then((data) => {
         console.log(data);
-        sendStats(Events.EDIT_PAGE_IMPRESSION, videoId, userData);
         if(data?.status === 'FailureVideoNotExist' || data?.status === 'FailureNotPublished') {
           setShow404(true);
           return;
