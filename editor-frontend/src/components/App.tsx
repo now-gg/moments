@@ -23,7 +23,6 @@ export default function App() {
       setShow404(true);
       return;
     }
-    sendStats(Events.EDIT_PAGE_IMPRESSION, videoId, userData);
     let videoInfoUrl = `${import.meta.env.VITE_BACKEND_HOST}/video/info?videoId=${videoId}`;
     if(import.meta.env.VITE_CURRENT_ENV === 'staging' || import.meta.env.VITE_CURRENT_ENV === 'production')
       videoInfoUrl = `${import.meta.env.VITE_VIDEO_BASE}/7/api/vid/v1/getVideoInfo?videoId=${videoId}`;
@@ -36,6 +35,7 @@ export default function App() {
       })
       .then((data) => {
         console.log(data);
+        sendStats(Events.EDIT_PAGE_IMPRESSION, videoId, userData);
         if(data?.status === 'FailureVideoNotExist' || data?.status === 'FailureNotPublished') {
           setShow404(true);
           return;
