@@ -13,7 +13,7 @@ export const sendStats = (event: string, videoId: string, userData?: any) => {
     formData.append("arg2", videoId);
     formData.append("tag", "moments");
     if (userData?.countryCode)
-        formData.append("country", userData.countryCode);
+        formData.append("stats_country", userData.countryCode);
     const statsUrl = `${import.meta.env.VITE_BS_CLOUD_HOST}/app_player/miscellaneousstats`;
     fetch(statsUrl, {
         method: 'POST',
