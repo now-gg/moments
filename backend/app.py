@@ -48,6 +48,8 @@ def process():
         crop = body.get("crop")
         trim = body.get("trim")
         aspect_ratio = body.get("aspectRatio")
+        user_id = body.get("userId")
+        country = body.get("country")
         auth_token = request.headers.get("token")
         request_id = str(uuid4())
 
@@ -74,22 +76,25 @@ def process():
         create_video_res = create_video_res.json()
         upload_url, new_video_id = create_video_res["uploadUrl"], create_video_res["videoId"]
 
-        editing_params_log = {
+        arg5_log = {
+            "request_id": request_id,
             "trim": trim if trim else "",
             "crop": crop if crop else "",
-            "aspectRatio": aspect_ratio if aspect_ratio else ""
+            "aspect_ratio": aspect_ratio if aspect_ratio else ""
         }
 
         data_for_bq = {
-            "arg1": request_id,
+            "arg1": user_id,
             "arg2": video_id,
             "arg3": new_video_id,
             "arg4": video_info.get("durationSecs", ""),
-            "arg5": json.dumps(editing_params_log)
+            "arg5": json.dumps(arg5_log),
+            "country": country
         }
         send_stat_to_bq(VIDEO_EDIT_REQUEST, data_for_bq)
 
         message = {
+            "user_id": user_id,
             "request_id": request_id,
             "video_id": video_id,
             "title": title,
@@ -98,7 +103,8 @@ def process():
             "auth_token": auth_token,
             "video_url": video_url,
             "upload_url": upload_url,
-            "new_video_id": new_video_id
+            "new_video_id": new_video_id,
+            "user_country": country,
         }
         logging.info(f'message to be published: {message}')
         redis_client.set(video_cache_key, "processing")
@@ -141,6 +147,8 @@ def delete():
         body = request.get_json()
         video_id = body["videoId"]
         auth_token = request.headers.get("token")
+        user_id = body.get("userId")
+        country = body.get("country")
 
         logging.info("request to delete video")
 
@@ -150,7 +158,7 @@ def delete():
                 return send_response({"message": "You are not authorized to delete this video"}, 401)
             return send_response({ "message": "Something went wrong while deleting the video"}, delete_res.status_code)
 
-        send_stat_to_bq(VIDEO_DELETED, {"arg1": video_id})
+        send_stat_to_bq(VIDEO_DELETED, {"arg1": user_id, "arg2": video_id, "country": country})
         return send_response({"message": "Video deleted successfully",}, 200)
 
     except Exception as e:
@@ -172,7 +180,7 @@ def info():
         video_info = get_video_info(video_id)
 
         if video_info:
-            logging.info("video info received", video_info)
+            logging.info(f'video info received for {video_id}')
             return send_response({"message": "Video info received successfully", "video": video_info}, 200)
         
         return send_response({ "message": f'Video with id {video_id} not found'}, 404)
@@ -207,22 +215,23 @@ def status():
         return send_response({ "message": f'Something went wrong', "error": str(e)}, 500)
 
 
-def edit_video(request_id, video_id, title, trim, crop, auth_token, input_video_url, upload_url, new_video_id):
+def edit_video(user_id, request_id, video_id, title, trim, crop, auth_token, input_video_url, upload_url, new_video_id, country):
     try:
         request_init_time = time.time()
         video_cache_key = f'moments-editor-video-{video_id}'
         stream = ffmpeg.input(input_video_url)
-        time_log = {
-            "editing": "",
-            "uploading": "",
-            "deleting": "",
-            "total": ""
+        arg5_log = {
+            "request_id": request_id,
+            "edit_time": "",
+            "upload_time": "",
+            "total_time": ""
         }
         data_for_bq = {
-            "arg1": request_id,
+            "arg1": user_id,
             "arg2": video_id,
             "arg3": new_video_id,
-            "arg4": "failed"
+            "arg4": "failed",
+            "country": country
         }
 
         if trim:
@@ -245,51 +254,43 @@ def edit_video(request_id, video_id, title, trim, crop, auth_token, input_video_
         with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_file:
             try:
                 stream = ffmpeg.filter(stream, 'scale', 1280, -1)
+                stream = ffmpeg.filter(stream, 'setpts', 'PTS-STARTPTS')
                 stream = ffmpeg.filter(stream, 'pad', 'ceil(iw/2)*2', 'ceil(ih/2)*2')
                 stream = ffmpeg.output(stream, temp_file.name, loglevel="error")
                 stream = ffmpeg.overwrite_output(stream)
                 ffmpeg.run(stream)
-                time_log["editing"] = time.time() - request_init_time
+                arg5_log["edit_time"] = time.time() - request_init_time
             except ffmpeg.Error as e:
                 redis_client.set(video_cache_key, "failed", xx=True)
-                data_for_bq["arg5"] = json.dumps(time_log)
+                data_for_bq["arg5"] = json.dumps(arg5_log)
                 send_stat_to_bq(VIDEO_EDIT_PROCESSED, data_for_bq)
                 logging.error(e.stderr)
                 return send_response({ "message": f'Something went wrong while writing the video', "error": str(e)}, 500)
             except Exception as e:
                 redis_client.set(video_cache_key, "failed", xx=True)
-                data_for_bq["arg5"] = json.dumps(time_log)
+                data_for_bq["arg5"] = json.dumps(arg5_log)
                 send_stat_to_bq(VIDEO_EDIT_PROCESSED, data_for_bq)
                 logging.error(e)
                 return send_response({ "message": f'Something went wrong while writing the video', "error": str(e)}, 500)
             logging.info("clip written to temp file")
             temp_file.seek(0)
             upload_res = upload_video(temp_file.name, title, upload_url)
-            time_log["uploading"] = time.time() - request_init_time - time_log["editing"]
+            arg5_log["upload_time"] = time.time() - request_init_time - arg5_log["edit_time"]
             temp_file.close()
             del temp_file
         
 
         if upload_res.status_code != 200:
             redis_client.set(video_cache_key, "failed", xx=True)
-            data_for_bq["arg5"] = json.dumps(time_log)
+            data_for_bq["arg5"] = json.dumps(arg5_log)
             send_stat_to_bq(VIDEO_EDIT_PROCESSED, data_for_bq)
-            logging.error("error while uploading video", upload_res.json())
+            logging.error(f'error while uploading video: {upload_res.json()}')
             return send_response({ "message": "Something went wrong while uploading the video"}, upload_res.status_code)
 
 
-        # delete_res = delete_video(video_id, auth_token)
-        # time_log["deleting"] = time.time() - request_init_time - time_log["editing"] - time_log["uploading"]
-        # if delete_res.status_code != 200:
-        #     redis_client.set(video_cache_key, "failed", xx=True)
-        #     data_for_bq["arg5"] = json.dumps(time_log)
-        #     send_stat_to_bq(VIDEO_EDIT_PROCESSED, data_for_bq)
-        #     logging.error("error while deleting old video", delete_res.json())
-        #     return send_response({ "message": "Something went wrong while deleting the previous video"}, delete_res.status_code)
-
-        time_log["total"] = time.time() - request_init_time
+        arg5_log["total_time"] = time.time() - request_init_time
         data_for_bq["arg4"] = "success"
-        data_for_bq["arg5"] = json.dumps(time_log)
+        data_for_bq["arg5"] = json.dumps(arg5_log)
         send_stat_to_bq(VIDEO_EDIT_PROCESSED, data_for_bq)
 
         res_dict = {
@@ -311,6 +312,7 @@ def pull_message_callback(message):
     logging.info('Received message on subscriber: {}'.format(message))
     try:
         message = json.loads(message)
+        user_id = message["user_id"]
         request_id = message["request_id"]
         video_id = message["video_id"]
         title = message["title"]
@@ -320,8 +322,9 @@ def pull_message_callback(message):
         video_url = message["video_url"]
         upload_url = message["upload_url"]
         new_video_id = message["new_video_id"]
+        country = message["user_country"]
         with app.app_context():
-            res = edit_video(request_id, video_id, title, trim, crop, auth_token, video_url, upload_url, new_video_id)
+            res = edit_video(user_id, request_id, video_id, title, trim, crop, auth_token, video_url, upload_url, new_video_id, country)
             logging.info(f'response from edit_video async: {res}')
     except Exception as e:
         logging.error(e)

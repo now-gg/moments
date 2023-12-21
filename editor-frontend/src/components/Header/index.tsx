@@ -24,11 +24,11 @@ type HeaderProps = {
   videoInfo: any,
   title: string,
   setTitle: Function,
+  userData: any,
+  setUserData: Function,
 };
 
-const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, setTitle }: HeaderProps) => {
-  const [profileIcon, setProfileIcon] = useState('');
-  const [userName, setUserName] = useState('');
+const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, setTitle, userData, setUserData }: HeaderProps) => {
   const [allowTitleEdit, setAllowTitleEdit] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 
@@ -45,10 +45,12 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
         }
 
         if (res && res.status === 200) {
-          setUserName(res?.data?.userData?.name);
-          setProfileIcon(res?.data?.userData?.profilePicture || res?.data?.userData?.avatar);
+          setUserData(res?.data?.userData);
           setLoggedIn(true);
           sessionStorage.setItem('userType', 'Authorised');
+          const searchParams = new URLSearchParams(location.search);
+          const videoId = searchParams.get('videoId') ?? '';
+          sendStats(Events.EDIT_PAGE_IMPRESSION, videoId, res?.data?.userData);
         }
       })
       .catch((err: any) => {
@@ -63,7 +65,7 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
       });
   };
 
-  const generateFEToken = async () => {
+  const generateFEToken = async (guest_refresh_token?: string) => {
     axios
       .get(`${import.meta.env.VITE_ACCOUNTS_BASE}/accounts/auth/v1/access-token`, {
         withCredentials: true,
@@ -72,10 +74,15 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
         if (res && res.status == 200) {
           localStorage.setItem('ng_token', res.data.token);
           localStorage.setItem('ng_token_expiry', res.data.token_expiry);
+          if(guest_refresh_token)
+            localStorage.setItem('guest_refresh_token', guest_refresh_token);
           fetchUserDetails();
         }
       })
       .catch((err: any) => {
+        const searchParams = new URLSearchParams(location.search);
+        const videoId = searchParams.get('videoId') ?? '';
+        sendStats(Events.EDIT_PAGE_IMPRESSION, videoId, userData);
         if(err?.response?.status === 401)
           setShowLoginPopup(true);
         console.log('err', err?.response?.status);
@@ -90,17 +97,17 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
     console.log('logout res', res);
   }
 
-  const loginGuestUser = async (refresh_token: string) => {
-    if(!localStorage.getItem('ng_token'))
+  const loginGuestUser = async (guest_refresh_token: string) => {
+    if(localStorage.getItem('ng_token') && localStorage.getItem('guest_refresh_token') !== guest_refresh_token)
       await logout();
     const today = new Date();
     const expiryDate = new Date(today.setFullYear(today.getFullYear() + 1));
-    console.log(`set refresh token in cookie ${refresh_token}`)
-    document.cookie = `_NSID=${refresh_token}; expires=${expiryDate.toUTCString()}; path=/; samesite=None; secure`;
-    document.cookie = `_NSID=${refresh_token}; expires=${expiryDate.toUTCString()}; path=/accounts/; samesite=None; secure`;
+    console.log(`set refresh token in cookie ${guest_refresh_token}`)
+    document.cookie = `_NSID=${guest_refresh_token}; expires=${expiryDate.toUTCString()}; path=/; samesite=None; secure`;
+    document.cookie = `_NSID=${guest_refresh_token}; expires=${expiryDate.toUTCString()}; path=/accounts/; samesite=None; secure`;
     console.log("cookie",  document.cookie)
     console.log("login guest user")
-    generateFEToken();
+    generateFEToken(guest_refresh_token);
   }
 
   useEffect(() => {
@@ -132,15 +139,25 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
   }
 
   const copyLink = () => {
-    sendStats(Events.COPY_LINK_CLICK, { "arg1": videoInfo?.videoId})
+    sendStats(Events.COPY_LINK_CLICK, videoInfo?.videoId, userData)
     toast.success('Video link copied to clipboard');
     navigator.clipboard.writeText(`https://stagingngg.net/videos/watch/${videoInfo?.videoId}`);
   }
 
+  const getDownloadUrl = (filename: string) => {
+    if(videoInfo?.downloadUrl)
+      return `${videoInfo?.downloadUrl}?filename=${filename}`;
+    if(videoInfo?.cflVideoId)
+      return `https://customer-0ae3bmzhlvu9twn2.cloudflarestream.com/${videoInfo.cflVideoId}/downloads/default.mp4?filename=${filename}`;
+    return '';
+  }
+
   const download = () => {
-    sendStats(Events.VIDEO_DOWNLOAD, { "arg1": videoInfo?.videoId})
+    sendStats(Events.VIDEO_DOWNLOAD, videoInfo?.videoId, userData)
     const filename = videoInfo?.title?.replace(/\s/g, '_');
-    const downloadUrl = `${videoInfo?.downloadUrl}?filename=${filename}`;
+    const downloadUrl = getDownloadUrl(filename);
+    if(!downloadUrl)
+      return;
     window.open(downloadUrl, '_blank');
   }
 
@@ -156,7 +173,9 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
         'token': localStorage['ng_token']
       },
       body: JSON.stringify({
-        videoId: videoInfo?.videoId
+        userId: userData?.userId,
+        videoId: videoInfo?.videoId,
+        country: userData?.countryCode,
       })
     })
     .then(res => res.json())
@@ -226,9 +245,9 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
             loggedIn &&
             <div className="profile-details flex">
               <figure className="profile-img">
-                <img src={profileIcon} height="36" width="36" />
+                <img src={userData?.profilePicture || userData?.avatar} height="36" width="36" />
               </figure>
-              <p className="profile-name">{userName}</p>
+              <p className="profile-name">{userData?.name}</p>
             </div>
           }
 
