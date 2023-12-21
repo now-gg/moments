@@ -233,7 +233,8 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
     const payload:any = {
       "videoId": videoInfo.videoId,
-      "userId": userData?.userId
+      "userId": userData?.userId,
+      "country": userData?.countryCode,
     }
 
     if(title !== videoInfo.title)

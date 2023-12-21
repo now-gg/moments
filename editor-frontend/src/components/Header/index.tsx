@@ -174,7 +174,8 @@ const Header = ({ setShowLoginPopup, loggedIn, setLoggedIn, videoInfo, title, se
       },
       body: JSON.stringify({
         userId: userData?.userId,
-        videoId: videoInfo?.videoId
+        videoId: videoInfo?.videoId,
+        country: userData?.countryCode,
       })
     })
     .then(res => res.json())

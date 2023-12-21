@@ -44,11 +44,12 @@ def process():
     try:
         body = request.get_json()
         title = body["title"]
-        user_id = body["userId"]
         video_id = body["videoId"]
         crop = body.get("crop")
         trim = body.get("trim")
         aspect_ratio = body.get("aspectRatio")
+        user_id = body.get("userId")
+        country = body.get("country")
         auth_token = request.headers.get("token")
         request_id = str(uuid4())
 
@@ -87,7 +88,8 @@ def process():
             "arg2": video_id,
             "arg3": new_video_id,
             "arg4": video_info.get("durationSecs", ""),
-            "arg5": json.dumps(arg5_log)
+            "arg5": json.dumps(arg5_log),
+            "country": country
         }
         send_stat_to_bq(VIDEO_EDIT_REQUEST, data_for_bq)
 
@@ -101,7 +103,8 @@ def process():
             "auth_token": auth_token,
             "video_url": video_url,
             "upload_url": upload_url,
-            "new_video_id": new_video_id
+            "new_video_id": new_video_id,
+            "user_country": country,
         }
         logging.info(f'message to be published: {message}')
         redis_client.set(video_cache_key, "processing")
@@ -142,9 +145,10 @@ def edit_title():
 def delete():
     try:
         body = request.get_json()
-        user_id = body["userId"]
         video_id = body["videoId"]
         auth_token = request.headers.get("token")
+        user_id = body.get("userId")
+        country = body.get("country")
 
         logging.info("request to delete video")
 
@@ -154,7 +158,7 @@ def delete():
                 return send_response({"message": "You are not authorized to delete this video"}, 401)
             return send_response({ "message": "Something went wrong while deleting the video"}, delete_res.status_code)
 
-        send_stat_to_bq(VIDEO_DELETED, {"arg1": user_id, "arg2": video_id})
+        send_stat_to_bq(VIDEO_DELETED, {"arg1": user_id, "arg2": video_id, "country": country})
         return send_response({"message": "Video deleted successfully",}, 200)
 
     except Exception as e:
@@ -211,7 +215,7 @@ def status():
         return send_response({ "message": f'Something went wrong', "error": str(e)}, 500)
 
 
-def edit_video(user_id, request_id, video_id, title, trim, crop, auth_token, input_video_url, upload_url, new_video_id):
+def edit_video(user_id, request_id, video_id, title, trim, crop, auth_token, input_video_url, upload_url, new_video_id, country):
     try:
         request_init_time = time.time()
         video_cache_key = f'moments-editor-video-{video_id}'
@@ -226,7 +230,8 @@ def edit_video(user_id, request_id, video_id, title, trim, crop, auth_token, inp
             "arg1": user_id,
             "arg2": video_id,
             "arg3": new_video_id,
-            "arg4": "failed"
+            "arg4": "failed",
+            "country": country
         }
 
         if trim:
@@ -317,8 +322,9 @@ def pull_message_callback(message):
         video_url = message["video_url"]
         upload_url = message["upload_url"]
         new_video_id = message["new_video_id"]
+        country = message["user_country"]
         with app.app_context():
-            res = edit_video(user_id, request_id, video_id, title, trim, crop, auth_token, video_url, upload_url, new_video_id)
+            res = edit_video(user_id, request_id, video_id, title, trim, crop, auth_token, video_url, upload_url, new_video_id, country)
             logging.info(f'response from edit_video async: {res}')
     except Exception as e:
         logging.error(e)
