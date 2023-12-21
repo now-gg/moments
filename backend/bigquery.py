@@ -23,6 +23,7 @@ def send_stat_to_bq(event, data):
             "arg3": data.get("arg3", ""),
             "arg4": data.get("arg4", ""),
             "arg5": data.get("arg5", ""),
+            "country": data.get("country", ""),
         }
         res = requests.post(stats_url, data=form_data)
         if res.status_code == 200:
