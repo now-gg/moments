@@ -6,6 +6,7 @@ import Page404 from "./Page404";
 import Toaster from "./Toaster";
 
 export default function App() {
+  const ACCESS_TOKEN = "ya29.a0AfB_byAfg6zLu84l9EAqAwYyuXjJx4bv1TLF4RyD2sNWGGK9MXT8dxIsXzp4XYBUp73J8k9rvyCk5smD1DM07jePBhm9AduMTWQDwUyGaIB0lQIhDmTp5NpLrEMc6oucD8aRU5irRm36KXTW3RrTSxxJ3nrUTSnotAaCgYKAUoSAQ8SFQHGX2MiyQoC9RL3naU-aOf4frqO8w0169";
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [videoInfo, setVideoInfo] = useState({});
@@ -53,20 +54,54 @@ export default function App() {
     setSelectedFile(e.target.files[0]);
   };
 
-  const uploadVideo = () => {
+  const onUploadClick = () => {
+    if(!selectedFile)
+      return;
+    const apiUrl = "https://www.googleapis.com/upload/youtube/v3/videos?part=snippet%2Cstatus&uploadType=resumable";
+    const headers = new Headers();
+    headers.append("Authorization", `Bearer ${ACCESS_TOKEN}`);
+    headers.append("Content-Type", "application/json; charset=UTF-8");
+    headers.append("X-Upload-Content-Length", "4683375");
+    headers.append("X-Upload-Content-Type", "video/*");
+    const data = {
+      "snippet": {
+        "categoryId":"22",
+        "description":"Description of uploaded video.",
+        "title":"Moments test video"
+      },
+      "status": {
+        "privacyStatus":"private"
+      }
+    };
+
+    fetch(apiUrl, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(data)
+    })
+    .then((res) => {
+      console.log(res);
+      const uploadUrl = res.headers.get('location');
+      if(uploadUrl)
+        uploadVideo(uploadUrl);
+    })
+    .catch((err) => {
+      console.error(err);
+    })  
+  }
+
+  const uploadVideo = (uploadUrl: string) => {
     if(!selectedFile)
       return;
     const headers = new Headers();
-    headers.append("Authorization", "Bearer ya29.a0AfB_byDBU2ACki-ffARHst1NYS-hYcCYOhOLospFUJsLNGG6KQz9BuAwnXnHmxl5Sti7qrX5xDikLPqkhGnBdzqbTImZ74CmjGj_737jpKIFiqf9FFxzp_UURGdaKr33XW5E09T9x37vuzamCQgSZo-YwM2ewHDEaQaCgYKAVMSARASFQHGX2Mi6WitdXEzutqib3NW8VnylQ0169");
+    headers.append("Authorization", `Bearer ${ACCESS_TOKEN}`);
     headers.append("Content-Type", "video/*");
     headers.append("Content-Length", "4683375");
 
     const formData = new FormData();
     formData.append("file", selectedFile);
 
-    const url = "https://www.googleapis.com/upload/youtube/v3/videos?part=snippet%2Cstatus&uploadType=resumable&upload_id=ABPtcPqUP2vT8vzUOWxLPp7dd1Q29Oan2BY7LdkWQ4g-OwXfl6sbmi1nkfYzJuQ7u5hrxHfWNF2DUS7Hqr2EReLvGwZCtUi_WqKcS2E_WDVg185jRw";
-
-    fetch(url, {
+    fetch(uploadUrl, {
       method: 'PUT',
       headers: headers,
       body: formData
@@ -92,7 +127,7 @@ export default function App() {
           <div className="h-full bg-red-100 w-full flex flex-col gap-12">
             <input type='file' accept='video/*' onChange={handleFileChange} />
             <button 
-              onClick={uploadVideo}
+              onClick={onUploadClick}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
               Upload
