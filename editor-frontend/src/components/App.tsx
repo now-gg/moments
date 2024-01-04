@@ -81,9 +81,11 @@ export default function App() {
     })
     .then((res) => {
       console.log(res);
-      const uploadUrl = res.headers.get('location');
-      if(uploadUrl)
+      let uploadUrl = res.headers.get('location');
+      if(uploadUrl) {
+        uploadUrl = uploadUrl.replace("https://www", "https://youtube");
         uploadVideo(uploadUrl);
+      }
     })
     .catch((err) => {
       console.error(err);
