@@ -4,9 +4,10 @@ import LoginPopup from "./LoginPopup/index";
 import Player from "./Player";
 import Page404 from "./Page404";
 import Toaster from "./Toaster";
+import { oauthSignIn } from "../youtube";
 
 export default function App() {
-  const ACCESS_TOKEN = "ya29.a0AfB_byAfg6zLu84l9EAqAwYyuXjJx4bv1TLF4RyD2sNWGGK9MXT8dxIsXzp4XYBUp73J8k9rvyCk5smD1DM07jePBhm9AduMTWQDwUyGaIB0lQIhDmTp5NpLrEMc6oucD8aRU5irRm36KXTW3RrTSxxJ3nrUTSnotAaCgYKAUoSAQ8SFQHGX2MiyQoC9RL3naU-aOf4frqO8w0169";
+  const DEFAULT_VIDEO = "hfpjsh6niabwzj";
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [videoInfo, setVideoInfo] = useState({});
@@ -14,12 +15,13 @@ export default function App() {
   const [show404, setShow404] = useState(false);
   const [userData, setUserData] = useState({});
   const [selectedFile, setSelectedFile] = useState(null);
+  const [accessToken, setAccessToken] = useState('');
 
   const fetchVideo = () => {
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
     const searchParams = new URLSearchParams(location.search);
-    const videoId = searchParams.get('videoId');
+    const videoId = searchParams.get('videoId') ?? DEFAULT_VIDEO;
     if(!videoId) {
       setShow404(true);
       return;
@@ -45,9 +47,14 @@ export default function App() {
       });
   }
 
-  useEffect(() => {
-    fetchVideo();
-  }, []);
+  const getAccessToken = () => {
+    const hash = window.location.hash;
+    const params = new URLSearchParams(hash.split('#')[1]);
+    const accessToken = params.get('access_token');
+    if(accessToken) {
+      setAccessToken(accessToken);
+    }
+  }
 
   const handleFileChange = (e: any) => {
     // Update the state with the selected file
@@ -59,7 +66,7 @@ export default function App() {
       return;
     const apiUrl = "https://www.googleapis.com/upload/youtube/v3/videos?part=snippet%2Cstatus&uploadType=resumable";
     const headers = new Headers();
-    headers.append("Authorization", `Bearer ${ACCESS_TOKEN}`);
+    headers.append("Authorization", `Bearer ${accessToken}`);
     headers.append("Content-Type", "application/json; charset=UTF-8");
     headers.append("X-Upload-Content-Length", "4683375");
     headers.append("X-Upload-Content-Type", "video/*");
@@ -96,7 +103,7 @@ export default function App() {
     if(!selectedFile)
       return;
     const headers = new Headers();
-    headers.append("Authorization", `Bearer ${ACCESS_TOKEN}`);
+    headers.append("Authorization", `Bearer ${accessToken}`);
     headers.append("Content-Type", "video/*");
     headers.append("Content-Length", "4683375");
 
@@ -115,6 +122,15 @@ export default function App() {
       console.error(err);
     })
   }
+
+  useEffect(() => {
+    fetchVideo();
+    getAccessToken();
+  }, []);
+
+  useEffect(() => {
+    console.log("accessToken", accessToken);
+  }, [accessToken]);
   
   return (
     <div className="bg-background min-h-screen">
@@ -127,6 +143,12 @@ export default function App() {
       <div className="font-poppins p-4 max-w-screen flex" style={{height: 'calc(100vh - 72px)'}} >
           <Player loggedIn={loggedIn} videoInfo={videoInfo} setVideoInfo={setVideoInfo} title={title} setTitle={setTitle} userData={userData}  />
           <div className="h-full bg-red-100 w-full flex flex-col gap-12">
+            <button
+              onClick={oauthSignIn}
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Youtube Login
+            </button>
             <input type='file' accept='video/*' onChange={handleFileChange} />
             <button 
               onClick={onUploadClick}
