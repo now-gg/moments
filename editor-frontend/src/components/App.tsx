@@ -4,11 +4,11 @@ import LoginPopup from "./LoginPopup/index";
 import Player from "./Player";
 import Page404 from "./Page404";
 import Toaster from "./Toaster";
-import {google} from "googleapis"
 import { oauthSignIn } from "../youtube";
 
 export default function App() {
   const DEFAULT_VIDEO = "hfpjsh6niabwzj";
+  const ACCESS_TOKEN = 'ya29.a0AfB_byD2uxriUytBpwrOSZ4O1zLSgA001dZXFVZ2C5gRqi1E-I5npbKDYKf7pOvLoJ8D-4pCGnVGE2wOPHqogEgTPgdxXqr93w4M0T8D4UNaPiwbH0O6ttgZr_fUhxTgzVsAM20C-PUC4-0kDVFSdEJjn0Z07oJXmY0SaCgYKAeASAQ8SFQHGX2Mimg-amwMILZHqotng9vYhig0171';
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [videoInfo, setVideoInfo] = useState({});
@@ -16,7 +16,6 @@ export default function App() {
   const [show404, setShow404] = useState(false);
   const [userData, setUserData] = useState({});
   const [selectedFile, setSelectedFile] = useState(null);
-  const [accessToken, setAccessToken] = useState('ya29.a0AfB_byD2uxriUytBpwrOSZ4O1zLSgA001dZXFVZ2C5gRqi1E-I5npbKDYKf7pOvLoJ8D-4pCGnVGE2wOPHqogEgTPgdxXqr93w4M0T8D4UNaPiwbH0O6ttgZr_fUhxTgzVsAM20C-PUC4-0kDVFSdEJjn0Z07oJXmY0SaCgYKAeASAQ8SFQHGX2Mimg-amwMILZHqotng9vYhig0171');
 
   const fetchVideo = () => {
     const headers = new Headers();
@@ -48,15 +47,7 @@ export default function App() {
       });
   }
 
-  const getAccessToken = () => {
-    const hash = window.location.hash;
-    const params = new URLSearchParams(hash.split('#')[1]);
-    const accessToken = params.get('access_token');
-    if(accessToken) {
-      setAccessToken(accessToken);
-    }
-  }
-
+ 
   const handleFileChange = (e: any) => {
     // Update the state with the selected file
     setSelectedFile(e.target.files[0]);
@@ -67,7 +58,7 @@ export default function App() {
       return;
     const apiUrl = "https://www.googleapis.com/upload/youtube/v3/videos?part=snippet%2Cstatus&uploadType=resumable";
     const headers = new Headers();
-    headers.append("Authorization", `Bearer ${accessToken}`);
+    headers.append("Authorization", `Bearer ${ACCESS_TOKEN}`);
     headers.append("Content-Type", "application/json; charset=UTF-8");
     headers.append("X-Upload-Content-Length", "4683375");
     headers.append("X-Upload-Content-Type", "video/*");
@@ -103,7 +94,7 @@ export default function App() {
     if(!selectedFile)
       return;
     const headers = new Headers();
-    headers.append("Authorization", `Bearer ${accessToken}`);
+    headers.append("Authorization", `Bearer ${ACCESS_TOKEN}`);
     headers.append("Content-Type", "video/*");
     headers.append("Content-Length", "4683375");
 
@@ -127,10 +118,6 @@ export default function App() {
     fetchVideo();
     // getAccessToken();
   }, []);
-
-  useEffect(() => {
-    console.log("accessToken", accessToken);
-  }, [accessToken]);
 
   
   return (
