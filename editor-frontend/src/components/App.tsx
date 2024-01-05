@@ -16,7 +16,7 @@ export default function App() {
   const [show404, setShow404] = useState(false);
   const [userData, setUserData] = useState({});
   const [selectedFile, setSelectedFile] = useState(null);
-  const [accessToken, setAccessToken] = useState('');
+  const [accessToken, setAccessToken] = useState('ya29.a0AfB_byD2uxriUytBpwrOSZ4O1zLSgA001dZXFVZ2C5gRqi1E-I5npbKDYKf7pOvLoJ8D-4pCGnVGE2wOPHqogEgTPgdxXqr93w4M0T8D4UNaPiwbH0O6ttgZr_fUhxTgzVsAM20C-PUC4-0kDVFSdEJjn0Z07oJXmY0SaCgYKAeASAQ8SFQHGX2Mimg-amwMILZHqotng9vYhig0171');
 
   const fetchVideo = () => {
     const headers = new Headers();
@@ -62,43 +62,42 @@ export default function App() {
     setSelectedFile(e.target.files[0]);
   };
 
-  // const onUploadClick = () => {
-  //   if(!selectedFile)
-  //     return;
-  //   const apiUrl = "https://www.googleapis.com/upload/youtube/v3/videos?part=snippet%2Cstatus&uploadType=resumable";
-  //   const headers = new Headers();
-  //   headers.append("Authorization", `Bearer ${accessToken}`);
-  //   headers.append("Content-Type", "application/json; charset=UTF-8");
-  //   headers.append("X-Upload-Content-Length", "4683375");
-  //   headers.append("X-Upload-Content-Type", "video/*");
-  //   const data = {
-  //     "snippet": {
-  //       "categoryId":"22",
-  //       "description":"Description of uploaded video.",
-  //       "title":"Moments test video"
-  //     },
-  //     "status": {
-  //       "privacyStatus":"private"
-  //     }
-  //   };
+  const onUploadClick = () => {
+    if(!selectedFile)
+      return;
+    const apiUrl = "https://www.googleapis.com/upload/youtube/v3/videos?part=snippet%2Cstatus&uploadType=resumable";
+    const headers = new Headers();
+    headers.append("Authorization", `Bearer ${accessToken}`);
+    headers.append("Content-Type", "application/json; charset=UTF-8");
+    headers.append("X-Upload-Content-Length", "4683375");
+    headers.append("X-Upload-Content-Type", "video/*");
+    const data = {
+      "snippet": {
+        "categoryId":"22",
+        "description":"Description of uploaded video.",
+        "title":"Moments test video"
+      },
+      "status": {
+        "privacyStatus":"private"
+      }
+    };
 
-  //   fetch(apiUrl, {
-  //     method: 'POST',
-  //     headers: headers,
-  //     body: JSON.stringify(data)
-  //   })
-  //   .then((res) => {
-  //     console.log(res);
-  //     let uploadUrl = res.headers.get('location');
-  //     if(uploadUrl) {
-  //       uploadUrl = uploadUrl.replace("https://www", "https://youtube");
-  //       uploadVideo(uploadUrl);
-  //     }
-  //   })
-  //   .catch((err) => {
-  //     console.error(err);
-  //   })  
-  // }
+    fetch(apiUrl, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(data)
+    })
+    .then((res) => {
+      console.log(res);
+      const uploadUrl = res.headers.get('location');
+      if(uploadUrl) {
+        uploadVideo(uploadUrl);
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+    })  
+  }
 
   const uploadVideo = (uploadUrl: string) => {
     if(!selectedFile)
@@ -126,43 +125,12 @@ export default function App() {
 
   useEffect(() => {
     fetchVideo();
-    getAccessToken();
+    // getAccessToken();
   }, []);
 
   useEffect(() => {
     console.log("accessToken", accessToken);
   }, [accessToken]);
-
-  const handleUpload = async () => {
-    const youtube = google.youtube("v3");
-    const res = await youtube.videos.insert({
-      "part": ["snippet", "status"],
-      "access_token": accessToken,
-      "requestBody": {
-        "snippet": {
-          "categoryId":"22",
-          "description":"Description of uploaded video.",
-          "title":"Test video upload."
-        },
-        "status": {
-          "privacyStatus":"private"
-        }
-      }
-    },
-    {
-      "headers": {
-        "Content-Type": "application/json; charset=UTF-8",
-        "X-Upload-Content-Length": "4683375",
-        "X-Upload-Content-Type": "video/*",
-        "Authorization": `Bearer ${accessToken}`
-      }
-    }
-    );
-    const uploadUrl = res.headers.get('location');
-
-    uploadVideo(uploadUrl);
-
-  }
 
   
   return (
@@ -184,7 +152,7 @@ export default function App() {
             </button>
             <input type='file' accept='video/*' onChange={handleFileChange} />
             <button 
-              onClick={handleUpload}
+              onClick={onUploadClick}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
               Upload
