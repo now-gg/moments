@@ -17,6 +17,10 @@ ffmpeg-python = "^0.2.0"
 google-cloud-pubsub = "^2.18.4"
 redis = "^5.0.1"
 google-cloud-bigquery = "^3.13.0"
+google-api-python-client = "^2.112.0"
+google-auth = "^2.26.1"
+google-auth-oauthlib = "^1.2.0"
+google-auth-httplib2 = "^0.2.0"
 
 
 [build-system]
