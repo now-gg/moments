@@ -4,6 +4,7 @@ import LoginPopup from "./LoginPopup/index";
 import Player from "./Player";
 import Page404 from "./Page404";
 import Toaster from "./Toaster";
+import Sidebar from "./Sidebar";
 
 export default function App() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
@@ -55,8 +56,9 @@ export default function App() {
       <link href='https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap' rel='stylesheet'/>
       <Toaster />
       <Header setShowLoginPopup={setShowLoginPopup} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} title={title} setTitle={setTitle} userData={userData} setUserData={setUserData} />
-      <div className="font-poppins p-4 max-w-7xl mx-auto" style={{height: 'calc(100vh - 72px)'}} >
+      <div className="font-poppins p-4 max-w-full mx-auto bg-background flex gap-4" style={{height: 'calc(100vh - 72px)'}} >
           <Player loggedIn={loggedIn} videoInfo={videoInfo} setVideoInfo={setVideoInfo} title={title} setTitle={setTitle} userData={userData}  />
+          <Sidebar videoInfo={videoInfo} />
       </div>
       {showLoginPopup && <LoginPopup closePopup={() => setShowLoginPopup(false)} />}
       {show404 && <Page404 />}

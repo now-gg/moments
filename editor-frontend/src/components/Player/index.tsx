@@ -152,10 +152,10 @@ const Player = ({ loggedIn, videoInfo, setVideoInfo, title, setTitle, userData }
 
   return (
     // outer most wrapper
-    <div className="h-full">
+    <div className="h-full w-3/4">
       <DndContext onDragEnd={handleDragEnd}>
-        <div className= "relative droppable brightness-95 mx-auto" data-id={videoID} ref={setNodeRef} style={{height: 'calc(100% - 120px)', aspectRatio: `${videoAspectRatio}`}} >
-          {videoID && <Stream className="h-full w-full" poster={videoInfo?.thumbnailUrl} controls responsive={false} src={videoID} height="100%" width="100%" currentTime={startTime} autoplay muted onLoadedData={showThumbnails} streamRef={ref} onPlay={() => { setPlaying(true) }} onPause={() => { setPlaying(false) }} primaryColor={'#FF42A5'} />}
+        <div className= "relative droppable brightness-95 mx-auto max-w-full" data-id={videoID} ref={setNodeRef} style={{height: 'calc(100% - 120px)', aspectRatio: `${videoAspectRatio}`}} >
+          {videoID && <Stream className="h-full w-full" letterboxColor="transparent" poster={videoInfo?.thumbnailUrl} controls responsive={false} src={videoID} height="100%" width="100%" currentTime={startTime} autoplay muted onLoadedData={showThumbnails} streamRef={ref} onPlay={() => { setPlaying(true) }} onPause={() => { setPlaying(false) }} primaryColor={'#FF42A5'} />}
           {aspectRatio && isCropActive && (
             <div className="absolute top-0 left-0 w-full h-full bg-red flex">
               <CropWidget left={left} top={top} width={cropperWidth} height={cropperHeight} aspectRatio={aspectRatio} />

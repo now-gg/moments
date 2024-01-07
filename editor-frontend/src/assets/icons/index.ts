@@ -9,3 +9,5 @@ export { IconTrim } from "./IconTrim";
 export { IconPlay } from "./IconPlay";
 export { IconPause } from "./IconPause";
 export { IconReset } from "./IconReset";
+export { IconYoutube } from "./IconYoutube";
+export { IconTiktok } from "./IconTiktok";
