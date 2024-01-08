@@ -306,7 +306,7 @@ def youtube_upload():
         return send_response({ "message": f'Something went wrong', "error": str(e)}, 500)
 
 
-@app.route("upload-tus-page", methods=["GET"])
+@app.route("/upload-tus-page", methods=["GET"])
 def upload_page():
     return render_template("upload-tus.html")
 
