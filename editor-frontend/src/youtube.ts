@@ -22,39 +22,32 @@ export const uploadToYoutube = (videoInfo: any, ytAccessToken: string, setUpload
     const loading = toast.loading('Uploading to youtube...');
     setUploadLoader(true);
 
-    setTimeout(() => {
+    fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/youtube-upload`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(data)
+    }).then(response => {
+        if (response.status === 200) {
+            return response.json();
+        }
+        if (response.status === 401) {
+            setUploadLoader(false);
+            toast.dismiss(loading);
+            toast.error('Youtube token expired. Please login again');
+            youtubeLogin();
+        }
+        else {
+            toast.error('Error uploading to youtube');
+        }
+    }).then(data => {
+        console.log(data);
+        toast.success('Uploaded to youtube');
+    }).catch(error => {
+        console.log(error);
+    }).finally(() => {
         toast.dismiss(loading);
         setUploadLoader(false);
-        toast.success('Uploaded to youtube');
-        console.log(data);
-    }, 5000);
-
-    // fetch(`${import.meta.env.VITE_BACKEND_HOST}/video/youtube-upload`, {
-    //     method: 'POST',
-    //     headers: headers,
-    //     body: JSON.stringify(data)
-    // }).then(response => {
-    //     if (response.status === 200) {
-    //         return response.json();
-    //     }
-    //     if (response.status === 401) {
-    //         setUploadLoader(false);
-    //         toast.dismiss(loading);
-    //         toast.error('Youtube token expired. Please login again');
-    //         youtubeLogin();
-    //     }
-    //     else {
-    //         toast.error('Error uploading to youtube');
-    //     }
-    // }).then(data => {
-    //     console.log(data);
-    //     toast.success('Uploaded to youtube');
-    // }).catch(error => {
-    //     console.log(error);
-    // }).finally(() => {
-    //     toast.dismiss(loading);
-    //     setUploadLoader(false);
-    // });
+    });
 }
 
 export const YOUTUBE_AUTH_URL = `${import.meta.env.VITE_BACKEND_HOST}/oauth2callback/youtube`;
