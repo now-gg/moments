@@ -244,7 +244,7 @@ def oauth2callback():
     return redirect(f'{FE_HOST}/video/edit?videoId=' + video_id)
 
 
-@app.route('video/youtube-upload', methods=['POST'])
+@app.route('/video/youtube-upload', methods=['POST'])
 def youtube_upload():
     try:
         body = request.get_json()
