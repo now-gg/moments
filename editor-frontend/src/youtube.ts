@@ -1,6 +1,7 @@
-export const uploadToYoutube = (videoInfo: any, privacy_status?: 'public' | 'private' | 'unlisted') => {
+export const uploadToYoutube = (videoInfo: any, ytAccessToken: string, privacy_status?: 'public' | 'private' | 'unlisted') => {
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
+    headers.append('Authorization', `Bearer ${ytAccessToken}`);
     const data = {
         "videoId": videoInfo.videoId,
         "videoUrl": videoInfo.downloadUrl,

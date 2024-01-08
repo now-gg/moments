@@ -3,12 +3,12 @@ import { IconTiktok, IconYoutube } from '../../assets/icons';
 import YoutubeSignin from './YoutubeSignin';
 import { YOUTUBE_AUTH_URL, uploadToYoutube } from '../../youtube';
 
-const Sidebar = ({videoInfo}: {videoInfo: any}) => {
+const Sidebar = ({videoInfo, ytAccessToken}: {videoInfo: any, ytAccessToken: string}) => {
 
   const [youtubeSigninPrompt, setYoutubeSigninPrompt] = useState(false);
 
   const handleYoutubeClick = () => {
-    uploadToYoutube(videoInfo);
+    uploadToYoutube(videoInfo, ytAccessToken);
   }
 
   const youtubeLogin = () => {
