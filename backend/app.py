@@ -270,7 +270,7 @@ def youtube_upload():
         # logging.info("credentials checked")
         # access_token = session['yt_access_token']
 
-        filename = 'tmp/' + video_id + '.mp4'
+        filename = 'static/' + video_id + '.mp4'
         try:
             file_res = requests.get(video_url)
             if file_res.status_code != 200:
@@ -293,7 +293,8 @@ def youtube_upload():
                 "privacyStatus": privacy
             }
             },
-            media_body=filename
+            media_body=filename,
+            media_mime_type='video/mp4'
         )
         youtube_request.headers['Authorization'] = authorization
         response = youtube_request.execute()
