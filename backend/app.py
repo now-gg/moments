@@ -242,7 +242,7 @@ def oauth2callback():
         return 'Error while fetching access token', res.status_code
     logging.info(res.json())
     yt_access_token = res.json()['access_token']
-    session['yt_access_token'] = yt_access_token
+    session['ytAccessToken'] = yt_access_token
     page_url = f'{FE_HOST}/video/edit?videoId=' + video_id + '&yt_access_token=' + yt_access_token
     return redirect(page_url)
 
@@ -256,14 +256,16 @@ def youtube_upload():
         title = body['title']
         description = body.get('description', '')
         privacy = body.get('privacy_status', 'private')
+        authorization = request.headers.get('Authorization')
 
-        if 'yt_access_token' not in session:
-            return send_response({'message': 'Not logged in'}, 401)
+        # if 'yt_access_token' not in session:
+        #     return send_response({'message': 'Not logged in'}, 401)
         # credentials = session['youtube_credentials']
         # if credentials['expires_in'] <= 0:
         #     return send_response({'message': 'Token expired'}, 401)
-        logging.info("credentials checked")
-        access_token = session['yt_access_token']
+        # logging.info("credentials checked")
+        # access_token = session['yt_access_token']
+
         filename = 'tmp/' + video_id + '.mp4'
         try:
             file_res = requests.get(video_url)
@@ -290,7 +292,7 @@ def youtube_upload():
             },
             media_body=filename
         )
-        request.headers['Authorization'] = f'Bearer {access_token}'
+        youtube_request.headers['Authorization'] = authorization
         response = youtube_request.execute()
         return response
     except Exception as e:
