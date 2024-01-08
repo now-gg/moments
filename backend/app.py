@@ -1,7 +1,7 @@
 
 import google.cloud.logging
 import logging
-from flask import Flask, request, send_from_directory, session, redirect
+from flask import Flask, request, send_from_directory, session, redirect, make_response
 import json
 import os
 import time
@@ -242,9 +242,10 @@ def oauth2callback():
         return 'Error while fetching access token', res.status_code
     logging.info(res.json())
     yt_access_token = res.json()['access_token']
-    session['yt_access_token'] = yt_access_token
     page_url = f'{FE_HOST}/video/edit?videoId=' + video_id + '&ytAccessToken=' + yt_access_token
-    return redirect(page_url)
+    response = make_response(redirect(page_url))
+    response.set_cookie('yt_access_token', yt_access_token)
+    return response
 
 
 @app.route('/video/youtube-upload', methods=['POST'])
@@ -257,6 +258,9 @@ def youtube_upload():
         description = body.get('description', '')
         privacy = body.get('privacy_status', 'private')
         authorization = request.headers.get('Authorization')
+
+        yt_access_token = request.cookies.get('yt_access_token')
+        logging.info(f'yt_access_token cookie: {yt_access_token}')
 
         # if 'yt_access_token' not in session:
         #     return send_response({'message': 'Not logged in'}, 401)
