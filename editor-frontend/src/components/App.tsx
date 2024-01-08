@@ -13,7 +13,6 @@ export default function App() {
   const [title, setTitle] = useState('');
   const [show404, setShow404] = useState(false);
   const [userData, setUserData] = useState({});
-  const [ytAccessToken, setYtAccessToken] = useState('');
 
   const fetchVideo = () => {
     const headers = new Headers();
@@ -45,17 +44,8 @@ export default function App() {
       });
   }
 
-  const readYtTokenFromUrl = () => {
-    const searchParams = new URLSearchParams(location.search);
-    const ytToken = searchParams.get('ytAccessToken') ?? '';
-    setYtAccessToken(ytToken);
-    searchParams.delete('ytAccessToken');
-    window.history.replaceState({}, '', `${location.pathname}?${searchParams}`);
-  }
-
   useEffect(() => {
     fetchVideo();
-    readYtTokenFromUrl();
   }, []);
   
   return (
@@ -68,7 +58,7 @@ export default function App() {
       <Header setShowLoginPopup={setShowLoginPopup} loggedIn={loggedIn} setLoggedIn={setLoggedIn} videoInfo={videoInfo} title={title} setTitle={setTitle} userData={userData} setUserData={setUserData} />
       <div className="font-poppins p-4 max-w-full mx-auto bg-background flex gap-4" style={{height: 'calc(100vh - 72px)'}} >
           <Player loggedIn={loggedIn} videoInfo={videoInfo} setVideoInfo={setVideoInfo} title={title} setTitle={setTitle} userData={userData}  />
-          <Sidebar videoInfo={videoInfo} ytAccessToken={ytAccessToken} />
+          <Sidebar videoInfo={videoInfo} />
       </div>
       {showLoginPopup && <LoginPopup closePopup={() => setShowLoginPopup(false)} />}
       {show404 && <Page404 />}

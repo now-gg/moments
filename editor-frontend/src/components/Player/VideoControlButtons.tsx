@@ -9,6 +9,7 @@ import Save from "./Save";
 import TrimInput from "./TrimInput";
 import { toast } from "react-hot-toast";
 import { Events, sendStats } from "../../stats";
+import EditingOverlay from "../EditingOverlay";
 
 type ControlProps = {
   videoUrl: string;
@@ -434,7 +435,7 @@ const VideoControlButtons = ({ videoUrl, startTime, endTime, setStartTime, setEn
 
   return (
     <>
-    {showEditingOverlay && <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-[1000] flex justify-center items-center"></div>}
+    {showEditingOverlay && <EditingOverlay />}
       <VideoTimeline isTrimActive={isTrimActive} setIsTrimActive={setIsTrimActive} url={videoUrl} setStartTime={setStartTime} setEndTime={setEndTime} startTime={startTime} endTime={endTime} duration={duration} playPointer={playPointer} thumbnails={thumbnails} />
       <VideoControlsWrapper className="flex pt-2 pb-4">
         <div className="flex gap-4 items-center">
