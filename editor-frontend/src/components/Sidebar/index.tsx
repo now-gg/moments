@@ -12,7 +12,7 @@ const Sidebar = ({videoInfo}: {videoInfo: any}) => {
   }
 
   const youtubeLogin = () => {
-    window.open(YOUTUBE_AUTH_URL)
+    window.open(YOUTUBE_AUTH_URL + "?state=" + videoInfo?.videoId);
   }
 
   return (
