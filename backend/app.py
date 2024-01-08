@@ -241,6 +241,7 @@ def oauth2callback():
     if res.status_code != 200:
         return 'Error while fetching access token', res.status_code
     session['youtube_credentials'] = res.json()
+    session['yt_access_token'] = res.json()['access_token']
     return redirect(f'{FE_HOST}/video/edit?videoId=' + video_id)
 
 
@@ -254,13 +255,13 @@ def youtube_upload():
         description = body.get('description', '')
         privacy = body.get('privacy_status', 'private')
 
-        if 'youtube_credentials' not in session:
+        if 'yt_access_token' not in session:
             return send_response({'message': 'Not logged in'}, 401)
-        credentials = session['youtube_credentials']
-        if credentials['expires_in'] <= 0:
-            return send_response({'message': 'Token expired'}, 401)
+        # credentials = session['youtube_credentials']
+        # if credentials['expires_in'] <= 0:
+        #     return send_response({'message': 'Token expired'}, 401)
         logging.info("credentials checked")
-        access_token = credentials['access_token']
+        access_token = session['yt_access_token']
         filename = 'tmp/' + video_id + '.mp4'
         try:
             file_res = requests.get(video_url)
