@@ -1,20 +1,27 @@
-import { MouseEventHandler, ReactEventHandler, ReactNode, useState } from 'react'
+import { MouseEventHandler, ReactNode, useState } from 'react'
 import { IconTiktok, IconYoutube } from '../../assets/icons';
 import YoutubeSignin from './YoutubeSignin';
+import { YOUTUBE_AUTH_URL, uploadToYoutube } from '../../youtube';
 
 const Sidebar = ({videoInfo}: {videoInfo: any}) => {
 
   const [youtubeSigninPrompt, setYoutubeSigninPrompt] = useState(false);
 
   const handleYoutubeClick = () => {
-    console.log("Youtube clicked for video: ", videoInfo?.downloadUrl);
-    setYoutubeSigninPrompt(true);
+    uploadToYoutube(videoInfo);
+  }
+
+  const youtubeLogin = () => {
+    window.open(YOUTUBE_AUTH_URL)
   }
 
   return (
     <div className="bg-white rounded-lg p-6 flex flex-col gap-5 flex-grow flex-shrink w-1/4">
       {youtubeSigninPrompt && <YoutubeSignin closePopup={() => setYoutubeSigninPrompt(false)} />}
       <p className="font-semibold text-base text-black">Share your video</p>
+      <SidebarButton onClick={youtubeLogin}>
+        Sign in to Youtube
+      </SidebarButton>
       <SidebarButton onClick={handleYoutubeClick}>
         <IconYoutube /> Upload to Youtube
       </SidebarButton>
