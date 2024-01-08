@@ -242,7 +242,6 @@ def oauth2callback():
         return 'Error while fetching access token', res.status_code
     logging.info(res.json())
     yt_access_token = res.json()['access_token']
-    session['youtube_credentials'] = res.json()
     session['yt_access_token'] = yt_access_token
     page_url = f'{FE_HOST}/video/edit?videoId=' + video_id + '&yt_access_token=' + yt_access_token
     return redirect(page_url)
