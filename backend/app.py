@@ -221,7 +221,7 @@ def status():
 
 @app.route('/oauth2callback/youtube')
 def oauth2callback():
-    redirect_uri = f'{request.host_url}oauth2callback/youtube'
+    redirect_uri = f'https://{request.host}/oauth2callback/youtube'
     scope = 'https://www.googleapis.com/auth/youtube.upload'
     logging.info(f'redirect_uri: {redirect_uri}')
     video_id = request.args.get('state')
