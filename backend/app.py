@@ -279,8 +279,7 @@ def youtube_upload():
                 f.write(file_res.content)
         except Exception as e:
             logging.error(e)
-        os.remove(filename)
-        
+        logging.info("file downloaded")
         youtube = build('youtube', 'v3', developerKey=API_KEY)
         youtube_request = youtube.videos().insert(
             part="snippet,status",
@@ -298,6 +297,7 @@ def youtube_upload():
         )
         youtube_request.headers['Authorization'] = authorization
         response = youtube_request.execute()
+        os.remove(filename)
         return response
     except Exception as e:
         logging.error(e)
