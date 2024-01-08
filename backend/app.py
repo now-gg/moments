@@ -1,7 +1,7 @@
 
 import google.cloud.logging
 import logging
-from flask import Flask, request, send_from_directory
+from flask import Flask, request, send_from_directory, session, redirect
 import json
 import os
 import time
@@ -14,10 +14,14 @@ from pubsub import publish_message, get_subscriber
 from redis_wrapper  import RedisWrapper
 from bigquery import send_stat_to_bq, VIDEO_EDIT_PROCESSED, VIDEO_EDIT_REQUEST, VIDEO_DELETED
 from uuid import uuid4
-from constants import VIDEO_PORTAL_HOST, ALLOWED_ORIGINS
+from constants import VIDEO_PORTAL_HOST, ALLOWED_ORIGINS, FE_HOST, API_KEY, CLIENT_ID, CLIENT_ID_HOST, CLIENT_SECRET
 from utils import send_response
+from uuid import uuid4
+from googleapiclient.discovery import build
+
 
 app = Flask(__name__)
+app.secret_key = str(uuid4())
 CORS(app, origins=ALLOWED_ORIGINS, methods=['GET','POST'], allow_headers=['Content-Type', 'Authorization', 'token'])
 
 client = google.cloud.logging.Client()
@@ -210,6 +214,82 @@ def status():
         elif video_status == "failed":
             res_status = "failed"
         return send_response({"videoStatus": res_status, "message": "Video status received successfully"}, 200)
+    except Exception as e:
+        logging.error(e)
+        return send_response({ "message": f'Something went wrong', "error": str(e)}, 500)
+
+
+@app.route('/oauth2callback/youtube')
+def oauth2callback():
+    redirect_uri = f'{request.host_url}oauth2callback/youtube'
+    scope = 'https://www.googleapis.com/auth/youtube.upload'
+    logging.info(f'redirect_uri: {redirect_uri}')
+    video_id = request.args.get('state')
+    if 'code' not in request.args:
+        auth_uri = f'https://accounts.google.com/o/oauth2/v2/auth?scope={scope}&include_granted_scopes=true&state={video_id}&redirect_uri={redirect_uri}&response_type=code&client_id={CLIENT_ID}'
+        logging.info(auth_uri)
+        return redirect(auth_uri)
+    code = request.args.get('code')
+    params = {
+        'code': code,
+        'client_id': CLIENT_ID_HOST,
+        'client_secret': CLIENT_SECRET,
+        'redirect_uri': redirect_uri,
+        'grant_type': 'authorization_code'
+    }
+    res = requests.post('https://oauth2.googleapis.com/token', params=params)
+    if res.status_code != 200:
+        return 'Error while fetching access token', res.status_code
+    session['youtube_credentials'] = res.json()
+    return redirect(f'{FE_HOST}/video/edit?videoId=' + video_id)
+
+
+@app.route('video/youtube-upload', methods=['POST'])
+def youtube_upload():
+    try:
+        body = request.get_json()
+        video_id = body['videoId']
+        video_url = body['videoUrl']
+        title = body['title']
+        description = body.get('description', '')
+        privacy = body.get('privacy_status', 'private')
+
+        if 'youtube_credentials' not in session:
+            return send_response({'message': 'Not logged in'}, 401)
+        credentials = session['youtube_credentials']
+        if credentials['expires_in'] <= 0:
+            return send_response({'message': 'Token expired'}, 401)
+        logging.info("credentials checked")
+        access_token = credentials['access_token']
+        filename = 'tmp/' + video_id + '.mp4'
+        try:
+            file_res = requests.get(video_url)
+            if file_res.status_code != 200:
+                return 'Error while downloading file', file_res.status_code
+            with open(filename, 'wb') as f:
+                f.write(file_res.content)
+        except Exception as e:
+            logging.error(e)
+        os.remove(filename)
+        
+        youtube = build('youtube', 'v3', developerKey=API_KEY)
+        youtube_request = youtube.videos().insert(
+            part="snippet,status",
+            body={
+            "snippet": {
+                "categoryId": "22",
+                "description": description,
+                "title": title
+            },
+            "status": {
+                "privacyStatus": privacy
+            }
+            },
+            media_body=filename
+        )
+        request.headers['Authorization'] = f'Bearer {access_token}'
+        response = youtube_request.execute()
+        return response
     except Exception as e:
         logging.error(e)
         return send_response({ "message": f'Something went wrong', "error": str(e)}, 500)
