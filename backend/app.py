@@ -240,9 +240,12 @@ def oauth2callback():
     res = requests.post('https://oauth2.googleapis.com/token', params=params)
     if res.status_code != 200:
         return 'Error while fetching access token', res.status_code
+    logging.info(res.json())
+    yt_access_token = res.json()['access_token']
     session['youtube_credentials'] = res.json()
-    session['yt_access_token'] = res.json()['access_token']
-    return redirect(f'{FE_HOST}/video/edit?videoId=' + video_id)
+    session['yt_access_token'] = yt_access_token
+    page_url = f'{FE_HOST}/video/edit?videoId=' + video_id + '&yt_access_token=' + yt_access_token
+    return redirect(page_url)
 
 
 @app.route('/video/youtube-upload', methods=['POST'])
