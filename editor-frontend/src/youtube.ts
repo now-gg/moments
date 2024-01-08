@@ -7,7 +7,7 @@ export const uploadToYoutube = (videoInfo: any, ytAccessToken: string, setUpload
     headers.append('Content-Type', 'application/json');
     headers.append('Authorization', `Bearer ${ytAccessToken}`);
     if (!videoInfo?.downloadUrl) {
-        toast.error("Can't upload to youtube");
+        console.error("Can't upload to youtube");
         return;
     }
     const description = isShort ? "#Shorts " + videoInfo.description : videoInfo.description;
