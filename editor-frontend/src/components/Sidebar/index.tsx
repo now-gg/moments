@@ -28,7 +28,7 @@ const Sidebar = ({videoInfo}: {videoInfo: any}) => {
     searchParams.delete('ytAccessToken');
     window.history.replaceState({}, '', `${location.pathname}?${searchParams}`);
     uploadToYoutube(videoInfo, ytToken, setUploadLoader, youtubeLogin);
-  }, []);
+  }, [videoInfo]);
 
 
   return (
