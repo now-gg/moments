@@ -29,7 +29,6 @@ client.setup_logging()
 
 redis_client = RedisWrapper()
 
-logging.info("starting flask app")
 logging.info(f'env is {os.environ.get("ENVIRONMENT")}')
 
 
@@ -70,7 +69,7 @@ def process():
             video_url = video_info["downloadUrl"]
             if not video_url:
                 return send_response({"message": f'Download url for video with id {video_id} not found'}, 404)
-            logging.info("downloadUrl received")
+            logging.debug("downloadUrl received")
         except Exception as e:
             return send_response({"message": f'Something went wrong with getting downloadUrl of {video_id}', "error": str(e)}, 500)
 
@@ -110,7 +109,7 @@ def process():
             "new_video_id": new_video_id,
             "user_country": country,
         }
-        logging.info(f'message to be published: {message}')
+        logging.debug(f'message to be published: {message}')
         redis_client.set(video_cache_key, "processing")
         publish_message(json.dumps(message))
         return send_response({"message": "Video processing started", "new_video_id": new_video_id}, 200)
@@ -154,7 +153,7 @@ def delete():
         user_id = body.get("userId")
         country = body.get("country")
 
-        logging.info("request to delete video")
+        logging.info(f'video delete request for {video_id}')
 
         delete_res = delete_video(video_id, auth_token)
         if delete_res.status_code != 200:
@@ -178,13 +177,9 @@ def info():
         # get video id from query param
         video_id = request.args.get("videoId")
 
-        logging.info(f'video info request for {video_id}')
-        logging.debug(f'debug: video info request for {video_id}')
-
         video_info = get_video_info(video_id)
 
         if video_info:
-            logging.info(f'video info received for {video_id}')
             return send_response({"message": "Video info received successfully", "video": video_info}, 200)
         
         return send_response({ "message": f'Video with id {video_id} not found'}, 404)
@@ -223,11 +218,10 @@ def status():
 def oauth2callback():
     redirect_uri = f'https://{request.host}/oauth2callback/youtube'
     scope = 'https://www.googleapis.com/auth/youtube.upload'
-    logging.info(f'redirect_uri: {redirect_uri}')
+    logging.debug(f'redirect_uri: {redirect_uri}')
     video_id = request.args.get('state')
     if 'code' not in request.args:
         auth_uri = f'https://accounts.google.com/o/oauth2/v2/auth?scope={scope}&include_granted_scopes=true&state={video_id}&redirect_uri={redirect_uri}&response_type=code&client_id={CLIENT_ID}'
-        logging.info(auth_uri)
         return redirect(auth_uri)
     code = request.args.get('code')
     params = {
@@ -240,7 +234,6 @@ def oauth2callback():
     res = requests.post('https://oauth2.googleapis.com/token', params=params)
     if res.status_code != 200:
         return 'Error while fetching access token', res.status_code
-    logging.info(res.json())
     yt_access_token = res.json()['access_token']
     page_url = f'{FE_HOST}/video/edit?videoId=' + video_id + '&ytAccessToken=' + yt_access_token
     response = make_response(redirect(page_url))
@@ -258,28 +251,20 @@ def youtube_upload():
         description = body.get('description', '')
         privacy = body.get('privacy_status', 'private')
         authorization = request.headers.get('Authorization')
-
-        yt_access_token = request.cookies.get('yt_access_token')
-        logging.info(f'yt_access_token cookie: {yt_access_token}')
-
-        # if 'yt_access_token' not in session:
-        #     return send_response({'message': 'Not logged in'}, 401)
-        # credentials = session['youtube_credentials']
-        # if credentials['expires_in'] <= 0:
-        #     return send_response({'message': 'Token expired'}, 401)
-        # logging.info("credentials checked")
-        # access_token = session['yt_access_token']
-
         filename = 'static/' + video_id + '.mp4'
+
+        logging.info(f'youtube upload request for {video_id}')
+
         try:
             file_res = requests.get(video_url)
             if file_res.status_code != 200:
                 return 'Error while downloading file', file_res.status_code
             with open(filename, 'wb') as f:
                 f.write(file_res.content)
+            logging.info("file downloaded")
         except Exception as e:
             logging.error(e)
-        logging.info("file downloaded")
+        
         youtube = build('youtube', 'v3', developerKey=API_KEY)
         youtube_request = youtube.videos().insert(
             part="snippet,status",
@@ -362,7 +347,7 @@ def edit_video(user_id, request_id, video_id, title, trim, crop, auth_token, inp
                 send_stat_to_bq(VIDEO_EDIT_PROCESSED, data_for_bq)
                 logging.error(e)
                 return send_response({ "message": f'Something went wrong while writing the video', "error": str(e)}, 500)
-            logging.info("clip written to temp file")
+            logging.debug("clip written to temp file")
             temp_file.seek(0)
             upload_res = upload_video(temp_file.name, title, upload_url)
             arg5_log["upload_time"] = time.time() - request_init_time - arg5_log["edit_time"]
@@ -389,7 +374,7 @@ def edit_video(user_id, request_id, video_id, title, trim, crop, auth_token, inp
 
         redis_client.set(video_cache_key, "success", xx=True)
 
-        logging.info(f'response to be sent: {res_dict}')
+        logging.debug(f'response to be sent: {res_dict}')
         return send_response(res_dict, 200)
     
     except Exception as e:
@@ -399,7 +384,7 @@ def edit_video(user_id, request_id, video_id, title, trim, crop, auth_token, inp
 
 
 def pull_message_callback(message):
-    logging.info('Received message on subscriber: {}'.format(message))
+    logging.debug('Received message on subscriber: {}'.format(message))
     try:
         message = json.loads(message)
         user_id = message["user_id"]
@@ -415,17 +400,16 @@ def pull_message_callback(message):
         country = message["user_country"]
         with app.app_context():
             res = edit_video(user_id, request_id, video_id, title, trim, crop, auth_token, video_url, upload_url, new_video_id, country)
-            logging.info(f'response from edit_video async: {res}')
+            logging.debug(f'response from edit_video async: {res}')
     except Exception as e:
         logging.error(e)
-    logging.info('Message processed: {}'.format(message))
+    logging.debug('Message processed: {}'.format(message))
 
 
 def pull_messages():
     try:
         subscriber, subscription_path = get_subscriber()
         while True:
-            logging.info("pulling messages")
             res = subscriber.pull(subscription=subscription_path, max_messages=1)
             if res.received_messages:
                 for received_message in res.received_messages:
