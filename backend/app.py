@@ -10,14 +10,14 @@ import tempfile
 from flask_cors import CORS
 import ffmpeg
 import threading
+from googleapiclient.discovery import build
 from pubsub import publish_message, get_subscriber
 from redis_wrapper  import RedisWrapper
 from bigquery import send_stat_to_bq, VIDEO_EDIT_PROCESSED, VIDEO_EDIT_REQUEST, VIDEO_DELETED
 from uuid import uuid4
-from constants import VIDEO_PORTAL_HOST, ALLOWED_ORIGINS, FE_HOST, API_KEY, CLIENT_ID, CLIENT_ID_HOST, CLIENT_SECRET
 from utils import send_response
-from uuid import uuid4
-from googleapiclient.discovery import build
+from constants import VIDEO_PORTAL_HOST, ALLOWED_ORIGINS, FE_HOST
+from credentials import YOUTUBE_API_KEY, OAUTH_CLIENT_ID, OAUTH_CLIENT_ID_HOST, OAUTH_CLIENT_SECRET
 
 
 app = Flask(__name__)
@@ -221,13 +221,13 @@ def oauth2callback():
     logging.debug(f'redirect_uri: {redirect_uri}')
     video_id = request.args.get('state')
     if 'code' not in request.args:
-        auth_uri = f'https://accounts.google.com/o/oauth2/v2/auth?scope={scope}&include_granted_scopes=true&state={video_id}&redirect_uri={redirect_uri}&response_type=code&client_id={CLIENT_ID}'
+        auth_uri = f'https://accounts.google.com/o/oauth2/v2/auth?scope={scope}&include_granted_scopes=true&state={video_id}&redirect_uri={redirect_uri}&response_type=code&client_id={OAUTH_CLIENT_ID}'
         return redirect(auth_uri)
     code = request.args.get('code')
     params = {
         'code': code,
-        'client_id': CLIENT_ID_HOST,
-        'client_secret': CLIENT_SECRET,
+        'client_id': OAUTH_CLIENT_ID_HOST,
+        'client_secret': OAUTH_CLIENT_SECRET,
         'redirect_uri': redirect_uri,
         'grant_type': 'authorization_code'
     }
@@ -265,7 +265,7 @@ def youtube_upload():
         except Exception as e:
             logging.error(e)
         
-        youtube = build('youtube', 'v3', developerKey=API_KEY)
+        youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
         youtube_request = youtube.videos().insert(
             part="snippet,status",
             body={
