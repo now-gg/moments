@@ -252,10 +252,13 @@ def youtube_upload():
         authorization = request.headers.get('Authorization')
         filename = 'static/' + video_id + '.mp4'
 
-        if 'yt_access_token' not in session:
-            return 'Access token not found', 401
-        yt_access_token = session['yt_access_token']
-        return f'youtube upload request for {video_id} with token {yt_access_token}', 200
+        try:
+            logging.info(f'upload request with {session["yt_access_token"]}')
+        except Exception as e:
+            logging.error(e)
+            return send_response({"message": "Unauthorized"}, 401)
+        
+        return send_response({"message": "Intercepted"}, 400)
 
         logging.info(f'youtube upload request for {video_id}')
 
