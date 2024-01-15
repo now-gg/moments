@@ -16,12 +16,12 @@ from redis_wrapper  import RedisWrapper
 from bigquery import send_stat_to_bq, VIDEO_EDIT_PROCESSED, VIDEO_EDIT_REQUEST, VIDEO_DELETED
 from uuid import uuid4
 from utils import send_response
-from constants import VIDEO_PORTAL_HOST, ALLOWED_ORIGINS, FE_HOST
+from constants import VIDEO_PORTAL_HOST, ALLOWED_ORIGINS, FE_HOST, APP_SECRET_KEY
 from credentials import YOUTUBE_API_KEY, OAUTH_CLIENT_ID, OAUTH_CLIENT_ID_HOST, OAUTH_CLIENT_SECRET
 
 
 app = Flask(__name__)
-app.secret_key = str(uuid4())
+app.secret_key = APP_SECRET_KEY
 CORS(app, origins=ALLOWED_ORIGINS, methods=['GET','POST'], allow_headers=['Content-Type', 'Authorization', 'token'])
 
 client = google.cloud.logging.Client()
@@ -235,10 +235,9 @@ def oauth2callback():
     if res.status_code != 200:
         return 'Error while fetching access token', res.status_code
     yt_access_token = res.json()['access_token']
+    session['yt_access_token'] = yt_access_token
     page_url = f'{FE_HOST}/video/edit?videoId=' + video_id + '&ytAccessToken=' + yt_access_token
-    response = make_response(redirect(page_url))
-    response.set_cookie('yt_access_token', yt_access_token)
-    return response
+    return redirect(page_url)
 
 
 @app.route('/video/youtube-upload', methods=['POST'])
@@ -252,6 +251,11 @@ def youtube_upload():
         privacy = body.get('privacy_status', 'private')
         authorization = request.headers.get('Authorization')
         filename = 'static/' + video_id + '.mp4'
+
+        if 'yt_access_token' not in session:
+            return 'Access token not found', 401
+        yt_access_token = session['yt_access_token']
+        return f'youtube upload request for {video_id} with token {yt_access_token}', 200
 
         logging.info(f'youtube upload request for {video_id}')
 
