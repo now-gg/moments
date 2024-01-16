@@ -18,6 +18,7 @@ from uuid import uuid4
 from utils import send_response
 from constants import VIDEO_PORTAL_HOST, ALLOWED_ORIGINS, FE_HOST, APP_SECRET_KEY
 from credentials import YOUTUBE_API_KEY, OAUTH_CLIENT_ID, OAUTH_CLIENT_ID_HOST, OAUTH_CLIENT_SECRET
+from flask_session import Session
 
 
 app = Flask(__name__)
@@ -28,6 +29,13 @@ client = google.cloud.logging.Client()
 client.setup_logging()
 
 redis_client = RedisWrapper()
+
+app.config['SESSION_TYPE'] = 'redis'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_REDIS'] = redis_client.get_client()
+
+server_session = Session(app)
 
 logging.info(f'env is {os.environ.get("ENVIRONMENT")}')
 

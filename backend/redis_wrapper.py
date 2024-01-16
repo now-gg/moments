@@ -14,3 +14,6 @@ class RedisWrapper:
     def delete(self, key):
         return self.redis.delete(key)
     
+    def get_client(self):
+        return self.redis
+    
