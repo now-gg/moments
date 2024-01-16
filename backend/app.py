@@ -224,28 +224,32 @@ def status():
 
 @app.route('/oauth2callback/youtube')
 def oauth2callback():
-    redirect_uri = f'https://{request.host}/oauth2callback/youtube'
-    scope = 'https://www.googleapis.com/auth/youtube.upload'
-    logging.debug(f'redirect_uri: {redirect_uri}')
-    video_id = request.args.get('state')
-    if 'code' not in request.args:
-        auth_uri = f'https://accounts.google.com/o/oauth2/v2/auth?scope={scope}&include_granted_scopes=true&state={video_id}&redirect_uri={redirect_uri}&response_type=code&client_id={OAUTH_CLIENT_ID}'
-        return redirect(auth_uri)
-    code = request.args.get('code')
-    params = {
-        'code': code,
-        'client_id': OAUTH_CLIENT_ID_HOST,
-        'client_secret': OAUTH_CLIENT_SECRET,
-        'redirect_uri': redirect_uri,
-        'grant_type': 'authorization_code'
-    }
-    res = requests.post('https://oauth2.googleapis.com/token', params=params)
-    if res.status_code != 200:
-        return 'Error while fetching access token', res.status_code
-    yt_access_token = res.json()['access_token']
-    session['yt_access_token'] = yt_access_token
-    page_url = f'{FE_HOST}/video/edit?videoId=' + video_id + '&ytAccessToken=' + yt_access_token
-    return redirect(page_url)
+    try:
+        redirect_uri = f'https://{request.host}/oauth2callback/youtube'
+        scope = 'https://www.googleapis.com/auth/youtube.upload'
+        logging.debug(f'redirect_uri: {redirect_uri}')
+        video_id = request.args.get('state')
+        if 'code' not in request.args:
+            auth_uri = f'https://accounts.google.com/o/oauth2/v2/auth?scope={scope}&include_granted_scopes=true&state={video_id}&redirect_uri={redirect_uri}&response_type=code&client_id={OAUTH_CLIENT_ID}'
+            return redirect(auth_uri)
+        code = request.args.get('code')
+        params = {
+            'code': code,
+            'client_id': OAUTH_CLIENT_ID_HOST,
+            'client_secret': OAUTH_CLIENT_SECRET,
+            'redirect_uri': redirect_uri,
+            'grant_type': 'authorization_code'
+        }
+        res = requests.post('https://oauth2.googleapis.com/token', params=params)
+        if res.status_code != 200:
+            return 'Error while fetching access token', res.status_code
+        yt_access_token = res.json()['access_token']
+        session['yt_access_token'] = yt_access_token
+        page_url = f'{FE_HOST}/video/edit?videoId=' + video_id + '&ytAccessToken=' + yt_access_token
+        return redirect(page_url)
+    except Exception as e:
+        logging.error(e)
+        return 'Something went wrong', 500
 
 
 @app.route('/video/youtube-upload', methods=['POST'])
