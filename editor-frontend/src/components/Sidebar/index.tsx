@@ -2,8 +2,9 @@ import { MouseEventHandler, ReactNode, useEffect, useState } from 'react'
 import { IconTiktok, IconYoutube } from '../../assets/icons';
 import { YOUTUBE_AUTH_URL, uploadToYoutube } from '../../youtube';
 import EditingOverlay from '../EditingOverlay';
+import { toast } from 'react-hot-toast';
 
-const Sidebar = ({videoInfo}: {videoInfo: any}) => {
+const Sidebar = ({videoInfo, videoAspectRatio}: {videoInfo: any, videoAspectRatio: number}) => {
 
   const [uploadLoader, setUploadLoader] = useState(false);
   const [ytAccessToken, setYtAccessToken] = useState('');
@@ -18,6 +19,18 @@ const Sidebar = ({videoInfo}: {videoInfo: any}) => {
 
   const youtubeLogin = () => {
     window.location.href = YOUTUBE_AUTH_URL + "?state=" + videoInfo?.videoId;
+  }
+
+  const handleYoutubeShortClick = () => {
+    if(videoInfo?.durationSecs >= 60) {
+      toast.error("Video duration should be less than 60 seconds for Youtube Shorts");
+      return;
+    }
+    if(videoAspectRatio >= 1) {
+      toast.error("Video needs to be in portrait mode for Youtube Shorts");
+      return;
+    }
+    handleYoutubeClick(true);
   }
 
   useEffect(() => {
@@ -38,7 +51,7 @@ const Sidebar = ({videoInfo}: {videoInfo: any}) => {
       <SidebarButton onClick={() => handleYoutubeClick()}>
         <IconYoutube /> Upload to Youtube
       </SidebarButton>
-      <SidebarButton onClick={() => handleYoutubeClick(true)}>
+      <SidebarButton onClick={handleYoutubeShortClick}>
         <IconYoutube /> Upload to Youtube Shorts
       </SidebarButton>
       <SidebarButton onClick={() => {}}>

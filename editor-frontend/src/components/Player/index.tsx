@@ -12,9 +12,11 @@ type PlayerProps = {
   title: string;
   setTitle: React.Dispatch<React.SetStateAction<string>>;
   userData: any;
+  videoAspectRatio: number;
+  setVideoAspectRatio: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const Player = ({ loggedIn, videoInfo, setVideoInfo, title, setTitle, userData }: PlayerProps) => {
+const Player = ({ loggedIn, videoInfo, setVideoInfo, title, setTitle, userData, videoAspectRatio, setVideoAspectRatio }: PlayerProps) => {
   const [endTime, setEndTime] = useState(document.querySelector('video')?.duration || 0);
   const [startTime, setStartTime] = useState(0);
   const ref = React.useRef() as React.MutableRefObject<StreamPlayerApi | undefined>;
@@ -29,7 +31,6 @@ const Player = ({ loggedIn, videoInfo, setVideoInfo, title, setTitle, userData }
   const [aspectRatio, setAspectRatio] = useState("");
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [isCropActive, setIsCropActive] = useState(false)
-  const [videoAspectRatio, setVideoAspectRatio] = useState(16/9);
   const [cropperWidth, setCropperWidth] = useState(0);
   const [cropperHeight, setCropperHeight] = useState(0);
 
